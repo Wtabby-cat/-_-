@@ -58,6 +58,7 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+uint32_t pc13_blink_tick = 0U;
 
 /* USER CODE END PV */
 
@@ -77,11 +78,32 @@ static void MX_COMP5_Init(void);
 static void MX_COMP6_Init(void);
 static void MX_DAC4_Init(void);
 /* USER CODE BEGIN PFP */
+static void StartPowerStagePwm(void);
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+/* STM32G474 comparator positive inputs are fixed to dedicated pins.
+ * PA0 can feed COMP3 only, and PA1 cannot be used by COMP5/COMP6 directly.
+ */
+
+static void StartPowerStagePwm(void)
+{
+  if (HAL_HRTIM_WaveformOutputStart(&hhrtim1,
+                                    HRTIM_OUTPUT_TA1 | HRTIM_OUTPUT_TA2 |
+                                    HRTIM_OUTPUT_TB1 | HRTIM_OUTPUT_TB2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  if (HAL_HRTIM_WaveformCountStart(&hhrtim1,
+                                   HRTIM_TIMERID_TIMER_A | HRTIM_TIMERID_TIMER_B) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
 
 /* USER CODE END 0 */
 
@@ -127,6 +149,14 @@ int main(void)
   MX_COMP6_Init();
   MX_DAC4_Init();
   /* USER CODE BEGIN 2 */
+  HAL_GPIO_WritePin(PWM_EN_N_GPIO_Port, PWM_EN_N_Pin, GPIO_PIN_SET);
+
+  HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
+  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, 3475);
+  HAL_COMP_Start(&hcomp2);
+
+  StartPowerStagePwm();
+  pc13_blink_tick = HAL_GetTick();
 
   /* USER CODE END 2 */
 
@@ -137,6 +167,11 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    if ((HAL_GetTick() - pc13_blink_tick) >= 500U)
+    {
+      pc13_blink_tick = HAL_GetTick();
+      HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+    }
   }
   /* USER CODE END 3 */
 }
@@ -623,7 +658,7 @@ static void MX_HRTIM1_Init(void)
   {
     Error_Handler();
   }
-  pFaultCfg.Source = HRTIM_FAULTSOURCE_INTERNAL;
+  pFaultCfg.Source = HRTIM_FAULTSOURCE_DIGITALINPUT;
   pFaultCfg.Polarity = HRTIM_FAULTPOLARITY_HIGH;
   pFaultCfg.Filter = HRTIM_FAULTFILTER_2;
   pFaultCfg.Lock = HRTIM_FAULTLOCK_READWRITE;
@@ -631,6 +666,8 @@ static void MX_HRTIM1_Init(void)
   {
     Error_Handler();
   }
+  /* FLT1SRC[1:0] = 10 → COMP2 as internal fault source */
+  hhrtim1.Instance->sCommonRegs.FLTINR2 |= HRTIM_FLTINR2_FLT1SRC_1;
   pFaultBlkCfg.Threshold = 0;
   pFaultBlkCfg.ResetMode = HRTIM_FAULTCOUNTERRST_UNCONDITIONAL;
   pFaultBlkCfg.BlankingSource = HRTIM_FAULTBLANKINGMODE_RSTALIGNED;
@@ -658,7 +695,7 @@ static void MX_HRTIM1_Init(void)
   HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_2, HRTIM_FAULTMODECTL_ENABLED);
   pTimeBaseCfg.Period = 0xFFDF;
   pTimeBaseCfg.RepetitionCounter = 0x00;
-  pTimeBaseCfg.PrescalerRatio = HRTIM_PRESCALERRATIO_MUL32;
+  pTimeBaseCfg.PrescalerRatio = HRTIM_PRESCALERRATIO_MUL4;
   pTimeBaseCfg.Mode = HRTIM_MODE_CONTINUOUS;
   if (HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_MASTER, &pTimeBaseCfg) != HAL_OK)
   {
@@ -683,7 +720,9 @@ static void MX_HRTIM1_Init(void)
   {
     Error_Handler();
   }
-  pTimeBaseCfg.Period = 54400;
+
+  pTimeBaseCfg.Period = 33830;
+  pTimeBaseCfg.PrescalerRatio = HRTIM_PRESCALERRATIO_MUL4;
   if (HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_A, &pTimeBaseCfg) != HAL_OK)
   {
     Error_Handler();
@@ -697,9 +736,9 @@ static void MX_HRTIM1_Init(void)
   }
   pTimerCfg.InterruptRequests = HRTIM_TIM_IT_NONE;
   pTimerCfg.DMARequests = HRTIM_TIM_DMA_NONE;
-  pTimerCfg.PreloadEnable = HRTIM_PRELOAD_ENABLED;
+  pTimerCfg.PreloadEnable = HRTIM_PRELOAD_DISABLED;
   pTimerCfg.PushPull = HRTIM_TIMPUSHPULLMODE_DISABLED;
-  pTimerCfg.FaultEnable = HRTIM_TIMFAULTENABLE_FAULT1|HRTIM_TIMFAULTENABLE_FAULT2;
+  pTimerCfg.FaultEnable = HRTIM_TIMFAULTENABLE_FAULT1;
   pTimerCfg.FaultLock = HRTIM_TIMFAULTLOCK_READWRITE;
   pTimerCfg.DeadTimeInsertion = HRTIM_TIMDEADTIMEINSERTION_ENABLED;
   pTimerCfg.DelayedProtectionMode = HRTIM_TIMER_A_B_C_DELAYEDPROTECTION_DISABLED;
@@ -710,21 +749,19 @@ static void MX_HRTIM1_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_HRTIM_WaveformTimerConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_B, &pTimerCfg) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  pCompareCfg.CompareValue = 27200;
+
+  pCompareCfg.CompareValue = 16915;
   if (HAL_HRTIM_WaveformCompareConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_A, HRTIM_COMPAREUNIT_1, &pCompareCfg) != HAL_OK)
   {
     Error_Handler();
   }
+
   pDeadTimeCfg.Prescaler = HRTIM_TIMDEADTIME_PRESCALERRATIO_MUL8;
-  pDeadTimeCfg.RisingValue = 400;
+  pDeadTimeCfg.RisingValue = 40;
   pDeadTimeCfg.RisingSign = HRTIM_TIMDEADTIME_RISINGSIGN_POSITIVE;
   pDeadTimeCfg.RisingLock = HRTIM_TIMDEADTIME_RISINGLOCK_WRITE;
   pDeadTimeCfg.RisingSignLock = HRTIM_TIMDEADTIME_RISINGSIGNLOCK_WRITE;
-  pDeadTimeCfg.FallingValue = 400;
+  pDeadTimeCfg.FallingValue = 40;
   pDeadTimeCfg.FallingSign = HRTIM_TIMDEADTIME_FALLINGSIGN_POSITIVE;
   pDeadTimeCfg.FallingLock = HRTIM_TIMDEADTIME_FALLINGLOCK_WRITE;
   pDeadTimeCfg.FallingSignLock = HRTIM_TIMDEADTIME_FALLINGSIGNLOCK_WRITE;
@@ -732,10 +769,7 @@ static void MX_HRTIM1_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_HRTIM_DeadTimeConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_B, &pDeadTimeCfg) != HAL_OK)
-  {
-    Error_Handler();
-  }
+
   pOutputCfg.Polarity = HRTIM_OUTPUTPOLARITY_HIGH;
   pOutputCfg.SetSource = HRTIM_OUTPUTSET_TIMPER;
   pOutputCfg.ResetSource = HRTIM_OUTPUTRESET_TIMCMP1;
@@ -748,22 +782,14 @@ static void MX_HRTIM1_Init(void)
   {
     Error_Handler();
   }
-  pOutputCfg.SetSource = HRTIM_OUTPUTSET_TIMCMP1;
-  pOutputCfg.ResetSource = HRTIM_OUTPUTRESET_TIMCMP2;
-  if (HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_B, HRTIM_OUTPUT_TB1, &pOutputCfg) != HAL_OK)
-  {
-    Error_Handler();
-  }
+
   pOutputCfg.SetSource = HRTIM_OUTPUTSET_NONE;
   pOutputCfg.ResetSource = HRTIM_OUTPUTRESET_NONE;
   if (HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_A, HRTIM_OUTPUT_TA2, &pOutputCfg) != HAL_OK)
   {
     Error_Handler();
   }
-  if (HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_B, HRTIM_OUTPUT_TB2, &pOutputCfg) != HAL_OK)
-  {
-    Error_Handler();
-  }
+
   if (HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_B, &pTimeBaseCfg) != HAL_OK)
   {
     Error_Handler();
@@ -773,15 +799,32 @@ static void MX_HRTIM1_Init(void)
   {
     Error_Handler();
   }
+
+  if (HAL_HRTIM_WaveformTimerConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_B, &pTimerCfg) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
   if (HAL_HRTIM_WaveformCompareConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_B, HRTIM_COMPAREUNIT_1, &pCompareCfg) != HAL_OK)
   {
     Error_Handler();
   }
-  pCompareCfg.CompareValue = 54400;
-  pCompareCfg.AutoDelayedMode = HRTIM_AUTODELAYEDMODE_REGULAR;
-  pCompareCfg.AutoDelayedTimeout = 0x0000;
 
-  if (HAL_HRTIM_WaveformCompareConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_B, HRTIM_COMPAREUNIT_2, &pCompareCfg) != HAL_OK)
+  if (HAL_HRTIM_DeadTimeConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_B, &pDeadTimeCfg) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  pOutputCfg.SetSource = HRTIM_OUTPUTSET_TIMCMP1;
+  pOutputCfg.ResetSource = HRTIM_OUTPUTRESET_TIMPER;
+  if (HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_B, HRTIM_OUTPUT_TB1, &pOutputCfg) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  pOutputCfg.SetSource = HRTIM_OUTPUTSET_NONE;
+  pOutputCfg.ResetSource = HRTIM_OUTPUTRESET_NONE;
+  if (HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_B, HRTIM_OUTPUT_TB2, &pOutputCfg) != HAL_OK)
   {
     Error_Handler();
   }
@@ -926,16 +969,24 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(RELAY_CTRL_GPIO_Port, RELAY_CTRL_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(PWM_CTRL_GPIO_Port, PWM_CTRL_Pin, GPIO_PIN_SET);
+  /* PWM enable is active low, keep it disabled after reset. */
+  HAL_GPIO_WritePin(PWM_EN_N_GPIO_Port, PWM_EN_N_Pin, GPIO_PIN_SET);
 
-  /*Configure GPIO pins : RELAY_CTRL_Pin PWM_CTRL_Pin */
-  GPIO_InitStruct.Pin = RELAY_CTRL_Pin|PWM_CTRL_Pin;
+  /*Configure GPIO pins : RELAY_CTRL_Pin PWM_EN_N_Pin */
+  GPIO_InitStruct.Pin = RELAY_CTRL_Pin|PWM_EN_N_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+
+  GPIO_InitStruct.Pin = GPIO_PIN_13;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /* USER CODE END MX_GPIO_Init_2 */
 }

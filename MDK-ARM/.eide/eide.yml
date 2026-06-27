@@ -1,8 +1,8 @@
 version: "4.1"
 name: IH_incomp
 type: ARM
-deviceName: null
-packDir: null
+deviceName: STM32G474RETx
+packDir: .pack/Keil/STM32G4xx_DFP_Revised.1.1.0
 srcDirs: []
 virtualFolder:
   name: <virtual_root>
@@ -67,6 +67,7 @@ targets:
         - USE_HAL_DRIVER
         - STM32G474xx
       incList:
+        - .
         - ../Core/Inc
         - ../Drivers/STM32G4xx_HAL_Driver/Inc
         - ../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy
@@ -192,7 +193,12 @@ targets:
         otherCmds: ""
         proType: 1
         speed: 8000
-    uploader: JLink
+      OpenOCD:
+        baseAddr: "0x08000000"
+        bin: ""
+        interface: stlink
+        target: stm32g4x
+    uploader: OpenOCD
   电磁感应加热:
     cppPreprocessAttrs:
       defineList:

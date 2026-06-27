@@ -59,22 +59,22 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define LC_V_Pin GPIO_PIN_0
-#define LC_V_GPIO_Port GPIOA
-#define LC_A_Pin GPIO_PIN_1
-#define LC_A_GPIO_Port GPIOA
+#define TANK_CURR_Pin GPIO_PIN_0
+#define TANK_CURR_GPIO_Port GPIOA
+#define TANK_VOLT_Pin GPIO_PIN_1
+#define TANK_VOLT_GPIO_Port GPIOA
 #define RELAY_CTRL_Pin GPIO_PIN_0
 #define RELAY_CTRL_GPIO_Port GPIOB
-#define PWM_CTRL_Pin GPIO_PIN_1
-#define PWM_CTRL_GPIO_Port GPIOB
-#define PWM1_Pin GPIO_PIN_8
-#define PWM1_GPIO_Port GPIOA
-#define PWM3_Pin GPIO_PIN_9
-#define PWM3_GPIO_Port GPIOA
-#define PWM2_Pin GPIO_PIN_10
-#define PWM2_GPIO_Port GPIOA
-#define PWM4_Pin GPIO_PIN_11
-#define PWM4_GPIO_Port GPIOA
+#define PWM_EN_N_Pin GPIO_PIN_1
+#define PWM_EN_N_GPIO_Port GPIOB
+#define LEFT_HIGH_Pin GPIO_PIN_8
+#define LEFT_HIGH_GPIO_Port GPIOA
+#define LEFT_LOW_Pin GPIO_PIN_9
+#define LEFT_LOW_GPIO_Port GPIOA
+#define RIGHT_HIGH_Pin GPIO_PIN_10
+#define RIGHT_HIGH_GPIO_Port GPIOA
+#define RIGHT_LOW_Pin GPIO_PIN_11
+#define RIGHT_LOW_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
 
