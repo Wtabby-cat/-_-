@@ -31,6 +31,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define POWER_STAGE_HRTIM_OUTPUTS        (HRTIM_OUTPUT_TA1 | HRTIM_OUTPUT_TA2 | HRTIM_OUTPUT_TB1 | HRTIM_OUTPUT_TB2)
+#define POWER_STAGE_HRTIM_TIMERS         (HRTIM_TIMERID_TIMER_A | HRTIM_TIMERID_TIMER_B)
 
 /* USER CODE END PD */
 
@@ -91,15 +93,12 @@ static void StartPowerStagePwm(void);
 
 static void StartPowerStagePwm(void)
 {
-  if (HAL_HRTIM_WaveformOutputStart(&hhrtim1,
-                                    HRTIM_OUTPUT_TA1 | HRTIM_OUTPUT_TA2 |
-                                    HRTIM_OUTPUT_TB1 | HRTIM_OUTPUT_TB2) != HAL_OK)
+  if (HAL_HRTIM_WaveformOutputStart(&hhrtim1, POWER_STAGE_HRTIM_OUTPUTS) != HAL_OK)
   {
     Error_Handler();
   }
 
-  if (HAL_HRTIM_WaveformCountStart(&hhrtim1,
-                                   HRTIM_TIMERID_TIMER_A | HRTIM_TIMERID_TIMER_B) != HAL_OK)
+  if (HAL_HRTIM_WaveformCountStart(&hhrtim1, POWER_STAGE_HRTIM_TIMERS) != HAL_OK)
   {
     Error_Handler();
   }
@@ -150,10 +149,6 @@ int main(void)
   MX_DAC4_Init();
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(PWM_EN_N_GPIO_Port, PWM_EN_N_Pin, GPIO_PIN_SET);
-
-  HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
-  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, 3475);
-  HAL_COMP_Start(&hcomp2);
 
   StartPowerStagePwm();
   pc13_blink_tick = HAL_GetTick();
@@ -627,8 +622,6 @@ static void MX_HRTIM1_Init(void)
 
   /* USER CODE END HRTIM1_Init 0 */
 
-  HRTIM_FaultCfgTypeDef pFaultCfg = {0};
-  HRTIM_FaultBlankingCfgTypeDef pFaultBlkCfg = {0};
   HRTIM_TimeBaseCfgTypeDef pTimeBaseCfg = {0};
   HRTIM_TimerCfgTypeDef pTimerCfg = {0};
   HRTIM_TimerCtlTypeDef pTimerCtl = {0};
@@ -654,45 +647,6 @@ static void MX_HRTIM1_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_HRTIM_FaultPrescalerConfig(&hhrtim1, HRTIM_FAULTPRESCALER_DIV1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  pFaultCfg.Source = HRTIM_FAULTSOURCE_DIGITALINPUT;
-  pFaultCfg.Polarity = HRTIM_FAULTPOLARITY_HIGH;
-  pFaultCfg.Filter = HRTIM_FAULTFILTER_2;
-  pFaultCfg.Lock = HRTIM_FAULTLOCK_READWRITE;
-  if (HAL_HRTIM_FaultConfig(&hhrtim1, HRTIM_FAULT_1, &pFaultCfg) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* FLT1SRC[1:0] = 10 → COMP2 as internal fault source */
-  hhrtim1.Instance->sCommonRegs.FLTINR2 |= HRTIM_FLTINR2_FLT1SRC_1;
-  pFaultBlkCfg.Threshold = 0;
-  pFaultBlkCfg.ResetMode = HRTIM_FAULTCOUNTERRST_UNCONDITIONAL;
-  pFaultBlkCfg.BlankingSource = HRTIM_FAULTBLANKINGMODE_RSTALIGNED;
-  if (HAL_HRTIM_FaultCounterConfig(&hhrtim1, HRTIM_FAULT_1, &pFaultBlkCfg) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_HRTIM_FaultBlankingConfigAndEnable(&hhrtim1, HRTIM_FAULT_1, &pFaultBlkCfg) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_ENABLED);
-  if (HAL_HRTIM_FaultCounterConfig(&hhrtim1, HRTIM_FAULT_2, &pFaultBlkCfg) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_HRTIM_FaultBlankingConfigAndEnable(&hhrtim1, HRTIM_FAULT_2, &pFaultBlkCfg) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_HRTIM_FaultConfig(&hhrtim1, HRTIM_FAULT_2, &pFaultCfg) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_2, HRTIM_FAULTMODECTL_ENABLED);
   pTimeBaseCfg.Period = 0xFFDF;
   pTimeBaseCfg.RepetitionCounter = 0x00;
   pTimeBaseCfg.PrescalerRatio = HRTIM_PRESCALERRATIO_MUL4;
@@ -738,7 +692,7 @@ static void MX_HRTIM1_Init(void)
   pTimerCfg.DMARequests = HRTIM_TIM_DMA_NONE;
   pTimerCfg.PreloadEnable = HRTIM_PRELOAD_DISABLED;
   pTimerCfg.PushPull = HRTIM_TIMPUSHPULLMODE_DISABLED;
-  pTimerCfg.FaultEnable = HRTIM_TIMFAULTENABLE_FAULT1;
+  pTimerCfg.FaultEnable = HRTIM_TIMFAULTENABLE_NONE;
   pTimerCfg.FaultLock = HRTIM_TIMFAULTLOCK_READWRITE;
   pTimerCfg.DeadTimeInsertion = HRTIM_TIMDEADTIMEINSERTION_ENABLED;
   pTimerCfg.DelayedProtectionMode = HRTIM_TIMER_A_B_C_DELAYEDPROTECTION_DISABLED;
