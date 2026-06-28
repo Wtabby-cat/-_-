@@ -32,6 +32,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define BUS_OVERVOLT_DAC_CODE            2598U
+#define RESONANT_OVERCURRENT_DAC_CODE    2853U  /* PB11(COMP6+) measured calibration: 2482 -> 1.74 V, so 2853 -> about 2.00 V */
 #define POWER_STAGE_HRTIM_OUTPUTS        (HRTIM_OUTPUT_TA1 | HRTIM_OUTPUT_TA2 | HRTIM_OUTPUT_TB1 | HRTIM_OUTPUT_TB2)
 #define POWER_STAGE_HRTIM_TIMERS         (HRTIM_TIMERID_TIMER_A | HRTIM_TIMERID_TIMER_B)
 
@@ -83,7 +84,7 @@ static void MX_COMP6_Init(void);
 static void MX_DAC4_Init(void);
 /* USER CODE BEGIN PFP */
 static void StartPowerStagePwm(void);
-static void UpdateBusOvervoltageProtection(void);
+static void UpdatePowerStageProtection(void);
 
 /* USER CODE END PFP */
 
@@ -107,7 +108,7 @@ static void StartPowerStagePwm(void)
   }
 }
 
-static void UpdateBusOvervoltageProtection(void)
+static void UpdatePowerStageProtection(void)
 {
   if (HAL_COMP_GetOutputLevel(&hcomp2) != COMP_OUTPUT_LEVEL_LOW)
   {
@@ -126,6 +127,9 @@ static void UpdateBusOvervoltageProtection(void)
     HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_ENABLED);
     bus_overvoltage_protection_armed = 1U;
   }
+
+  /* FAULT3 over-current protection (COMP6 internal source): re-arm if fault cleared */
+  hhrtim1.Instance->sCommonRegs.ICR = HRTIM_ICR_FLT3C;
 }
 
 /* USER CODE END 0 */
@@ -175,12 +179,18 @@ int main(void)
   HAL_GPIO_WritePin(PWM_EN_N_GPIO_Port, PWM_EN_N_Pin, GPIO_PIN_SET);
 
   HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, BUS_OVERVOLT_DAC_CODE);
+  HAL_DAC_SetValue(&hdac4, DAC_CHANNEL_2, DAC_ALIGN_12B_R, RESONANT_OVERCURRENT_DAC_CODE);
   HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
+  HAL_DAC_Start(&hdac4, DAC_CHANNEL_2);
   HAL_Delay(1);
   HAL_COMP_Start(&hcomp2);
+  HAL_COMP_Start(&hcomp6);
   HAL_Delay(1);
+  /* FAULT3: over-current protection (COMP6 internal source), armed immediately */
+  hhrtim1.Instance->sCommonRegs.ICR = HRTIM_ICR_FLT3C;
+  HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_3, HRTIM_FAULTMODECTL_ENABLED);
 
-  UpdateBusOvervoltageProtection();
+  UpdatePowerStageProtection();
   StartPowerStagePwm();
   pc13_blink_tick = HAL_GetTick();
 
@@ -193,7 +203,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    UpdateBusOvervoltageProtection();
+    UpdatePowerStageProtection();
 
     if ((HAL_GetTick() - pc13_blink_tick) >= 500U)
     {
@@ -522,7 +532,7 @@ static void MX_COMP6_Init(void)
   hcomp6.Init.InputPlus = COMP_INPUT_PLUS_IO1;
   hcomp6.Init.InputMinus = COMP_INPUT_MINUS_DAC4_CH2;
   hcomp6.Init.OutputPol = COMP_OUTPUTPOL_NONINVERTED;
-  hcomp6.Init.Hysteresis = COMP_HYSTERESIS_NONE;
+  hcomp6.Init.Hysteresis = COMP_HYSTERESIS_40MV;
   hcomp6.Init.BlankingSrce = COMP_BLANKINGSRC_NONE;
   hcomp6.Init.TriggerMode = COMP_TRIGGERMODE_NONE;
   if (HAL_COMP_Init(&hcomp6) != HAL_OK)
@@ -725,7 +735,7 @@ static void MX_HRTIM1_Init(void)
   pTimerCfg.DMARequests = HRTIM_TIM_DMA_NONE;
   pTimerCfg.PreloadEnable = HRTIM_PRELOAD_DISABLED;
   pTimerCfg.PushPull = HRTIM_TIMPUSHPULLMODE_DISABLED;
-  pTimerCfg.FaultEnable = HRTIM_TIMFAULTENABLE_FAULT1;
+  pTimerCfg.FaultEnable = HRTIM_TIMFAULTENABLE_FAULT1 | HRTIM_TIMFAULTENABLE_FAULT3;
   pTimerCfg.FaultLock = HRTIM_TIMFAULTLOCK_READWRITE;
   pTimerCfg.DeadTimeInsertion = HRTIM_TIMDEADTIMEINSERTION_ENABLED;
   pTimerCfg.DelayedProtectionMode = HRTIM_TIMER_A_B_C_DELAYEDPROTECTION_DISABLED;
@@ -819,11 +829,12 @@ static void MX_HRTIM1_Init(void)
   {
     HRTIM_FaultCfgTypeDef pFaultCfg = {0};
 
-    if (HAL_HRTIM_FaultPrescalerConfig(&hhrtim1, HRTIM_FAULTPRESCALER_DIV8) != HAL_OK)
+    if (HAL_HRTIM_FaultPrescalerConfig(&hhrtim1, HRTIM_FAULTPRESCALER_DIV1) != HAL_OK)
     {
       Error_Handler();
     }
 
+    /* FAULT1: over-voltage protection (COMP2, internal source, calibrated threshold) */
     pFaultCfg.Source = HRTIM_FAULTSOURCE_INTERNAL;
     pFaultCfg.Polarity = HRTIM_FAULTPOLARITY_HIGH;
     pFaultCfg.Filter = HRTIM_FAULTFILTER_15;
@@ -832,7 +843,21 @@ static void MX_HRTIM1_Init(void)
     {
       Error_Handler();
     }
+
+    /* FAULT3: over-current protection (COMP6 internal source, no EEV, fastest response) */
+    pFaultCfg.Source = HRTIM_FAULTSOURCE_INTERNAL;
+    pFaultCfg.Polarity = HRTIM_FAULTPOLARITY_HIGH;
+    pFaultCfg.Filter = 0U;  /* no digital filter for 20-40 kHz sine-current protection */
+    pFaultCfg.Lock = HRTIM_FAULTLOCK_READWRITE;
+    if (HAL_HRTIM_FaultConfig(&hhrtim1, HRTIM_FAULT_3, &pFaultCfg) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    /* FAULT1 disabled initially (armed via UpdatePowerStageProtection after COMP2 check) */
     HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_DISABLED);
+    /* FAULT3 disabled initially (armed in main() after COMP6 startup) */
+    HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_3, HRTIM_FAULTMODECTL_DISABLED);
   }
 
   /* USER CODE END HRTIM1_Init 2 */
