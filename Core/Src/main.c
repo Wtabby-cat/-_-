@@ -62,6 +62,7 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 uint32_t pc13_blink_tick = 0U;
+uint8_t bus_overvoltage_protection_armed = 0U;
 
 /* USER CODE END PV */
 
@@ -82,7 +83,7 @@ static void MX_COMP6_Init(void);
 static void MX_DAC4_Init(void);
 /* USER CODE BEGIN PFP */
 static void StartPowerStagePwm(void);
-static void EnablePowerStageProtection(void);
+static void UpdateBusOvervoltageProtection(void);
 
 /* USER CODE END PFP */
 
@@ -106,10 +107,25 @@ static void StartPowerStagePwm(void)
   }
 }
 
-static void EnablePowerStageProtection(void)
+static void UpdateBusOvervoltageProtection(void)
 {
+  if (HAL_COMP_GetOutputLevel(&hcomp2) != COMP_OUTPUT_LEVEL_LOW)
+  {
+    if (bus_overvoltage_protection_armed == 0U)
+    {
+      HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_DISABLED);
+      hhrtim1.Instance->sCommonRegs.ICR = HRTIM_ICR_FLT1C;
+    }
+    return;
+  }
+
   hhrtim1.Instance->sCommonRegs.ICR = HRTIM_ICR_FLT1C;
-  HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_ENABLED);
+
+  if (bus_overvoltage_protection_armed == 0U)
+  {
+    HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_ENABLED);
+    bus_overvoltage_protection_armed = 1U;
+  }
 }
 
 /* USER CODE END 0 */
@@ -164,7 +180,7 @@ int main(void)
   HAL_COMP_Start(&hcomp2);
   HAL_Delay(1);
 
-  EnablePowerStageProtection();
+  UpdateBusOvervoltageProtection();
   StartPowerStagePwm();
   pc13_blink_tick = HAL_GetTick();
 
@@ -177,6 +193,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    UpdateBusOvervoltageProtection();
+
     if ((HAL_GetTick() - pc13_blink_tick) >= 500U)
     {
       pc13_blink_tick = HAL_GetTick();
@@ -814,7 +832,6 @@ static void MX_HRTIM1_Init(void)
     {
       Error_Handler();
     }
-
     HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_DISABLED);
   }
 
