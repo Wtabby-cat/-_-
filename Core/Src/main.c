@@ -31,8 +31,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define BUS_OVERVOLT_DAC_CODE            974U
-#define BUS_OVERVOLT_DEBOUNCE_MS         50U
+#define BUS_OVERVOLT_DAC_CODE            2598U
 #define POWER_STAGE_HRTIM_OUTPUTS        (HRTIM_OUTPUT_TA1 | HRTIM_OUTPUT_TA2 | HRTIM_OUTPUT_TB1 | HRTIM_OUTPUT_TB2)
 #define POWER_STAGE_HRTIM_TIMERS         (HRTIM_TIMERID_TIMER_A | HRTIM_TIMERID_TIMER_B)
 
@@ -63,8 +62,6 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 uint32_t pc13_blink_tick = 0U;
-uint32_t bus_overvoltage_start_tick = 0U;
-uint8_t bus_overvoltage_fault_latched = 0U;
 
 /* USER CODE END PV */
 
@@ -85,8 +82,7 @@ static void MX_COMP6_Init(void);
 static void MX_DAC4_Init(void);
 /* USER CODE BEGIN PFP */
 static void StartPowerStagePwm(void);
-static void ShutdownPowerStagePwm(void);
-static void CheckBusOvervoltageProtection(void);
+static void EnablePowerStageProtection(void);
 
 /* USER CODE END PFP */
 
@@ -110,37 +106,10 @@ static void StartPowerStagePwm(void)
   }
 }
 
-static void ShutdownPowerStagePwm(void)
+static void EnablePowerStageProtection(void)
 {
-  HAL_GPIO_WritePin(PWM_EN_N_GPIO_Port, PWM_EN_N_Pin, GPIO_PIN_SET);
-  (void)HAL_HRTIM_WaveformOutputStop(&hhrtim1, POWER_STAGE_HRTIM_OUTPUTS);
-  (void)HAL_HRTIM_WaveformCountStop(&hhrtim1, POWER_STAGE_HRTIM_TIMERS);
-}
-
-static void CheckBusOvervoltageProtection(void)
-{
-  if (bus_overvoltage_fault_latched != 0U)
-  {
-    return;
-  }
-
-  if (HAL_COMP_GetOutputLevel(&hcomp2) != COMP_OUTPUT_LEVEL_HIGH)
-  {
-    bus_overvoltage_start_tick = 0U;
-    return;
-  }
-
-  if (bus_overvoltage_start_tick == 0U)
-  {
-    bus_overvoltage_start_tick = HAL_GetTick();
-    return;
-  }
-
-  if ((HAL_GetTick() - bus_overvoltage_start_tick) >= BUS_OVERVOLT_DEBOUNCE_MS)
-  {
-    bus_overvoltage_fault_latched = 1U;
-    ShutdownPowerStagePwm();
-  }
+  hhrtim1.Instance->sCommonRegs.ICR = HRTIM_ICR_FLT1C;
+  HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_ENABLED);
 }
 
 /* USER CODE END 0 */
@@ -189,10 +158,13 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(PWM_EN_N_GPIO_Port, PWM_EN_N_Pin, GPIO_PIN_SET);
 
-  HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
   HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, BUS_OVERVOLT_DAC_CODE);
+  HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
+  HAL_Delay(1);
   HAL_COMP_Start(&hcomp2);
+  HAL_Delay(1);
 
+  EnablePowerStageProtection();
   StartPowerStagePwm();
   pc13_blink_tick = HAL_GetTick();
 
@@ -205,8 +177,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    CheckBusOvervoltageProtection();
-
     if ((HAL_GetTick() - pc13_blink_tick) >= 500U)
     {
       pc13_blink_tick = HAL_GetTick();
@@ -737,7 +707,7 @@ static void MX_HRTIM1_Init(void)
   pTimerCfg.DMARequests = HRTIM_TIM_DMA_NONE;
   pTimerCfg.PreloadEnable = HRTIM_PRELOAD_DISABLED;
   pTimerCfg.PushPull = HRTIM_TIMPUSHPULLMODE_DISABLED;
-  pTimerCfg.FaultEnable = HRTIM_TIMFAULTENABLE_NONE;
+  pTimerCfg.FaultEnable = HRTIM_TIMFAULTENABLE_FAULT1;
   pTimerCfg.FaultLock = HRTIM_TIMFAULTLOCK_READWRITE;
   pTimerCfg.DeadTimeInsertion = HRTIM_TIMDEADTIMEINSERTION_ENABLED;
   pTimerCfg.DelayedProtectionMode = HRTIM_TIMER_A_B_C_DELAYEDPROTECTION_DISABLED;
@@ -828,6 +798,25 @@ static void MX_HRTIM1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN HRTIM1_Init 2 */
+  {
+    HRTIM_FaultCfgTypeDef pFaultCfg = {0};
+
+    if (HAL_HRTIM_FaultPrescalerConfig(&hhrtim1, HRTIM_FAULTPRESCALER_DIV8) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    pFaultCfg.Source = HRTIM_FAULTSOURCE_INTERNAL;
+    pFaultCfg.Polarity = HRTIM_FAULTPOLARITY_HIGH;
+    pFaultCfg.Filter = HRTIM_FAULTFILTER_15;
+    pFaultCfg.Lock = HRTIM_FAULTLOCK_READWRITE;
+    if (HAL_HRTIM_FaultConfig(&hhrtim1, HRTIM_FAULT_1, &pFaultCfg) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_DISABLED);
+  }
 
   /* USER CODE END HRTIM1_Init 2 */
   HAL_HRTIM_MspPostInit(&hhrtim1);
