@@ -31,6 +31,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define BUS_OVERVOLT_DAC_CODE            974U
+#define BUS_OVERVOLT_DEBOUNCE_MS         50U
 #define POWER_STAGE_HRTIM_OUTPUTS        (HRTIM_OUTPUT_TA1 | HRTIM_OUTPUT_TA2 | HRTIM_OUTPUT_TB1 | HRTIM_OUTPUT_TB2)
 #define POWER_STAGE_HRTIM_TIMERS         (HRTIM_TIMERID_TIMER_A | HRTIM_TIMERID_TIMER_B)
 
@@ -61,6 +63,8 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 uint32_t pc13_blink_tick = 0U;
+uint32_t bus_overvoltage_start_tick = 0U;
+uint8_t bus_overvoltage_fault_latched = 0U;
 
 /* USER CODE END PV */
 
@@ -81,6 +85,8 @@ static void MX_COMP6_Init(void);
 static void MX_DAC4_Init(void);
 /* USER CODE BEGIN PFP */
 static void StartPowerStagePwm(void);
+static void ShutdownPowerStagePwm(void);
+static void CheckBusOvervoltageProtection(void);
 
 /* USER CODE END PFP */
 
@@ -101,6 +107,39 @@ static void StartPowerStagePwm(void)
   if (HAL_HRTIM_WaveformCountStart(&hhrtim1, POWER_STAGE_HRTIM_TIMERS) != HAL_OK)
   {
     Error_Handler();
+  }
+}
+
+static void ShutdownPowerStagePwm(void)
+{
+  HAL_GPIO_WritePin(PWM_EN_N_GPIO_Port, PWM_EN_N_Pin, GPIO_PIN_SET);
+  (void)HAL_HRTIM_WaveformOutputStop(&hhrtim1, POWER_STAGE_HRTIM_OUTPUTS);
+  (void)HAL_HRTIM_WaveformCountStop(&hhrtim1, POWER_STAGE_HRTIM_TIMERS);
+}
+
+static void CheckBusOvervoltageProtection(void)
+{
+  if (bus_overvoltage_fault_latched != 0U)
+  {
+    return;
+  }
+
+  if (HAL_COMP_GetOutputLevel(&hcomp2) != COMP_OUTPUT_LEVEL_HIGH)
+  {
+    bus_overvoltage_start_tick = 0U;
+    return;
+  }
+
+  if (bus_overvoltage_start_tick == 0U)
+  {
+    bus_overvoltage_start_tick = HAL_GetTick();
+    return;
+  }
+
+  if ((HAL_GetTick() - bus_overvoltage_start_tick) >= BUS_OVERVOLT_DEBOUNCE_MS)
+  {
+    bus_overvoltage_fault_latched = 1U;
+    ShutdownPowerStagePwm();
   }
 }
 
@@ -150,6 +189,10 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(PWM_EN_N_GPIO_Port, PWM_EN_N_Pin, GPIO_PIN_SET);
 
+  HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
+  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, BUS_OVERVOLT_DAC_CODE);
+  HAL_COMP_Start(&hcomp2);
+
   StartPowerStagePwm();
   pc13_blink_tick = HAL_GetTick();
 
@@ -162,6 +205,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    CheckBusOvervoltageProtection();
+
     if ((HAL_GetTick() - pc13_blink_tick) >= 500U)
     {
       pc13_blink_tick = HAL_GetTick();
@@ -393,7 +438,7 @@ static void MX_COMP2_Init(void)
   hcomp2.Init.InputPlus = COMP_INPUT_PLUS_IO1;
   hcomp2.Init.InputMinus = COMP_INPUT_MINUS_DAC1_CH2;
   hcomp2.Init.OutputPol = COMP_OUTPUTPOL_NONINVERTED;
-  hcomp2.Init.Hysteresis = COMP_HYSTERESIS_NONE;
+  hcomp2.Init.Hysteresis = COMP_HYSTERESIS_40MV;
   hcomp2.Init.BlankingSrce = COMP_BLANKINGSRC_NONE;
   hcomp2.Init.TriggerMode = COMP_TRIGGERMODE_NONE;
   if (HAL_COMP_Init(&hcomp2) != HAL_OK)

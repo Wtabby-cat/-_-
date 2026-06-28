@@ -18,10 +18,10 @@
 
 | 保护项 | 比较器 | 正输入引脚 | 负输入基准 | 当前阈值 | 保护动作 |
 | --- | --- | --- | --- | --- | --- |
-| 母线过压保护 | COMP2 | PA7 / COMP2_INP | DAC1_CH2 | 计划值 DAC code 3475，约 2.80 V @ VDDA=3.3 V | 当前暂时禁用 |
+| 母线过压保护 | COMP2 | PA7 / COMP2_INP | DAC1_CH2 | DAC code 974，按 1.4 V 实测点校准到约 1.00 V | 当前已启用 |
 | 过流保护 | COMP6 | PB11 / COMP6_INP | DAC4_CH2 | 计划值 DAC code 3723，约 3.00 V @ VDDA=3.3 V | 当前暂时禁用 |
 
-当前为方便调试 PWM 波形，保护比较器暂时没有启动，HRTIM 也没有启用 fault/event 关断。重新启用保护前，需要恢复 DAC/COMP 启动和 HRTIM 保护链路。
+当前只启用 COMP2 母线过压保护；COMP6 过流保护仍暂时禁用。COMP2 保护使用 DAC1_CH2 作为比较阈值，PA7 连续大于约 1.00 V 超过 50 ms 时会锁存关断 PWM。
 
 阈值计算：
 
@@ -41,7 +41,9 @@ DAC_code = Vthreshold / VDDA * 4095
 | FAULT1 | HRTIM fault input | 参与 Timer A/B 故障关断 |
 | FAULT2 | HRTIM fault input | 参与 Timer A/B 故障关断 |
 
-以上是计划保护链路，当前代码中暂时未启用。Timer A 和 Timer B 当前配置为 `HRTIM_TIMFAULTENABLE_NONE`，四路 HRTIM 输出也没有额外加入 `EEV1 | EEV3` 复位源。
+当前为避免外部测试电源断电尖峰误触发，COMP2 没有接入 HRTIM `EEV1` 硬件复位源。主循环轮询 COMP2 输出，连续高电平超过 50 ms 后，会把 `PWM_EN_N` 拉高、停止 HRTIM 输出和 Timer A/B 计数，并用 `bus_overvoltage_fault_latched` 锁存故障；当前代码需要复位 MCU 才会重新启动 PWM。
+
+COMP6/EEV1/EEV3/FAULT1/FAULT2 当前未启用。Timer A 和 Timer B 当前仍配置为 `HRTIM_TIMFAULTENABLE_NONE`。
 
 ## 其他已配置引脚
 
