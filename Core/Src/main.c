@@ -32,7 +32,9 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define BUS_OVERVOLT_DAC_CODE            2598U
-#define RESONANT_OVERCURRENT_DAC_CODE    2853U  /* PB11(COMP6+) measured calibration: 2482 -> 1.74 V, so 2853 -> about 2.00 V */
+#define RESONANT_OVERCURRENT_DAC_CODE    2853U
+#define ZEROCROSS_CURR_DAC_CODE          1924U
+#define ZEROCROSS_VOLT_DAC_CODE          1924U
 #define POWER_STAGE_HRTIM_OUTPUTS        (HRTIM_OUTPUT_TA1 | HRTIM_OUTPUT_TA2 | HRTIM_OUTPUT_TB1 | HRTIM_OUTPUT_TB2)
 #define POWER_STAGE_HRTIM_TIMERS         (HRTIM_TIMERID_TIMER_A | HRTIM_TIMERID_TIMER_B)
 
@@ -63,7 +65,19 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 uint32_t pc13_blink_tick = 0U;
-uint8_t bus_overvoltage_protection_armed = 0U;
+
+/* Keil5 Watch debug variables.
+ * Only these debug variables are kept.
+ */
+volatile uint32_t dbg_comp2_level = 0U;
+volatile uint32_t dbg_comp3_zc_level = 0U;
+volatile uint32_t dbg_comp5_zc_level = 0U;
+volatile uint32_t dbg_comp6_level = 0U;
+
+volatile uint32_t dbg_hrtim_isr = 0U;
+volatile uint32_t dbg_fault1_flag = 0U;
+volatile uint32_t dbg_fault3_flag = 0U;
+volatile uint32_t dbg_pwm_en_n_state = 0U;
 
 /* USER CODE END PV */
 
@@ -85,6 +99,7 @@ static void MX_DAC4_Init(void);
 /* USER CODE BEGIN PFP */
 static void StartPowerStagePwm(void);
 static void UpdatePowerStageProtection(void);
+static void DebugCaptureComparatorFaultState(void);
 
 /* USER CODE END PFP */
 
@@ -110,26 +125,25 @@ static void StartPowerStagePwm(void)
 
 static void UpdatePowerStageProtection(void)
 {
-  if (HAL_COMP_GetOutputLevel(&hcomp2) != COMP_OUTPUT_LEVEL_LOW)
-  {
-    if (bus_overvoltage_protection_armed == 0U)
-    {
-      HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_DISABLED);
-      hhrtim1.Instance->sCommonRegs.ICR = HRTIM_ICR_FLT1C;
-    }
-    return;
-  }
+  /* Latch protection mode:
+   * Do not clear FLT1 or FLT3 in the main loop.
+   * Once COMP2 over-voltage or COMP6 over-current triggers HRTIM FAULT,
+   * PWM remains shut down until MCU reset.
+   */
+}
 
-  hhrtim1.Instance->sCommonRegs.ICR = HRTIM_ICR_FLT1C;
+static void DebugCaptureComparatorFaultState(void)
+{
+  dbg_comp2_level = HAL_COMP_GetOutputLevel(&hcomp2);
+  dbg_comp3_zc_level = HAL_COMP_GetOutputLevel(&hcomp3);
+  dbg_comp5_zc_level = HAL_COMP_GetOutputLevel(&hcomp5);
+  dbg_comp6_level = HAL_COMP_GetOutputLevel(&hcomp6);
 
-  if (bus_overvoltage_protection_armed == 0U)
-  {
-    HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_ENABLED);
-    bus_overvoltage_protection_armed = 1U;
-  }
+  dbg_hrtim_isr = hhrtim1.Instance->sCommonRegs.ISR;
+  dbg_fault1_flag = ((dbg_hrtim_isr & HRTIM_ISR_FLT1) != 0U) ? 1U : 0U;
+  dbg_fault3_flag = ((dbg_hrtim_isr & HRTIM_ISR_FLT3) != 0U) ? 1U : 0U;
 
-  /* FAULT3 over-current protection (COMP6 internal source): re-arm if fault cleared */
-  hhrtim1.Instance->sCommonRegs.ICR = HRTIM_ICR_FLT3C;
+  dbg_pwm_en_n_state = (uint32_t)HAL_GPIO_ReadPin(PWM_EN_N_GPIO_Port, PWM_EN_N_Pin);
 }
 
 /* USER CODE END 0 */
@@ -180,17 +194,32 @@ int main(void)
 
   HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, BUS_OVERVOLT_DAC_CODE);
   HAL_DAC_SetValue(&hdac4, DAC_CHANNEL_2, DAC_ALIGN_12B_R, RESONANT_OVERCURRENT_DAC_CODE);
+  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, ZEROCROSS_CURR_DAC_CODE);
+  HAL_DAC_SetValue(&hdac4, DAC_CHANNEL_1, DAC_ALIGN_12B_R, ZEROCROSS_VOLT_DAC_CODE);
+
   HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
   HAL_DAC_Start(&hdac4, DAC_CHANNEL_2);
+  HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
+  HAL_DAC_Start(&hdac4, DAC_CHANNEL_1);
+
   HAL_Delay(1);
+
   HAL_COMP_Start(&hcomp2);
+  HAL_COMP_Start(&hcomp3);
+  HAL_COMP_Start(&hcomp5);
   HAL_COMP_Start(&hcomp6);
+
   HAL_Delay(1);
-  /* FAULT3: over-current protection (COMP6 internal source), armed immediately */
-  hhrtim1.Instance->sCommonRegs.ICR = HRTIM_ICR_FLT3C;
+
+  /* Clear stale fault flags once before arming protection. */
+  hhrtim1.Instance->sCommonRegs.ICR = HRTIM_ICR_FLT1C | HRTIM_ICR_FLT3C;
+
+  /* Arm both faults. After a fault trip, do not clear it in software.
+   * Recovery requires MCU reset.
+   */
+  HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_ENABLED);
   HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_3, HRTIM_FAULTMODECTL_ENABLED);
 
-  UpdatePowerStageProtection();
   StartPowerStagePwm();
   pc13_blink_tick = HAL_GetTick();
 
@@ -203,6 +232,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    DebugCaptureComparatorFaultState();
+
+    __NOP();  /* Optional Keil5 debug breakpoint here */
+
     UpdatePowerStageProtection();
 
     if ((HAL_GetTick() - pc13_blink_tick) >= 500U)
@@ -834,7 +867,7 @@ static void MX_HRTIM1_Init(void)
       Error_Handler();
     }
 
-    /* FAULT1: over-voltage protection (COMP2, internal source, calibrated threshold) */
+    /* FAULT1: over-voltage protection (COMP2, internal source, filtered) */
     pFaultCfg.Source = HRTIM_FAULTSOURCE_INTERNAL;
     pFaultCfg.Polarity = HRTIM_FAULTPOLARITY_HIGH;
     pFaultCfg.Filter = HRTIM_FAULTFILTER_15;
@@ -844,19 +877,20 @@ static void MX_HRTIM1_Init(void)
       Error_Handler();
     }
 
-    /* FAULT3: over-current protection (COMP6 internal source, no EEV, fastest response) */
+    /* FAULT3: over-current protection (COMP6, internal source, filtered) */
     pFaultCfg.Source = HRTIM_FAULTSOURCE_INTERNAL;
     pFaultCfg.Polarity = HRTIM_FAULTPOLARITY_HIGH;
-    pFaultCfg.Filter = 0U;  /* no digital filter for 20-40 kHz sine-current protection */
+    pFaultCfg.Filter = HRTIM_FAULTFILTER_8;
     pFaultCfg.Lock = HRTIM_FAULTLOCK_READWRITE;
     if (HAL_HRTIM_FaultConfig(&hhrtim1, HRTIM_FAULT_3, &pFaultCfg) != HAL_OK)
     {
       Error_Handler();
     }
 
-    /* FAULT1 disabled initially (armed via UpdatePowerStageProtection after COMP2 check) */
+    /* Keep faults disabled during initialization. They are enabled in main()
+     * after DAC and COMP are started.
+     */
     HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_DISABLED);
-    /* FAULT3 disabled initially (armed in main() after COMP6 startup) */
     HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_3, HRTIM_FAULTMODECTL_DISABLED);
   }
 
@@ -1044,7 +1078,7 @@ void Error_Handler(void)
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
   * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
+  * @param  line: line number
   * @retval None
   */
 void assert_failed(uint8_t *file, uint32_t line)

@@ -819,11 +819,11 @@ ARM Macro Assembler    Page 13
               00000200 
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
-erwork --depend=电磁感应加热\startup_stm32g474xx.d -o电磁感应加热\startup_stm32
-g474xx.o -I.\RTE\_____________ -ID:\K5\ARM\PACK\ARM\CMSIS\5.0.1\CMSIS\Include -
-ID:\K5\ARM\PACK\Keil\STM32G4xx_DFP\1.4.0\Drivers\CMSIS\Device\ST\STM32G4xx\Incl
-ude --predefine="__UVISION_VERSION SETA 524" --predefine="_RTE_ SETA 1" --prede
-fine="STM32G474xx SETA 1" --list=startup_stm32g474xx.lst startup_stm32g474xx.s
+erwork --depend=ih_incomp\startup_stm32g474xx.d -oih_incomp\startup_stm32g474xx
+.o -I.\RTE\_IH_incomp -ID:\K5\ARM\PACK\ARM\CMSIS\5.0.1\CMSIS\Include -ID:\K5\AR
+M\PACK\Keil\STM32G4xx_DFP\1.4.0\Drivers\CMSIS\Device\ST\STM32G4xx\Include --pre
+define="__UVISION_VERSION SETA 524" --predefine="_RTE_ SETA 1" --predefine="STM
+32G474xx SETA 1" --list=startup_stm32g474xx.lst startup_stm32g474xx.s
 
 
 
