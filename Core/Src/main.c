@@ -37,6 +37,10 @@
 #define ZEROCROSS_VOLT_DAC_CODE          1924U
 #define POWER_STAGE_HRTIM_OUTPUTS        (HRTIM_OUTPUT_TA1 | HRTIM_OUTPUT_TA2 | HRTIM_OUTPUT_TB1 | HRTIM_OUTPUT_TB2)
 #define POWER_STAGE_HRTIM_TIMERS         (HRTIM_TIMERID_TIMER_A | HRTIM_TIMERID_TIMER_B)
+#define RELAY_DELAY_MS                   500U   /* soft-start: thermistor bypass delay before relay closes */
+#define ADC_BUF_SIZE                     256U   /* DMA buffer size, dual-mode: each word = ADC1[15:0] | ADC2[31:16] */
+#define ADC_SAMPLE_MASK                  0xFFFU  /* 12-bit mask */
+#define ADC_VREF_VOLTAGE                 3.300f  /* REF3033 / VDDA reference used for ADC voltage conversion */
 
 /* USER CODE END PD */
 
@@ -72,6 +76,31 @@ uint32_t pc13_blink_tick = 0U;
 volatile uint32_t dbg_comp2_level = 0U;
 volatile uint32_t dbg_comp3_zc_level = 0U;
 volatile uint32_t dbg_comp5_zc_level = 0U;
+
+static uint32_t relay_tick = 0U;
+static uint8_t  relay_on   = 0U;
+
+/* Dual ADC DMA buffer. Each 32-bit word packs:
+ * [15:0]  = ADC1 (PA0, resonant current sample input)
+ * [31:16] = ADC2 (PA1, resonant voltage sample input)
+ */
+static uint32_t adc_dma_buf[ADC_BUF_SIZE] = {0};
+
+/* Final ADC acquisition uses dual regular simultaneous mode + DMA.
+ * These variables are intentionally global/volatile so they can be watched in Keil.
+ */
+volatile uint16_t adc_curr_raw = 0U;  /* latest ADC1/PA0 raw value */
+volatile uint16_t adc_volt_raw = 0U;  /* latest ADC2/PA1 raw value */
+volatile uint8_t  adc_data_ready = 0U;
+
+volatile uint16_t dbg_adc1_pa0_raw = 0U;
+volatile uint16_t dbg_adc2_pa1_raw = 0U;
+volatile float    dbg_adc1_pa0_voltage = 0.0f;
+volatile float    dbg_adc2_pa1_voltage = 0.0f;
+volatile float    dbg_adc1_pa0_avg_voltage = 0.0f;
+volatile float    dbg_adc2_pa1_avg_voltage = 0.0f;
+volatile uint32_t dbg_adc_dma_blocks = 0U;
+
 volatile uint32_t dbg_comp6_level = 0U;
 
 volatile uint32_t dbg_hrtim_isr = 0U;
@@ -100,6 +129,8 @@ static void MX_DAC4_Init(void);
 static void StartPowerStagePwm(void);
 static void UpdatePowerStageProtection(void);
 static void DebugCaptureComparatorFaultState(void);
+static void StartDualAdcDma(void);
+static void ProcessAdcDmaBlock(uint32_t start_index, uint32_t length);
 
 /* USER CODE END PFP */
 
@@ -144,6 +175,75 @@ static void DebugCaptureComparatorFaultState(void)
   dbg_fault3_flag = ((dbg_hrtim_isr & HRTIM_ISR_FLT3) != 0U) ? 1U : 0U;
 
   dbg_pwm_en_n_state = (uint32_t)HAL_GPIO_ReadPin(PWM_EN_N_GPIO_Port, PWM_EN_N_Pin);
+}
+
+static void StartDualAdcDma(void)
+{
+  if (HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  if (HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /* In dual regular simultaneous mode, ADC2 is the slave and ADC1 is the master.
+   * DMA must be started with HAL_ADCEx_MultiModeStart_DMA(), not HAL_ADC_Start_DMA().
+   */
+  if (HAL_ADC_Start(&hadc2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  if (HAL_ADCEx_MultiModeStart_DMA(&hadc1, (uint32_t *)adc_dma_buf, ADC_BUF_SIZE) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+static void ProcessAdcDmaBlock(uint32_t start_index, uint32_t length)
+{
+  uint32_t i;
+  uint32_t raw;
+  uint16_t curr;
+  uint16_t volt;
+  uint64_t curr_sum = 0ULL;
+  uint64_t volt_sum = 0ULL;
+
+  if ((length == 0U) || ((start_index + length) > ADC_BUF_SIZE))
+  {
+    return;
+  }
+
+  for (i = start_index; i < (start_index + length); i++)
+  {
+    raw = adc_dma_buf[i];
+    curr = (uint16_t)(raw & ADC_SAMPLE_MASK);
+    volt = (uint16_t)((raw >> 16) & ADC_SAMPLE_MASK);
+
+    curr_sum += curr;
+    volt_sum += volt;
+  }
+
+  raw = adc_dma_buf[start_index + length - 1U];
+  curr = (uint16_t)(raw & ADC_SAMPLE_MASK);
+  volt = (uint16_t)((raw >> 16) & ADC_SAMPLE_MASK);
+
+  adc_curr_raw = curr;
+  adc_volt_raw = volt;
+
+  dbg_adc1_pa0_raw = curr;
+  dbg_adc2_pa1_raw = volt;
+  dbg_adc1_pa0_voltage = ((float)curr) * ADC_VREF_VOLTAGE / 4095.0f;
+  dbg_adc2_pa1_voltage = ((float)volt) * ADC_VREF_VOLTAGE / 4095.0f;
+
+  dbg_adc1_pa0_avg_voltage = ((float)curr_sum / (float)length) * ADC_VREF_VOLTAGE / 4095.0f;
+  dbg_adc2_pa1_avg_voltage = ((float)volt_sum / (float)length) * ADC_VREF_VOLTAGE / 4095.0f;
+
+  dbg_adc_dma_blocks++;
+  adc_data_ready = 1U;
 }
 
 /* USER CODE END 0 */
@@ -222,6 +322,10 @@ int main(void)
 
   StartPowerStagePwm();
   pc13_blink_tick = HAL_GetTick();
+  relay_tick      = HAL_GetTick();  /* soft-start timer begins now */
+
+  /* Start final ADC acquisition: ADC1(PA0) + ADC2(PA1) dual simultaneous DMA. */
+  StartDualAdcDma();
 
   /* USER CODE END 2 */
 
@@ -237,6 +341,21 @@ int main(void)
     __NOP();  /* Optional Keil5 debug breakpoint here */
 
     UpdatePowerStageProtection();
+
+    /* ADC DMA callbacks update the Watch variables continuously.
+     * This flag is reserved for the later power-calculation task.
+     */
+    if (adc_data_ready)
+    {
+      adc_data_ready = 0U;
+    }
+
+    /* Soft-start relay: after RELAY_DELAY_MS, bypass thermistor */
+    if (!relay_on && (HAL_GetTick() - relay_tick) >= RELAY_DELAY_MS)
+    {
+      HAL_GPIO_WritePin(RELAY_CTRL_GPIO_Port, RELAY_CTRL_Pin, GPIO_PIN_SET);
+      relay_on = 1U;
+    }
 
     if ((HAL_GetTick() - pc13_blink_tick) >= 500U)
     {
@@ -323,7 +442,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   hadc1.Init.LowPowerAutoWait = DISABLE;
-  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.ContinuousConvMode = ENABLE;
   hadc1.Init.NbrOfConversion = 1;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
@@ -350,7 +469,7 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_1;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_12CYCLES_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
   sConfig.OffsetNumber = ADC_OFFSET_NONE;
   sConfig.Offset = 0;
@@ -421,7 +540,7 @@ static void MX_ADC2_Init(void)
   hadc2.Init.ScanConvMode = ADC_SCAN_DISABLE;
   hadc2.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   hadc2.Init.LowPowerAutoWait = DISABLE;
-  hadc2.Init.ContinuousConvMode = DISABLE;
+  hadc2.Init.ContinuousConvMode = ENABLE;
   hadc2.Init.NbrOfConversion = 1;
   hadc2.Init.DiscontinuousConvMode = DISABLE;
   hadc2.Init.DMAContinuousRequests = DISABLE;
@@ -436,7 +555,7 @@ static void MX_ADC2_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_2;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_12CYCLES_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
   sConfig.OffsetNumber = ADC_OFFSET_NONE;
   sConfig.Offset = 0;
@@ -1056,6 +1175,30 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+/**
+  * @brief  ADC half-buffer callback.
+  *         Dual simultaneous mode: each 32-bit word = ADC2[31:16] | ADC1[15:0].
+  */
+void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef *hadc)
+{
+  if (hadc == &hadc1)
+  {
+    ProcessAdcDmaBlock(0U, ADC_BUF_SIZE / 2U);
+  }
+}
+
+/**
+  * @brief  ADC full-buffer callback.
+  *         Dual simultaneous mode: each 32-bit word = ADC2[31:16] | ADC1[15:0].
+  */
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
+{
+  if (hadc == &hadc1)
+  {
+    ProcessAdcDmaBlock(ADC_BUF_SIZE / 2U, ADC_BUF_SIZE / 2U);
+  }
+}
 
 /* USER CODE END 4 */
 
