@@ -954,7 +954,14 @@ static void MX_HRTIM1_Init(void)
     Error_Handler();
   }
 
+  pCompareCfg.CompareValue = 8458;   /* Timer B 90° phase shift (33830/4) */
   if (HAL_HRTIM_WaveformCompareConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_B, HRTIM_COMPAREUNIT_1, &pCompareCfg) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  pCompareCfg.CompareValue = 25373;  /* CMP1 + 50% duty = 8458 + 16915 */
+  if (HAL_HRTIM_WaveformCompareConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_B, HRTIM_COMPAREUNIT_2, &pCompareCfg) != HAL_OK)
   {
     Error_Handler();
   }
@@ -964,8 +971,8 @@ static void MX_HRTIM1_Init(void)
     Error_Handler();
   }
 
-  pOutputCfg.SetSource = HRTIM_OUTPUTSET_TIMCMP1;
-  pOutputCfg.ResetSource = HRTIM_OUTPUTRESET_TIMPER;
+  pOutputCfg.SetSource = HRTIM_OUTPUTSET_TIMCMP1;   /* 8458: 90° phase */
+  pOutputCfg.ResetSource = HRTIM_OUTPUTRESET_TIMCMP2; /* 25373: 90° + 50% duty */
   if (HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_B, HRTIM_OUTPUT_TB1, &pOutputCfg) != HAL_OK)
   {
     Error_Handler();
