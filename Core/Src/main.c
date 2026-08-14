@@ -31,16 +31,48 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define BUS_OVERVOLT_DAC_CODE            2598U
-#define RESONANT_OVERCURRENT_DAC_CODE    2853U
-#define ZEROCROSS_CURR_DAC_CODE          1924U
-#define ZEROCROSS_VOLT_DAC_CODE          1924U
+/* ========================================================================
+ * 信号链参数（修改硬件后只需改这里，下面计算值自动派生）
+ * ======================================================================== */
+
+/* ---- 谐振电流采样 ---- */
+/* 1/1000 CT → 10Ω 采样电阻 → 5.6x 运放 → +1.65V 偏置 */
+#define I_CURR_CT_RATIO           1000.0f   /* 电流互感器变比 (1:N) */
+#define I_CURR_SENSE_R            10.0f     /* 采样电阻 (Ω) */
+#define I_CURR_OPAMP_GAIN         5.6f      /* 运放增益 (V/V) */
+#define I_CURR_BIAS_V             1.59f     /* 直流偏置电压 (V)，实测 PA0 空闲时 ADC 读数 */
+#define I_CURR_SCALE              (I_CURR_SENSE_R * I_CURR_OPAMP_GAIN / I_CURR_CT_RATIO)
+/* I_CURR_SCALE = 10 * 5.6 / 1000 = 0.056 V/A */
+
+/* ---- 谐振电压采样 ---- */
+/* 1/31 分压 → 0.4x 隔离运放 → 3.3x 运放 → +1.65V 偏置 */
+#define V_RES_DIV_RATIO           31.0f     /* 分压比 (1:N) */
+#define V_RES_ISO_GAIN            0.4f      /* 隔离运放增益 (V/V) */
+#define V_RES_OPAMP_GAIN          3.3f      /* 运放增益 (V/V) */
+#define V_RES_BIAS_V              1.59f     /* 直流偏置电压 (V)，实测 PA1 空闲时 ADC 读数（1.57~1.61V 取中值） */
+#define V_RES_SCALE               (V_RES_ISO_GAIN * V_RES_OPAMP_GAIN / V_RES_DIV_RATIO)
+/* V_RES_SCALE = 0.4 * 3.3 / 31 ≈ 0.04258 V/V */
+
+/* ---- 保护阈值（比较器 DAC 基准电压） ---- */
+#define ZC_THRESHOLD_V            1.65f     /* 过零检测阈值 (V) */
+#define RES_OCP_THRESHOLD_V       3.10f     /* 谐振过流保护阈值 (V) */
+#define BUS_OVP_THRESHOLD_V       3.20f     /* 母线过压保护阈值 (V) */
+
+/* ---- 系统常量 ---- */
+#define ADC_VREF_VOLTAGE           3.300f    /* REF3033 / VDDA 基准电压 */
+#define ADC_BUF_SIZE               256U      /* DMA 缓冲区大小 */
+#define ADC_SAMPLE_MASK            0xFFFU    /* 12-bit 掩码 */
+#define RELAY_DELAY_MS             500U      /* 软启动继电器延时 (ms) */
+
+/* ---- DAC code（由阈值电压自动计算） ---- */
+#define ZEROCROSS_CURR_DAC_CODE           ((uint32_t)(ZC_THRESHOLD_V      / ADC_VREF_VOLTAGE * 4095.0f))
+#define ZEROCROSS_VOLT_DAC_CODE           ((uint32_t)(ZC_THRESHOLD_V      / ADC_VREF_VOLTAGE * 4095.0f))
+#define BUS_OVERVOLT_DAC_CODE             ((uint32_t)(BUS_OVP_THRESHOLD_V / ADC_VREF_VOLTAGE * 4095.0f))
+#define RESONANT_OVERCURRENT_DAC_CODE     ((uint32_t)(RES_OCP_THRESHOLD_V / ADC_VREF_VOLTAGE * 4095.0f))
+
+/* ---- HRTIM 输出/定时器掩码 ---- */
 #define POWER_STAGE_HRTIM_OUTPUTS        (HRTIM_OUTPUT_TA1 | HRTIM_OUTPUT_TA2 | HRTIM_OUTPUT_TB1 | HRTIM_OUTPUT_TB2)
 #define POWER_STAGE_HRTIM_TIMERS         (HRTIM_TIMERID_TIMER_A | HRTIM_TIMERID_TIMER_B)
-#define RELAY_DELAY_MS                   500U   /* soft-start: thermistor bypass delay before relay closes */
-#define ADC_BUF_SIZE                     256U   /* DMA buffer size, dual-mode: each word = ADC1[15:0] | ADC2[31:16] */
-#define ADC_SAMPLE_MASK                  0xFFFU  /* 12-bit mask */
-#define ADC_VREF_VOLTAGE                 3.300f  /* REF3033 / VDDA reference used for ADC voltage conversion */
 
 /* USER CODE END PD */
 
@@ -70,43 +102,37 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 uint32_t pc13_blink_tick = 0U;
 
-/* Keil5 Watch debug variables.
- * Only these debug variables are kept.
- */
-volatile uint32_t dbg_comp2_level = 0U;
-volatile uint32_t dbg_comp3_zc_level = 0U;
-volatile uint32_t dbg_comp5_zc_level = 0U;
+/* ========================================================================
+ * Keil Watch 调试变量（12 个，按功能分组）
+ * ======================================================================== */
+
+/* 谐振电流 */
+volatile float    dbg_i_adc_v = 0.0f;       /* ADC 采样电压 (V) */
+volatile float    dbg_i_a     = 0.0f;       /* 谐振电流 (A) */
+
+/* 谐振电压 */
+volatile float    dbg_v_adc_v = 0.0f;       /* ADC 采样电压 (V) */
+volatile float    dbg_v_res_v = 0.0f;       /* 谐振电压 (V) */
+
+/* 继电器 / PWM 使能 */
+volatile uint32_t dbg_relay  = 0U;          /* 继电器 0=关 1=开 */
+volatile uint32_t dbg_pwm_en = 0U;          /* PWM 使能 0=禁止 1=使能 */
+
+/* 保护状态 */
+volatile uint32_t dbg_ovp       = 0U;       /* COMP2 过压实时 */
+volatile uint32_t dbg_ocp       = 0U;       /* COMP6 过流实时 */
+volatile uint32_t dbg_ovp_fault = 0U;       /* FAULT1 锁存 */
+volatile uint32_t dbg_ocp_fault = 0U;       /* FAULT3 锁存 */
+
+/* 过零状态 */
+volatile uint32_t dbg_zc_i = 0U;            /* COMP3 电流过零 */
+volatile uint32_t dbg_zc_v = 0U;            /* COMP5 电压过零 */
 
 static uint32_t relay_tick = 0U;
 static uint8_t  relay_on   = 0U;
 
-/* Dual ADC DMA buffer. Each 32-bit word packs:
- * [15:0]  = ADC1 (PA0, resonant current sample input)
- * [31:16] = ADC2 (PA1, resonant voltage sample input)
- */
+/* 双路 ADC DMA 缓冲区 */
 static uint32_t adc_dma_buf[ADC_BUF_SIZE] = {0};
-
-/* Final ADC acquisition uses dual regular simultaneous mode + DMA.
- * These variables are intentionally global/volatile so they can be watched in Keil.
- */
-volatile uint16_t adc_curr_raw = 0U;  /* latest ADC1/PA0 raw value */
-volatile uint16_t adc_volt_raw = 0U;  /* latest ADC2/PA1 raw value */
-volatile uint8_t  adc_data_ready = 0U;
-
-volatile uint16_t dbg_adc1_pa0_raw = 0U;
-volatile uint16_t dbg_adc2_pa1_raw = 0U;
-volatile float    dbg_adc1_pa0_voltage = 0.0f;
-volatile float    dbg_adc2_pa1_voltage = 0.0f;
-volatile float    dbg_adc1_pa0_avg_voltage = 0.0f;
-volatile float    dbg_adc2_pa1_avg_voltage = 0.0f;
-volatile uint32_t dbg_adc_dma_blocks = 0U;
-
-volatile uint32_t dbg_comp6_level = 0U;
-
-volatile uint32_t dbg_hrtim_isr = 0U;
-volatile uint32_t dbg_fault1_flag = 0U;
-volatile uint32_t dbg_fault3_flag = 0U;
-volatile uint32_t dbg_pwm_en_n_state = 0U;
 
 /* USER CODE END PV */
 
@@ -127,8 +153,7 @@ static void MX_COMP6_Init(void);
 static void MX_DAC4_Init(void);
 /* USER CODE BEGIN PFP */
 static void StartPowerStagePwm(void);
-static void UpdatePowerStageProtection(void);
-static void DebugCaptureComparatorFaultState(void);
+static void DebugCaptureAll(void);
 static void StartDualAdcDma(void);
 static void ProcessAdcDmaBlock(uint32_t start_index, uint32_t length);
 
@@ -154,27 +179,26 @@ static void StartPowerStagePwm(void)
   }
 }
 
-static void UpdatePowerStageProtection(void)
+static void DebugCaptureAll(void)
 {
-  /* Latch protection mode:
-   * Do not clear FLT1 or FLT3 in the main loop.
-   * Once COMP2 over-voltage or COMP6 over-current triggers HRTIM FAULT,
-   * PWM remains shut down until MCU reset.
-   */
-}
+  uint32_t isr;
 
-static void DebugCaptureComparatorFaultState(void)
-{
-  dbg_comp2_level = HAL_COMP_GetOutputLevel(&hcomp2);
-  dbg_comp3_zc_level = HAL_COMP_GetOutputLevel(&hcomp3);
-  dbg_comp5_zc_level = HAL_COMP_GetOutputLevel(&hcomp5);
-  dbg_comp6_level = HAL_COMP_GetOutputLevel(&hcomp6);
+  /* 保护状态 */
+  dbg_ovp = HAL_COMP_GetOutputLevel(&hcomp2);
+  dbg_ocp = HAL_COMP_GetOutputLevel(&hcomp6);
 
-  dbg_hrtim_isr = hhrtim1.Instance->sCommonRegs.ISR;
-  dbg_fault1_flag = ((dbg_hrtim_isr & HRTIM_ISR_FLT1) != 0U) ? 1U : 0U;
-  dbg_fault3_flag = ((dbg_hrtim_isr & HRTIM_ISR_FLT3) != 0U) ? 1U : 0U;
+  isr = hhrtim1.Instance->sCommonRegs.ISR;
+  dbg_ovp_fault = ((isr & HRTIM_ISR_FLT1) != 0U) ? 1U : 0U;
+  dbg_ocp_fault = ((isr & HRTIM_ISR_FLT3) != 0U) ? 1U : 0U;
 
-  dbg_pwm_en_n_state = (uint32_t)HAL_GPIO_ReadPin(PWM_EN_N_GPIO_Port, PWM_EN_N_Pin);
+  /* 过零状态 */
+  dbg_zc_i = HAL_COMP_GetOutputLevel(&hcomp3);
+  dbg_zc_v = HAL_COMP_GetOutputLevel(&hcomp5);
+
+  /* 继电器 / PWM 使能 */
+  dbg_relay = relay_on;
+  /* PWM_EN_N 低电平有效 → 取反后 1=使能 */
+  dbg_pwm_en = (HAL_GPIO_ReadPin(PWM_EN_N_GPIO_Port, PWM_EN_N_Pin) == GPIO_PIN_RESET) ? 1U : 0U;
 }
 
 static void StartDualAdcDma(void)
@@ -205,45 +229,30 @@ static void StartDualAdcDma(void)
 
 static void ProcessAdcDmaBlock(uint32_t start_index, uint32_t length)
 {
-  uint32_t i;
   uint32_t raw;
   uint16_t curr;
   uint16_t volt;
-  uint64_t curr_sum = 0ULL;
-  uint64_t volt_sum = 0ULL;
+  float    vadc;
 
   if ((length == 0U) || ((start_index + length) > ADC_BUF_SIZE))
   {
     return;
   }
 
-  for (i = start_index; i < (start_index + length); i++)
-  {
-    raw = adc_dma_buf[i];
-    curr = (uint16_t)(raw & ADC_SAMPLE_MASK);
-    volt = (uint16_t)((raw >> 16) & ADC_SAMPLE_MASK);
-
-    curr_sum += curr;
-    volt_sum += volt;
-  }
-
+  /* 取半缓冲块末尾最后一个采样点 */
   raw = adc_dma_buf[start_index + length - 1U];
   curr = (uint16_t)(raw & ADC_SAMPLE_MASK);
   volt = (uint16_t)((raw >> 16) & ADC_SAMPLE_MASK);
 
-  adc_curr_raw = curr;
-  adc_volt_raw = volt;
+  /* 谐振电流 */
+  vadc = ((float)curr) * ADC_VREF_VOLTAGE / 4095.0f;
+  dbg_i_adc_v = vadc;
+  dbg_i_a     = (vadc - I_CURR_BIAS_V) / I_CURR_SCALE;
 
-  dbg_adc1_pa0_raw = curr;
-  dbg_adc2_pa1_raw = volt;
-  dbg_adc1_pa0_voltage = ((float)curr) * ADC_VREF_VOLTAGE / 4095.0f;
-  dbg_adc2_pa1_voltage = ((float)volt) * ADC_VREF_VOLTAGE / 4095.0f;
-
-  dbg_adc1_pa0_avg_voltage = ((float)curr_sum / (float)length) * ADC_VREF_VOLTAGE / 4095.0f;
-  dbg_adc2_pa1_avg_voltage = ((float)volt_sum / (float)length) * ADC_VREF_VOLTAGE / 4095.0f;
-
-  dbg_adc_dma_blocks++;
-  adc_data_ready = 1U;
+  /* 谐振电压 */
+  vadc = ((float)volt) * ADC_VREF_VOLTAGE / 4095.0f;
+  dbg_v_adc_v = vadc;
+  dbg_v_res_v = (vadc - V_RES_BIAS_V) / V_RES_SCALE;
 }
 
 /* USER CODE END 0 */
@@ -336,19 +345,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    DebugCaptureComparatorFaultState();
-
-    __NOP();  /* Optional Keil5 debug breakpoint here */
-
-    UpdatePowerStageProtection();
-
-    /* ADC DMA callbacks update the Watch variables continuously.
-     * This flag is reserved for the later power-calculation task.
-     */
-    if (adc_data_ready)
-    {
-      adc_data_ready = 0U;
-    }
+    DebugCaptureAll();
 
     /* Soft-start relay: after RELAY_DELAY_MS, bypass thermistor */
     if (!relay_on && (HAL_GetTick() - relay_tick) >= RELAY_DELAY_MS)
