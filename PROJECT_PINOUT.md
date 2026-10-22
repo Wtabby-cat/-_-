@@ -1,6 +1,40 @@
 # CFRP 电磁感应加热控制工程说明
 
-本工程用于 CFRP 电磁感应加热功率控制，MCU 为 STM32G474RET6。核心输出为 HRTIM1 产生的全桥 PWM，当前配置约为 20.1 kHz、50% 占空比，并开启上下桥臂死区。
+本工程用于 CFRP 电磁感应加热控制开发，MCU 为 STM32G474RET6。核心输出为 HRTIM1 产生的全桥 PWM，当前配置约为 20.1 kHz、单桥臂名义占空比 50%、右桥臂相对左桥臂延后约 90°，并开启上下桥臂死区。
+
+> 本文依据当前 `Core/Src/main.c`、MSP 初始化代码和工程内 HAL 定义整理。数值推算不代表硬件实测；当前 `.ioc` 与代码存在差异，不能直接用 CubeMX 重新生成后替代现有实现。
+
+## 当前实现范围
+
+| 功能 | 当前状态 |
+| --- | --- |
+| 全桥 PWM | 固定频率、固定移相，Timer A/B 同时启动 |
+| 外部驱动使能 | PB1 默认高电平；代码没有自动拉低使能逻辑 |
+| NTC 旁路继电器 | PWM 启动后计时，500 ms 后吸合 |
+| 谐振电流、电压采样 | 双 ADC 同步连续采样，DMA 循环搬运，更新瞬时调试值 |
+| 过压、过流保护 | 已配置比较器和 HRTIM 故障输入，实际关断及恢复行为需上板验证 |
+| 过零检测 | 已启动比较器，仅轮询输出电平；尚未实现边沿捕获、相位计算或 PLL |
+| 功率闭环、RMS 计算 | 尚未实现 |
+| 温度、串口业务 | 温度注入通道和串口已初始化，尚未实现温度采集流程或通信协议 |
+
+## 工程结构与构建
+
+以下路径均相对于工程根目录 `IH_incomp/`：
+
+| 路径 | 内容 |
+| --- | --- |
+| `Core/Src/main.c` | 信号链参数、外设初始化、启动流程、ADC 回调、Watch 变量 |
+| `Core/Inc/main.h` | ADC、PWM、继电器等引脚宏 |
+| `Core/Src/stm32g4xx_hal_msp.c` | 外设时钟、GPIO 复用和 ADC DMA 配置 |
+| `Core/Src/stm32g4xx_it.c` | 中断入口，包括 DMA1 Channel1 中断转发 |
+| `Drivers/` | 随工程保存的 CMSIS 与 STM32G4 HAL 驱动 |
+| `MDK-ARM/IH_incomp.uvprojx` | Keil µVision 工程，目标为 `IH_incomp` |
+| `IH_incomp.ioc` | CubeMX 配置快照，部分参数尚未同步 |
+
+1. 使用 Keil MDK-ARM 打开 `MDK-ARM/IH_incomp.uvprojx`。
+2. 核对工程记录的工具链：ARM Compiler 5.06 update 5（build 528），器件包 `Keil.STM32G4xx_DFP.1.4.0`，器件 `STM32G474RETx`。切换工具链需重新验证，不应默认与原配置等效。
+3. 选择 `IH_incomp` 目标并执行 Build/Rebuild；工程已启用 HEX 输出，产物位于 `MDK-ARM/IH_incomp/`。
+4. 下载前检查调试器连接和目标供电，首次验证保持功率级禁用，先检查 GPIO、PWM 与采样。目录中的已有 HEX/AXF 不保证与当前源码一致，应重新构建。
 
 ## 功率桥 PWM
 
@@ -14,6 +48,22 @@
 
 当前 `main.c` 中 PB1 上电后保持高电平，因此外部驱动默认禁用。HRTIM 波形会启动，但功率级是否真正输出取决于 PB1 是否被拉低使能。
 
+### 定时与移相参数
+
+| 参数 | 当前配置 | 说明 |
+| --- | --- | --- |
+| HRTIM 时钟 | 170 MHz | 与当前 SYSCLK 对应 |
+| Timer A/B 计数倍率 | `HRTIM_PRESCALERRATIO_MUL4` | 等效计数频率 680 MHz |
+| 周期 | 33830 | `680 MHz / 33830 ≈ 20.1005 kHz`，周期约 49.75 µs |
+| Timer A CMP1 | 16915 | TA1 在周期事件置位、CMP1 复位 |
+| Timer B CMP1 / CMP2 | 8458 / 25373 | TB1 在 CMP1 置位、CMP2 复位，高电平宽度为半周期 |
+| 右桥臂移相 | `8458 / 33830 × 360° ≈ 90.005°` | 相对左桥臂延后约四分之一周期 |
+| 死区 | `MUL8`，上升/下降均为 40 | 按本地 HAL 定义推算为 `40 / (170 MHz × 8) ≈ 29.4 ns` |
+
+TA2/TB2 未单独配置置位/复位事件，通过死区插入形成同桥臂互补输出。50% 是死区插入前的名义占空比，实际引脚及驱动输出应实测。上述死区仅说明代码配置，不代表已满足功率器件的关断要求。
+
+当前只启动 Timer A/B，虽初始化了 Master Timer，但未启动其计数。改变周期时需同步检查 A/B 比较值、移相和死区，不能只改一个周期数值。
+
 ## 软启动继电器
 
 硬件有两路供电通路：一路经热敏电阻（NTC）限流，另一路经继电器触点直通。上电时 PB0 默认低电平，继电器断开，电流经热敏电阻通路，限制浪涌电流；延时 `RELAY_DELAY_MS`（当前 500 ms）后 PB0 拉高，继电器吸合，触点闭合旁路热敏电阻，防止热敏电阻长期通电过热烧毁。
@@ -24,14 +74,18 @@
 
 时序：上电 → DAC/COMP 初始化 → 故障保护武装 → PWM 启动 → 等待 `RELAY_DELAY_MS` → PB0 拉高。
 
+延时起点是 `StartPowerStagePwm()` 返回后的 `relay_tick`，不是 MCU 刚上电的时刻。当前继电器逻辑仅按时间吸合，没有母线就绪判断、故障联锁或故障后断开逻辑；继电器吸合也不会使 PB1 自动变低。
+
 ## 信号链参数
 
-所有可调参数集中在 `main.c` 最前面，修改硬件后只需改对应 `#define`，换算值自动派生。
+采样信号链、比较阈值、参考电压和继电器延时宏集中在 `main.c` 的 `USER CODE BEGIN PD` 区域；PWM 定时、死区、ADC 配置仍在相应初始化函数中，并非全部由宏控制。
+
+当前换算使用 `ADC_VREF_VOLTAGE = 3.300 V`、12-bit 满量程 4095；电流和电压偏置均按当前代码取 **1.59 V**，不是原设计名义值 1.65 V。偏置及增益应分别按实际采样通道校准。
 
 ### 谐振电流采样
 
 ```
-1/1000 CT → 10Ω 采样电阻 → 5.6x 运放 → +1.65V 偏置 → ADC
+1/1000 CT → 10Ω 采样电阻 → 5.6x 运放 → 直流偏置（当前按 1.59 V 换算）→ ADC
 ```
 
 | 参数 | 宏 | 值 |
@@ -39,20 +93,21 @@
 | CT 变比 | `I_CURR_CT_RATIO` | 1000 (1:1000) |
 | 采样电阻 | `I_CURR_SENSE_R` | 10 Ω |
 | 运放增益 | `I_CURR_OPAMP_GAIN` | 5.6 V/V |
-| 偏置电压 | `I_CURR_BIAS_V` | 1.65 V |
+| 偏置电压 | `I_CURR_BIAS_V` | 1.59 V |
 | 合成系数 | `I_CURR_SCALE` | 0.056 V/A |
 
 **换算公式：**
 
 ```
-Vadc = I × 0.056 + 1.65
-I = (Vadc - 1.65) / 0.056
+Vadc = raw × 3.300 / 4095
+Vadc = I × 0.056 + 1.59
+I = (Vadc - 1.59) / 0.056
 ```
 
 ### 谐振电压采样
 
 ```
-1/31 分压 → 0.4x 隔离运放 → 3.3x 运放 → +1.65V 偏置 → ADC
+1/31 分压 → 0.4x 隔离运放 → 3.3x 运放 → 直流偏置（当前按 1.59 V 换算）→ ADC
 ```
 
 | 参数 | 宏 | 值 |
@@ -60,51 +115,58 @@ I = (Vadc - 1.65) / 0.056
 | 分压比 | `V_RES_DIV_RATIO` | 31 (1:31) |
 | 隔离运放增益 | `V_RES_ISO_GAIN` | 0.4 V/V |
 | 运放增益 | `V_RES_OPAMP_GAIN` | 3.3 V/V |
-| 偏置电压 | `V_RES_BIAS_V` | 1.65 V |
+| 偏置电压 | `V_RES_BIAS_V` | 1.59 V |
 | 合成系数 | `V_RES_SCALE` | 0.04258 V/V |
 
 **换算公式：**
 
 ```
-Vadc = Vres × 0.04258 + 1.65
-Vres = (Vadc - 1.65) / 0.04258
+Vadc = raw × 3.300 / 4095
+Vadc = Vres × (0.4 × 3.3 / 31) + 1.59
+Vres = (Vadc - 1.59) / (0.4 × 3.3 / 31)
 ```
 
 ## 保护比较器
 
 | 保护项 | 比较器 | 正输入引脚 | 负输入基准 | DAC code | 阈值电压 | 保护动作 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 母线过压保护 | COMP2 | PA7 / COMP2_INP | DAC1_CH2 | 3971 | 3.20 V | FAULT1（内部比较器源，filter=15） |
-| 谐振过流保护 | COMP6 | PB11 / COMP6_INP | DAC4_CH2 | 3847 | 3.10 V | FAULT3（内部比较器源，filter=8） |
+| 母线过压保护 | COMP2 | PA7 / COMP2_INP | DAC1_CH2 | 3970 | 3.20 V | FAULT1（内部比较器源，filter=15） |
+| 谐振过流保护 | COMP6 | PB11 / COMP6_INP | DAC4_CH2 | 3846 | 3.10 V | FAULT3（内部比较器源，filter=8） |
 
-两路故障均为锁存保护：初始化时只清一次旧故障标志，触发后软件不再清除，需 MCU 复位恢复。
+COMP2/COMP6 均为同相输出，配置 40 mV 迟滞、无消隐、无比较器触发中断。表中的阈值是比较器输入端电压，不是母线实际电压或直接以安培表示的电流门限；母线分压比例未在现有换算宏中定义。
 
-> DAC code 由阈值电压和 VREF 自动计算：`code = V_threshold / 3.3 × 4095`。DAC1 和 DAC4 是不同外设，实际输出电压以万用表实测为准。
+初始化时只清一次旧故障标志，运行期间不再清除，也没有软件恢复入口。代码注释的设计意图是故障后复位恢复，但**故障标志保留不应直接视为输出永久锁停已验证**；应分别验证故障持续和撤销后的 PWM 行为。
+
+> DAC code 由 `((uint32_t)(V_threshold / 3.3 × 4095))` 截断得到。DAC1/DAC4 四通道均配置为内部连接、关闭输出缓冲，不能默认在外部 DAC 引脚上直接测得这些内部阈值。
 
 ## 过零检测比较器
 
-用于检测谐振电流和电压的过零点，计算相位差，为后续数字锁相环（PLL）提供输入。
+用于检测谐振电流和电压相对偏置的过零点，为后续相位差计算和数字锁相环（PLL）预留输入；当前未实现相位计算。
 
 | 检测项 | 比较器 | 正输入引脚 | 负输入基准 | DAC code | 阈值 | 用途 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 电流过零检测 | COMP3 | PC1 / COMP3_INP | DAC1_CH1 | 2048 | 1.65 V | 谐振电流相位检测 |
-| 电压过零检测 | COMP5 | PB13 / COMP5_INP | DAC4_CH1 | 2048 | 1.65 V | 谐振电压相位检测 |
+| 电流过零检测 | COMP3 | PC1 / COMP3_INP | DAC1_CH1 | 1973 | 1.59 V | 谐振电流过零电平 |
+| 电压过零检测 | COMP5 | PB13 / COMP5_INP | DAC4_CH1 | 1973 | 1.59 V | 谐振电压过零电平 |
 
-谐振电流和电压信号为叠加在 1.65 V 直流偏置上的交流正弦波（20-40kHz），比较器阈值设为 1.65 V 即可检测过零点。COMP3 和 COMP5 均配置为同相输出、无迟滞，信号高于 1.65 V 时输出高电平，低于 1.65 V 时输出低电平。
+谐振信号叠加直流偏置，阈值由 `ZC_THRESHOLD_V` 设置。COMP3/COMP5 均配置为同相输出、无迟滞、无消隐；输入高于 DAC 阈值时输出高电平，低于阈值时输出低电平。两路共用同一个阈值宏，若实际偏置不同，需要分别校准并调整实现。
+
+PC1/PB13 是独立的比较器输入，并非代码自动从 PA0/PA1 转接；应核对板级信号连接。主循环读取的 `dbg_zc_i`、`dbg_zc_v` 只是电平快照，不能用 Watch 刷新速度判断过零频率或相位差。
 
 ## ADC 谐振波形采样
 
-ADC1 和 ADC2 以双路同步模式（`ADC_DUALMODE_REGSIMULT`）同时采样谐振电流和电压波形，用于计算输出功率。
+ADC1 和 ADC2 以双路同步模式（`ADC_DUALMODE_REGSIMULT`）同时采样谐振电流和电压波形，为后续功率计算提供数据。当前只进行瞬时值换算，尚未计算平均功率、有效值或功率因数。
 
 | 引脚 | ADC 通道 | 采样信号 | 说明 |
 | --- | --- | --- | --- |
 | PA0 | ADC1_IN1 | 谐振电流 | 12-bit，DMA 循环缓冲 |
 | PA1 | ADC2_IN2 | 谐振电压 | 12-bit，与 ADC1 同步采样 |
 
-两个 ADC 以双路同步模式工作，每次触发后 ADC1 和 ADC2 在同一时刻分别采样电流和电压，数据以 32-bit 打包存入 DMA 循环缓冲区：
+ADC1 为主、ADC2 为从，软件启动后以连续转换方式同步采样，不与 HRTIM 周期锁定。数据以 32-bit 打包存入 DMA 循环缓冲区：
 
 ```
-adc_dma_buf[N] = ADC2[31:16] | ADC1[15:0]
+adc_dma_buf[index] = (ADC2_raw << 16) | ADC1_raw
+current_raw = adc_dma_buf[index] & 0xFFF
+voltage_raw = (adc_dma_buf[index] >> 16) & 0xFFF
 ```
 
 当前配置：
@@ -113,23 +175,43 @@ adc_dma_buf[N] = ADC2[31:16] | ADC1[15:0]
 | --- | --- |
 | 分辨率 | 12-bit |
 | 采样时间 | 12.5 ADC 时钟周期 |
-| 时钟预分频 | PCLK/4 |
-| 双路同步延迟 | 1 周期 |
-| DMA 缓冲区大小 | 256 字（循环模式） |
-| 触发源 | 软件触发（`ADC_SOFTWARE_START`） |
+| 时钟预分频 | `ADC_CLOCK_SYNC_PCLK_DIV4`；按本地 HAL 定义为 AHB/HCLK ÷ 4，即 42.5 MHz |
+| 双 ADC 延迟配置字段 | `ADC_TWOSAMPLINGDELAY_1CYCLE`；不表示电流、电压人为错开一个周期 |
+| 转换方式 | 软件启动后连续转换，两路过采样均关闭 |
+| DMA 缓冲区大小 | 256 个 `uint32_t`，共 1024 字节，循环模式 |
+| DMA 配置 | DMA1_Channel1，外设/内存均按 32-bit 搬运，内存地址递增 |
+| 触发源 | 软件触发（`ADC_SOFTWARE_START`），不是定时器触发 |
 
-`HAL_ADC_ConvHalfCpltCallback` 和 `HAL_ADC_ConvCpltCallback` 分别在 DMA 半缓冲、全缓冲完成时处理 128 个采样点，取该块最后一个采样点计算谐振电流/电压的 ADC 电压和物理量，更新 Watch 变量。
+启动流程为：分别校准 ADC1/ADC2 → `HAL_ADC_Start(&hadc2)` 启动从 ADC → `HAL_ADCEx_MultiModeStart_DMA()` 启动主 ADC 与 DMA。双模式不能简单改为单 ADC 的 `HAL_ADC_Start_DMA()`。
+
+`HAL_ADC_ConvHalfCpltCallback` 和 `HAL_ADC_ConvCpltCallback` 分别在 DMA 半缓冲、全缓冲完成时调用 `ProcessAdcDmaBlock()`，但**只读取对应 128 点块的最后一个采样点**（索引 127 或 255），并非平均或遍历整块。因此 `dbg_i_a`、`dbg_v_res_v` 是带正负号的瞬时值，不是峰值或 RMS。
+
+PA2/PA3 的 ADC1 注入序列已配置为两个通道、640.5 周期采样时间，但当前没有启动注入转换或读取温度的业务代码。
 
 ## HRTIM 保护链路
 
-| HRTIM 故障 | 来源 | 用途 | filter 值 | 滤波延迟 |
+| HRTIM 故障 | 来源（按工程配置意图） | 用途 | 滤波宏 | 本地 HAL 对滤波档位的定义 |
 | --- | --- | --- | --- | --- |
-| FAULT1 | Internal comparator / FLT_Int | 母线过压硬件关断 | 15 | 15 / 170 MHz ≈ 88 ns |
-| FAULT3 | Internal comparator / FLT_Int | 过流锁存关断 | 8 | 8 / 170 MHz ≈ 47 ns |
+| FAULT1 | COMP2 / FLT_Int | 母线过压硬件关断 | `HRTIM_FAULTFILTER_15` | `fSAMPLING = fFLTS / 32`，连续 8 次采样 |
+| FAULT3 | COMP6 / FLT_Int | 谐振过流硬件关断 | `HRTIM_FAULTFILTER_8` | `fSAMPLING = fFLTS / 8`，连续 6 次采样 |
 
 HRTIM 时钟 = SYSCLK = 170 MHz（HSI 16 MHz × 85 / 4 / 2），fault prescaler = DIV1。
 
-启动顺序：PB1 置高禁用外部驱动 → DAC 阈值设置 → DAC 四通道启动 → COMP2/COMP3/COMP5/COMP6 全部启动 → 延迟稳定 → 一次性清除 FLT1/FLT3 旧标志 → 同时启用 FAULT1/FAULT3 → 启动 HRTIM Timer A/B 输出 → 启动 ADC1/ADC2 双路同步 DMA → 延时 500 ms 后 PB0 拉高吸合继电器。
+`filter=15/8` 是滤波档位编码，不是 15/8 个 HRTIM 时钟。按 `fFLTS = 170 MHz` 推算，完整 N 次采样窗口分别约为 1.506 µs 和 0.282 µs；这不是从模拟输入到功率器件关断的完整延迟，还应考虑采样相位、比较器和驱动传播时间。
+
+Timer A/B 均启用 FAULT1 和 FAULT3，四路输出的 `FaultLevel` 均为 `INACTIVE`。两路故障配置为高电平有效，HRTIM 中断未启用，主循环只读取故障标志；内部源映射和实际输出行为仍需通过硬件测试确认。
+
+启动顺序：
+
+1. 初始化 HAL、系统时钟及各外设；GPIO 初始化时 PB0 置低、PB1 置高。
+2. 写入 DAC 四路阈值并启动 DAC，等待 1 ms。
+3. 启动 COMP2/COMP3/COMP5/COMP6，再等待 1 ms。
+4. 一次性清除 FLT1/FLT3 旧标志，再使能两路故障输入。
+5. 启动 HRTIM 四路输出和 Timer A/B 计数，记录 LED 与继电器计时起点。
+6. 校准并启动 ADC1/ADC2 双路同步 DMA。
+7. 主循环刷新状态；计时满 500 ms 后 PB0 拉高，PC13 每 500 ms 翻转一次。
+
+> 当前 `Error_Handler()` 仅关闭中断并停在死循环，没有显式停止 HRTIM、关闭驱动或释放继电器。不要把它当作已实现的完整故障停机流程。
 
 ## Keil Watch 调试变量
 
@@ -138,17 +220,19 @@ HRTIM 时钟 = SYSCLK = 170 MHz（HSI 16 MHz × 85 / 4 / 2），fault prescaler 
 | 分组 | 变量 | 类型 | 含义 |
 | --- | --- | --- | --- |
 | **谐振电流** | `dbg_i_adc_v` | `float` | ADC 采样电压 (V) |
-| | `dbg_i_a` | `float` | 谐振电流 (A)，`(Vadc - 1.65) / 0.056` |
+| | `dbg_i_a` | `float` | 瞬时谐振电流 (A)，`(Vadc - 1.59) / 0.056` |
 | **谐振电压** | `dbg_v_adc_v` | `float` | ADC 采样电压 (V) |
-| | `dbg_v_res_v` | `float` | 谐振电压 (V)，`(Vadc - 1.65) / 0.04258` |
+| | `dbg_v_res_v` | `float` | 瞬时谐振电压 (V)，`(Vadc - 1.59) / V_RES_SCALE` |
 | **继电器/PWM** | `dbg_relay` | `uint32_t` | 继电器 0=关 1=开 |
 | | `dbg_pwm_en` | `uint32_t` | PWM 使能 0=禁止 1=使能（已取反） |
 | **保护状态** | `dbg_ovp` | `uint32_t` | COMP2 过压实时输出电平 |
 | | `dbg_ocp` | `uint32_t` | COMP6 过流实时输出电平 |
-| | `dbg_ovp_fault` | `uint32_t` | FAULT1 锁存标志，1=已触发 |
-| | `dbg_ocp_fault` | `uint32_t` | FAULT3 锁存标志，1=已触发 |
+| | `dbg_ovp_fault` | `uint32_t` | FAULT1 历史故障标志，1=已触发且未清除 |
+| | `dbg_ocp_fault` | `uint32_t` | FAULT3 历史故障标志，1=已触发且未清除 |
 | **过零** | `dbg_zc_i` | `uint32_t` | COMP3 电流过零实时输出电平 |
 | | `dbg_zc_v` | `uint32_t` | COMP5 电压过零实时输出电平 |
+
+其中 4 个 ADC 浮点变量由 DMA 回调更新，其余 8 个状态变量由主循环更新，并非同一时刻的原子快照。`dbg_relay` 是软件命令状态，不是继电器触点反馈；`dbg_pwm_en` 只反映 PB1 电平，不代表四路 PWM 或驱动器实际工作状态。直接修改这些 `dbg_*` 变量不会形成控制命令，后续刷新还会覆盖修改。
 
 ## 其他已配置引脚
 
@@ -186,10 +270,45 @@ HRTIM 时钟 = SYSCLK = 170 MHz（HSI 16 MHz × 85 / 4 / 2），fault prescaler 
 | COMP3 | 谐振电流过零检测 |
 | COMP5 | 谐振电压过零检测 |
 | COMP6 | 谐振过流保护 |
-| HRTIM FAULT1 | COMP2 过压锁存关断 |
-| HRTIM FAULT3 | COMP6 过流锁存关断 |
+| HRTIM FAULT1 | 按工程意图用于 COMP2 过压关断 |
+| HRTIM FAULT3 | 按工程意图用于 COMP6 过流关断 |
 | HRTIM1 Timer A | 左侧半桥 PWM |
 | HRTIM1 Timer B | 右侧半桥 PWM |
 | ADC1 + ADC2 | 电流、电压双路同步采样 |
 | DMA1_Channel1 | ADC 双路同步采样循环搬运 |
 | USART1 / USART2 | 调试或通讯接口 |
+
+USART1/USART2 均配置为 **115200、8 数据位、1 停止位、无校验、无硬件流控**。当前没有串口收发流程或 `printf` 重定向，因此串口终端没有输出并不一定是故障。
+
+## 调试检查与常见现象
+
+首次验证应保持外部驱动禁用，先在不向功率级送能的条件下检查逻辑和采样；不要仅为看到波形而直接拉低 PB1。
+
+| 现象 | 检查方向 |
+| --- | --- |
+| MCU 有 PWM，功率级无输出 | 当前 PB1 默认高电平，属于驱动禁用状态；继电器吸合不会改变它 |
+| 空闲电流/电压换算不接近零 | 检查 PA0/PA1 实际偏置、3.3 V 换算基准及对应增益，分别校准两个偏置宏 |
+| 交流量在 Watch 中跳动 | 当前显示单个瞬时样本，非平均值或 RMS；不能据此直接判断功率波动 |
+| ADC 变量一直为零或不更新 | 检查是否进入 `Error_Handler()`、DMA1_Channel1 中断是否执行、双 ADC 启动是否成功 |
+| 实时保护已恢复而 fault 仍为 1 | 比较器实时输出与保留的故障标志含义不同，当前软件不会主动清除后者 |
+| 过零电平看似不变或无规律 | Watch/主循环不是边沿捕获，应核对独立比较器输入和阈值，不用轮询值推算相位 |
+| PC13 停止翻转 | 检查程序是否被调试器暂停、进入错误处理或主循环不再运行；LED 不代表功率级正常 |
+
+保护验收应记录：比较器输入触发点、四路 PWM 的关断状态和延迟、故障撤销后的行为，以及复位后的初始状态。本文仅核对软件配置，不替代板级保护验证。
+
+## CubeMX 再生成注意事项
+
+当前 `.ioc` 与 `main.c` 至少存在以下差异：
+
+| 项目 | `.ioc` 快照 | 当前代码 |
+| --- | --- | --- |
+| Timer A/B 周期 | 54400 | 33830 |
+| Timer A 计数倍率 | MUL32 | MUL4 |
+| Timer A CMP1 | 27200 | 16915 |
+| Timer B CMP1 / CMP2 | 27200 / 54400 | 8458 / 25373 |
+| 上升/下降死区计数 | 400 | 40 |
+| 定时器故障源 | FAULT1 + FAULT2 | FAULT1 + FAULT3 |
+| 故障滤波 | 两路 FILTER_2 | FAULT1 FILTER_15、FAULT3 FILTER_8 |
+| ADC 常规通道采样时间 | 2.5 周期 | 12.5 周期 |
+
+重新生成前先保存差异，并把需要保留的配置同步到 `.ioc` 或合适的用户代码区。`KeepUserCode=true` 只保护对应用户代码块，不保护初始化函数中所有手工修改。生成后逐项复核 PWM、死区、ADC 连续模式、DMA、PB1 默认电平及保护启动顺序，并重新构建和验证。

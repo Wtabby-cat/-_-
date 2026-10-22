@@ -1,0 +1,2577 @@
+# 分段温控
+
+## 200ms 输入刷新定时器
+
+if(clearPlot==1)
+{
+nBuf=0
+lastSec=0
+clearPlot=0
+dirty=1
+}
+if(push==1)
+{
+push=0
+dataErr=0
+if(sampleSec<0||sampleSec>86400)
+{
+dataErr=1
+}else
+{
+if(nBuf>0&&sampleSec<=lastSec)
+{
+dataErr=1
+}else
+{
+if(nBuf==32)
+{
+tt0=tt1
+ct0=ct1
+av0=av1
+hi0=hi1
+pw0=pw1
+fq0=fq1
+ph0=ph1
+tt1=tt2
+ct1=ct2
+av1=av2
+hi1=hi2
+pw1=pw2
+fq1=fq2
+ph1=ph2
+tt2=tt3
+ct2=ct3
+av2=av3
+hi2=hi3
+pw2=pw3
+fq2=fq3
+ph2=ph3
+tt3=tt4
+ct3=ct4
+av3=av4
+hi3=hi4
+pw3=pw4
+fq3=fq4
+ph3=ph4
+tt4=tt5
+ct4=ct5
+av4=av5
+hi4=hi5
+pw4=pw5
+fq4=fq5
+ph4=ph5
+tt5=tt6
+ct5=ct6
+av5=av6
+hi5=hi6
+pw5=pw6
+fq5=fq6
+ph5=ph6
+tt6=tt7
+ct6=ct7
+av6=av7
+hi6=hi7
+pw6=pw7
+fq6=fq7
+ph6=ph7
+tt7=tt8
+ct7=ct8
+av7=av8
+hi7=hi8
+pw7=pw8
+fq7=fq8
+ph7=ph8
+tt8=tt9
+ct8=ct9
+av8=av9
+hi8=hi9
+pw8=pw9
+fq8=fq9
+ph8=ph9
+tt9=tt10
+ct9=ct10
+av9=av10
+hi9=hi10
+pw9=pw10
+fq9=fq10
+ph9=ph10
+tt10=tt11
+ct10=ct11
+av10=av11
+hi10=hi11
+pw10=pw11
+fq10=fq11
+ph10=ph11
+tt11=tt12
+ct11=ct12
+av11=av12
+hi11=hi12
+pw11=pw12
+fq11=fq12
+ph11=ph12
+tt12=tt13
+ct12=ct13
+av12=av13
+hi12=hi13
+pw12=pw13
+fq12=fq13
+ph12=ph13
+tt13=tt14
+ct13=ct14
+av13=av14
+hi13=hi14
+pw13=pw14
+fq13=fq14
+ph13=ph14
+tt14=tt15
+ct14=ct15
+av14=av15
+hi14=hi15
+pw14=pw15
+fq14=fq15
+ph14=ph15
+tt15=tt16
+ct15=ct16
+av15=av16
+hi15=hi16
+pw15=pw16
+fq15=fq16
+ph15=ph16
+tt16=tt17
+ct16=ct17
+av16=av17
+hi16=hi17
+pw16=pw17
+fq16=fq17
+ph16=ph17
+tt17=tt18
+ct17=ct18
+av17=av18
+hi17=hi18
+pw17=pw18
+fq17=fq18
+ph17=ph18
+tt18=tt19
+ct18=ct19
+av18=av19
+hi18=hi19
+pw18=pw19
+fq18=fq19
+ph18=ph19
+tt19=tt20
+ct19=ct20
+av19=av20
+hi19=hi20
+pw19=pw20
+fq19=fq20
+ph19=ph20
+tt20=tt21
+ct20=ct21
+av20=av21
+hi20=hi21
+pw20=pw21
+fq20=fq21
+ph20=ph21
+tt21=tt22
+ct21=ct22
+av21=av22
+hi21=hi22
+pw21=pw22
+fq21=fq22
+ph21=ph22
+tt22=tt23
+ct22=ct23
+av22=av23
+hi22=hi23
+pw22=pw23
+fq22=fq23
+ph22=ph23
+tt23=tt24
+ct23=ct24
+av23=av24
+hi23=hi24
+pw23=pw24
+fq23=fq24
+ph23=ph24
+tt24=tt25
+ct24=ct25
+av24=av25
+hi24=hi25
+pw24=pw25
+fq24=fq25
+ph24=ph25
+tt25=tt26
+ct25=ct26
+av25=av26
+hi25=hi26
+pw25=pw26
+fq25=fq26
+ph25=ph26
+tt26=tt27
+ct26=ct27
+av26=av27
+hi26=hi27
+pw26=pw27
+fq26=fq27
+ph26=ph27
+tt27=tt28
+ct27=ct28
+av27=av28
+hi27=hi28
+pw27=pw28
+fq27=fq28
+ph27=ph28
+tt28=tt29
+ct28=ct29
+av28=av29
+hi28=hi29
+pw28=pw29
+fq28=fq29
+ph28=ph29
+tt29=tt30
+ct29=ct30
+av29=av30
+hi29=hi30
+pw29=pw30
+fq29=fq30
+ph29=ph30
+tt30=tt31
+ct30=ct31
+av30=av31
+hi30=hi31
+pw30=pw31
+fq30=fq31
+ph30=ph31
+nBuf=31
+}
+if(nBuf==0)
+{
+tt0=sampleSec
+ct0=target10
+av0=mean10
+hi0=high10
+pw0=powerW
+fq0=freq100
+ph0=phase10
+}
+if(nBuf==1)
+{
+tt1=sampleSec
+ct1=target10
+av1=mean10
+hi1=high10
+pw1=powerW
+fq1=freq100
+ph1=phase10
+}
+if(nBuf==2)
+{
+tt2=sampleSec
+ct2=target10
+av2=mean10
+hi2=high10
+pw2=powerW
+fq2=freq100
+ph2=phase10
+}
+if(nBuf==3)
+{
+tt3=sampleSec
+ct3=target10
+av3=mean10
+hi3=high10
+pw3=powerW
+fq3=freq100
+ph3=phase10
+}
+if(nBuf==4)
+{
+tt4=sampleSec
+ct4=target10
+av4=mean10
+hi4=high10
+pw4=powerW
+fq4=freq100
+ph4=phase10
+}
+if(nBuf==5)
+{
+tt5=sampleSec
+ct5=target10
+av5=mean10
+hi5=high10
+pw5=powerW
+fq5=freq100
+ph5=phase10
+}
+if(nBuf==6)
+{
+tt6=sampleSec
+ct6=target10
+av6=mean10
+hi6=high10
+pw6=powerW
+fq6=freq100
+ph6=phase10
+}
+if(nBuf==7)
+{
+tt7=sampleSec
+ct7=target10
+av7=mean10
+hi7=high10
+pw7=powerW
+fq7=freq100
+ph7=phase10
+}
+if(nBuf==8)
+{
+tt8=sampleSec
+ct8=target10
+av8=mean10
+hi8=high10
+pw8=powerW
+fq8=freq100
+ph8=phase10
+}
+if(nBuf==9)
+{
+tt9=sampleSec
+ct9=target10
+av9=mean10
+hi9=high10
+pw9=powerW
+fq9=freq100
+ph9=phase10
+}
+if(nBuf==10)
+{
+tt10=sampleSec
+ct10=target10
+av10=mean10
+hi10=high10
+pw10=powerW
+fq10=freq100
+ph10=phase10
+}
+if(nBuf==11)
+{
+tt11=sampleSec
+ct11=target10
+av11=mean10
+hi11=high10
+pw11=powerW
+fq11=freq100
+ph11=phase10
+}
+if(nBuf==12)
+{
+tt12=sampleSec
+ct12=target10
+av12=mean10
+hi12=high10
+pw12=powerW
+fq12=freq100
+ph12=phase10
+}
+if(nBuf==13)
+{
+tt13=sampleSec
+ct13=target10
+av13=mean10
+hi13=high10
+pw13=powerW
+fq13=freq100
+ph13=phase10
+}
+if(nBuf==14)
+{
+tt14=sampleSec
+ct14=target10
+av14=mean10
+hi14=high10
+pw14=powerW
+fq14=freq100
+ph14=phase10
+}
+if(nBuf==15)
+{
+tt15=sampleSec
+ct15=target10
+av15=mean10
+hi15=high10
+pw15=powerW
+fq15=freq100
+ph15=phase10
+}
+if(nBuf==16)
+{
+tt16=sampleSec
+ct16=target10
+av16=mean10
+hi16=high10
+pw16=powerW
+fq16=freq100
+ph16=phase10
+}
+if(nBuf==17)
+{
+tt17=sampleSec
+ct17=target10
+av17=mean10
+hi17=high10
+pw17=powerW
+fq17=freq100
+ph17=phase10
+}
+if(nBuf==18)
+{
+tt18=sampleSec
+ct18=target10
+av18=mean10
+hi18=high10
+pw18=powerW
+fq18=freq100
+ph18=phase10
+}
+if(nBuf==19)
+{
+tt19=sampleSec
+ct19=target10
+av19=mean10
+hi19=high10
+pw19=powerW
+fq19=freq100
+ph19=phase10
+}
+if(nBuf==20)
+{
+tt20=sampleSec
+ct20=target10
+av20=mean10
+hi20=high10
+pw20=powerW
+fq20=freq100
+ph20=phase10
+}
+if(nBuf==21)
+{
+tt21=sampleSec
+ct21=target10
+av21=mean10
+hi21=high10
+pw21=powerW
+fq21=freq100
+ph21=phase10
+}
+if(nBuf==22)
+{
+tt22=sampleSec
+ct22=target10
+av22=mean10
+hi22=high10
+pw22=powerW
+fq22=freq100
+ph22=phase10
+}
+if(nBuf==23)
+{
+tt23=sampleSec
+ct23=target10
+av23=mean10
+hi23=high10
+pw23=powerW
+fq23=freq100
+ph23=phase10
+}
+if(nBuf==24)
+{
+tt24=sampleSec
+ct24=target10
+av24=mean10
+hi24=high10
+pw24=powerW
+fq24=freq100
+ph24=phase10
+}
+if(nBuf==25)
+{
+tt25=sampleSec
+ct25=target10
+av25=mean10
+hi25=high10
+pw25=powerW
+fq25=freq100
+ph25=phase10
+}
+if(nBuf==26)
+{
+tt26=sampleSec
+ct26=target10
+av26=mean10
+hi26=high10
+pw26=powerW
+fq26=freq100
+ph26=phase10
+}
+if(nBuf==27)
+{
+tt27=sampleSec
+ct27=target10
+av27=mean10
+hi27=high10
+pw27=powerW
+fq27=freq100
+ph27=phase10
+}
+if(nBuf==28)
+{
+tt28=sampleSec
+ct28=target10
+av28=mean10
+hi28=high10
+pw28=powerW
+fq28=freq100
+ph28=phase10
+}
+if(nBuf==29)
+{
+tt29=sampleSec
+ct29=target10
+av29=mean10
+hi29=high10
+pw29=powerW
+fq29=freq100
+ph29=phase10
+}
+if(nBuf==30)
+{
+tt30=sampleSec
+ct30=target10
+av30=mean10
+hi30=high10
+pw30=powerW
+fq30=freq100
+ph30=phase10
+}
+if(nBuf==31)
+{
+tt31=sampleSec
+ct31=target10
+av31=mean10
+hi31=high10
+pw31=powerW
+fq31=freq100
+ph31=phase10
+}
+nBuf=nBuf+1
+lastSec=sampleSec
+valid=1
+dirty=1
+}
+}
+}
+if(alarmPush==1)
+{
+alarmPush=0
+if(alarmIn>=1&&alarmIn<=8)
+{
+if(alarmOn==1)
+{
+if(alarmCode!=alarmIn)
+{
+ac5=ac4
+at5=at4
+as5=as4
+ac4=ac3
+at4=at3
+as4=as3
+ac3=ac2
+at3=at2
+as3=as2
+ac2=ac1
+at2=at1
+as2=as1
+ac1=ac0
+at1=at0
+as1=as0
+ac0=alarmIn
+at0=alarmSec
+as0=1
+}
+alarmCode=alarmIn
+}else
+{
+if(alarmCode==alarmIn)
+{
+alarmCode=0
+}
+if(ac0==alarmIn)
+{
+as0=3
+}
+if(ac1==alarmIn)
+{
+as1=3
+}
+if(ac2==alarmIn)
+{
+as2=3
+}
+if(ac3==alarmIn)
+{
+as3=3
+}
+if(ac4==alarmIn)
+{
+as4=3
+}
+if(ac5==alarmIn)
+{
+as5=3
+}
+}
+dirty=1
+}
+}
+if(dirty==1)
+{
+tState.txt="待机"
+if(run==1)
+{
+tState.txt="运行中"
+}
+dirty=0
+}
+
+## 页面后初始化
+
+vis bTable,0
+click bTable,0
+
+## bStop 停止加热 触摸弹起
+
+printh 65 01 04 00 FF FF FF
+cmd=2
+printh A5 5A 01 01 02 FF FF FF
+tFoot.txt="停止请求已发送；等待主控"
+
+## bNav0 运行总览 触摸弹起
+
+printh 65 01 06 00 FF FF FF
+page 0
+
+## bNav1 分段温控 触摸弹起
+
+printh 65 01 07 00 FF FF FF
+page 1
+
+## bNav2 曲线调试 触摸弹起
+
+printh 65 01 08 00 FF FF FF
+page 2
+
+## bNav3 保护报警 触摸弹起
+
+printh 65 01 09 00 FF FF FF
+page 5
+
+## bplim 1500 触摸弹起
+
+printh 65 01 0C 00 FF FF FF
+if(run==0)
+{
+field=1
+backpg=1
+editval=plim
+editmin=1
+editmax=9999
+page 7
+}
+
+## bMode LADRC 触摸弹起
+
+printh 65 01 10 00 FF FF FF
+if(run==0)
+{
+ddopen=1-ddopen
+if(ddopen==1)
+{
+vis bOpt0,1
+vis bOpt1,1
+vis bOpt2,1
+}else
+{
+click bTable,0
+}
+}
+
+## bRow0 1 触摸弹起
+
+printh 65 01 15 00 FF FF FF
+sel=1
+click bTable,0
+
+## btg1 60 触摸弹起
+
+printh 65 01 17 00 FF FF FF
+if(run==0)
+{
+field=2
+backpg=1
+editval=tg1
+editmin=1
+editmax=999
+page 7
+}
+
+## bhd1 180 触摸弹起
+
+printh 65 01 19 00 FF FF FF
+if(run==0)
+{
+field=3
+backpg=1
+editval=hd1
+editmin=1
+editmax=9999
+page 7
+}
+
+## bRow1 2 触摸弹起
+
+printh 65 01 1B 00 FF FF FF
+sel=2
+click bTable,0
+
+## btg2 90 触摸弹起
+
+printh 65 01 1D 00 FF FF FF
+if(run==0)
+{
+field=4
+backpg=1
+editval=tg2
+editmin=1
+editmax=999
+page 7
+}
+
+## bhd2 300 触摸弹起
+
+printh 65 01 1F 00 FF FF FF
+if(run==0)
+{
+field=5
+backpg=1
+editval=hd2
+editmin=1
+editmax=9999
+page 7
+}
+
+## bRow2 3 触摸弹起
+
+printh 65 01 21 00 FF FF FF
+sel=3
+click bTable,0
+
+## btg3 120 触摸弹起
+
+printh 65 01 23 00 FF FF FF
+if(run==0)
+{
+field=6
+backpg=1
+editval=tg3
+editmin=1
+editmax=999
+page 7
+}
+
+## bhd3 600 触摸弹起
+
+printh 65 01 25 00 FF FF FF
+if(run==0)
+{
+field=7
+backpg=1
+editval=hd3
+editmin=1
+editmax=9999
+page 7
+}
+
+## bRow3 4 触摸弹起
+
+printh 65 01 27 00 FF FF FF
+sel=4
+click bTable,0
+
+## btg4 120 触摸弹起
+
+printh 65 01 29 00 FF FF FF
+if(run==0)
+{
+field=8
+backpg=1
+editval=tg4
+editmin=1
+editmax=999
+page 7
+}
+
+## bhd4 300 触摸弹起
+
+printh 65 01 2B 00 FF FF FF
+if(run==0)
+{
+field=9
+backpg=1
+editval=hd4
+editmin=1
+editmax=9999
+page 7
+}
+
+## bRow4 5 触摸弹起
+
+printh 65 01 2D 00 FF FF FF
+sel=5
+click bTable,0
+
+## btg5 120 触摸弹起
+
+printh 65 01 2F 00 FF FF FF
+if(run==0)
+{
+field=10
+backpg=1
+editval=tg5
+editmin=1
+editmax=999
+page 7
+}
+
+## bhd5 300 触摸弹起
+
+printh 65 01 31 00 FF FF FF
+if(run==0)
+{
+field=11
+backpg=1
+editval=hd5
+editmin=1
+editmax=9999
+page 7
+}
+
+## bRow5 6 触摸弹起
+
+printh 65 01 33 00 FF FF FF
+sel=6
+click bTable,0
+
+## btg6 120 触摸弹起
+
+printh 65 01 35 00 FF FF FF
+if(run==0)
+{
+field=12
+backpg=1
+editval=tg6
+editmin=1
+editmax=999
+page 7
+}
+
+## bhd6 300 触摸弹起
+
+printh 65 01 37 00 FF FF FF
+if(run==0)
+{
+field=13
+backpg=1
+editval=hd6
+editmin=1
+editmax=9999
+page 7
+}
+
+## bRow6 7 触摸弹起
+
+printh 65 01 39 00 FF FF FF
+sel=7
+click bTable,0
+
+## btg7 120 触摸弹起
+
+printh 65 01 3B 00 FF FF FF
+if(run==0)
+{
+field=14
+backpg=1
+editval=tg7
+editmin=1
+editmax=999
+page 7
+}
+
+## bhd7 300 触摸弹起
+
+printh 65 01 3D 00 FF FF FF
+if(run==0)
+{
+field=15
+backpg=1
+editval=hd7
+editmin=1
+editmax=9999
+page 7
+}
+
+## bRow7 8 触摸弹起
+
+printh 65 01 3F 00 FF FF FF
+sel=8
+click bTable,0
+
+## btg8 120 触摸弹起
+
+printh 65 01 41 00 FF FF FF
+if(run==0)
+{
+field=16
+backpg=1
+editval=tg8
+editmin=1
+editmax=999
+page 7
+}
+
+## bhd8 300 触摸弹起
+
+printh 65 01 43 00 FF FF FF
+if(run==0)
+{
+field=17
+backpg=1
+editval=hd8
+editmin=1
+editmax=9999
+page 7
+}
+
+## bRow8 9 触摸弹起
+
+printh 65 01 45 00 FF FF FF
+sel=9
+click bTable,0
+
+## btg9 120 触摸弹起
+
+printh 65 01 47 00 FF FF FF
+if(run==0)
+{
+field=18
+backpg=1
+editval=tg9
+editmin=1
+editmax=999
+page 7
+}
+
+## bhd9 300 触摸弹起
+
+printh 65 01 49 00 FF FF FF
+if(run==0)
+{
+field=19
+backpg=1
+editval=hd9
+editmin=1
+editmax=9999
+page 7
+}
+
+## bRow9 10 触摸弹起
+
+printh 65 01 4B 00 FF FF FF
+sel=10
+click bTable,0
+
+## btg10 120 触摸弹起
+
+printh 65 01 4D 00 FF FF FF
+if(run==0)
+{
+field=20
+backpg=1
+editval=tg10
+editmin=1
+editmax=999
+page 7
+}
+
+## bhd10 300 触摸弹起
+
+printh 65 01 4F 00 FF FF FF
+if(run==0)
+{
+field=21
+backpg=1
+editval=hd10
+editmin=1
+editmax=9999
+page 7
+}
+
+## bRow10 11 触摸弹起
+
+printh 65 01 51 00 FF FF FF
+sel=11
+click bTable,0
+
+## btg11 120 触摸弹起
+
+printh 65 01 53 00 FF FF FF
+if(run==0)
+{
+field=22
+backpg=1
+editval=tg11
+editmin=1
+editmax=999
+page 7
+}
+
+## bhd11 300 触摸弹起
+
+printh 65 01 55 00 FF FF FF
+if(run==0)
+{
+field=23
+backpg=1
+editval=hd11
+editmin=1
+editmax=9999
+page 7
+}
+
+## bRow11 12 触摸弹起
+
+printh 65 01 57 00 FF FF FF
+sel=12
+click bTable,0
+
+## btg12 120 触摸弹起
+
+printh 65 01 59 00 FF FF FF
+if(run==0)
+{
+field=24
+backpg=1
+editval=tg12
+editmin=1
+editmax=999
+page 7
+}
+
+## bhd12 300 触摸弹起
+
+printh 65 01 5B 00 FF FF FF
+if(run==0)
+{
+field=25
+backpg=1
+editval=hd12
+editmin=1
+editmax=9999
+page 7
+}
+
+## bAdd 插入温段 触摸弹起
+
+printh 65 01 5C 00 FF FF FF
+if(run==0&&nseg<12)
+{
+if(sel<=11&&nseg>=11)
+{
+tg12=tg11
+hd12=hd11
+}
+if(sel<=10&&nseg>=10)
+{
+tg11=tg10
+hd11=hd10
+}
+if(sel<=9&&nseg>=9)
+{
+tg10=tg9
+hd10=hd9
+}
+if(sel<=8&&nseg>=8)
+{
+tg9=tg8
+hd9=hd8
+}
+if(sel<=7&&nseg>=7)
+{
+tg8=tg7
+hd8=hd7
+}
+if(sel<=6&&nseg>=6)
+{
+tg7=tg6
+hd7=hd6
+}
+if(sel<=5&&nseg>=5)
+{
+tg6=tg5
+hd6=hd5
+}
+if(sel<=4&&nseg>=4)
+{
+tg5=tg4
+hd5=hd4
+}
+if(sel<=3&&nseg>=3)
+{
+tg4=tg3
+hd4=hd3
+}
+if(sel<=2&&nseg>=2)
+{
+tg3=tg2
+hd3=hd2
+}
+if(sel<=1&&nseg>=1)
+{
+tg2=tg1
+hd2=hd1
+}
+sel=sel+1
+nseg=nseg+1
+if(sel==1)
+{
+tg1=120
+hd1=300
+}
+if(sel==2)
+{
+tg2=120
+hd2=300
+}
+if(sel==3)
+{
+tg3=120
+hd3=300
+}
+if(sel==4)
+{
+tg4=120
+hd4=300
+}
+if(sel==5)
+{
+tg5=120
+hd5=300
+}
+if(sel==6)
+{
+tg6=120
+hd6=300
+}
+if(sel==7)
+{
+tg7=120
+hd7=300
+}
+if(sel==8)
+{
+tg8=120
+hd8=300
+}
+if(sel==9)
+{
+tg9=120
+hd9=300
+}
+if(sel==10)
+{
+tg10=120
+hd10=300
+}
+if(sel==11)
+{
+tg11=120
+hd11=300
+}
+if(sel==12)
+{
+tg12=120
+hd12=300
+}
+stagepage=sel-1
+stagepage=stagepage/6
+click bTable,0
+tFoot.txt="已插入温段"
+}else
+{
+tFoot.txt="运行中或已达12段，不能插入"
+}
+
+## bRemove 删除选中 触摸弹起
+
+printh 65 01 5D 00 FF FF FF
+if(run==0&&nseg>1)
+{
+if(sel<=1&&nseg>1)
+{
+tg1=tg2
+hd1=hd2
+}
+if(sel<=2&&nseg>2)
+{
+tg2=tg3
+hd2=hd3
+}
+if(sel<=3&&nseg>3)
+{
+tg3=tg4
+hd3=hd4
+}
+if(sel<=4&&nseg>4)
+{
+tg4=tg5
+hd4=hd5
+}
+if(sel<=5&&nseg>5)
+{
+tg5=tg6
+hd5=hd6
+}
+if(sel<=6&&nseg>6)
+{
+tg6=tg7
+hd6=hd7
+}
+if(sel<=7&&nseg>7)
+{
+tg7=tg8
+hd7=hd8
+}
+if(sel<=8&&nseg>8)
+{
+tg8=tg9
+hd8=hd9
+}
+if(sel<=9&&nseg>9)
+{
+tg9=tg10
+hd9=hd10
+}
+if(sel<=10&&nseg>10)
+{
+tg10=tg11
+hd10=hd11
+}
+if(sel<=11&&nseg>11)
+{
+tg11=tg12
+hd11=hd12
+}
+nseg=nseg-1
+if(sel>nseg)
+{
+sel=nseg
+}
+stagepage=sel-1
+stagepage=stagepage/6
+click bTable,0
+tFoot.txt="已删除温段"
+}else
+{
+tFoot.txt="运行中或仅剩1段，不能删除"
+}
+
+## bPrev 上一页 触摸弹起
+
+printh 65 01 5E 00 FF FF FF
+stagepage=0
+sel=1
+click bTable,0
+
+## bNext 下一页 触摸弹起
+
+printh 65 01 5F 00 FF FF FF
+if(nseg>6)
+{
+stagepage=1
+sel=7
+click bTable,0
+}
+
+## bSave 保存方案 触摸弹起
+
+printh 65 01 6A 00 FF FF FF
+saved=1
+cmd=4
+printh A5 5A 01 01 04 FF FF FF
+tFoot.txt="保存请求已发送；等待主控"
+
+## bApply 应用参数 触摸弹起
+
+printh 65 01 6B 00 FF FF FF
+if(run==0)
+{
+cmd=3
+printh A5 5A 01 01 03 FF FF FF
+tFoot.txt="应用请求已发送；等待主控"
+}else
+{
+tFoot.txt="请停止加热后操作"
+}
+
+## bOpt0 LADRC 触摸弹起
+
+printh 65 01 6C 00 FF FF FF
+mode=0
+click bTable,0
+tFoot.txt="算法已选择；点击应用参数生效"
+
+## bOpt1 PID 触摸弹起
+
+printh 65 01 6D 00 FF FF FF
+mode=1
+click bTable,0
+tFoot.txt="算法已选择；点击应用参数生效"
+
+## bOpt2 模糊LADRC 触摸弹起
+
+printh 65 01 6E 00 FF FF FF
+mode=2
+click bTable,0
+tFoot.txt="算法已选择；点击应用参数生效"
+
+## bInput  触摸弹起
+
+if(clearPlot==1)
+{
+nBuf=0
+lastSec=0
+clearPlot=0
+dirty=1
+}
+if(push==1)
+{
+push=0
+dataErr=0
+if(sampleSec<0||sampleSec>86400)
+{
+dataErr=1
+}else
+{
+if(nBuf>0&&sampleSec<=lastSec)
+{
+dataErr=1
+}else
+{
+if(nBuf==32)
+{
+tt0=tt1
+ct0=ct1
+av0=av1
+hi0=hi1
+pw0=pw1
+fq0=fq1
+ph0=ph1
+tt1=tt2
+ct1=ct2
+av1=av2
+hi1=hi2
+pw1=pw2
+fq1=fq2
+ph1=ph2
+tt2=tt3
+ct2=ct3
+av2=av3
+hi2=hi3
+pw2=pw3
+fq2=fq3
+ph2=ph3
+tt3=tt4
+ct3=ct4
+av3=av4
+hi3=hi4
+pw3=pw4
+fq3=fq4
+ph3=ph4
+tt4=tt5
+ct4=ct5
+av4=av5
+hi4=hi5
+pw4=pw5
+fq4=fq5
+ph4=ph5
+tt5=tt6
+ct5=ct6
+av5=av6
+hi5=hi6
+pw5=pw6
+fq5=fq6
+ph5=ph6
+tt6=tt7
+ct6=ct7
+av6=av7
+hi6=hi7
+pw6=pw7
+fq6=fq7
+ph6=ph7
+tt7=tt8
+ct7=ct8
+av7=av8
+hi7=hi8
+pw7=pw8
+fq7=fq8
+ph7=ph8
+tt8=tt9
+ct8=ct9
+av8=av9
+hi8=hi9
+pw8=pw9
+fq8=fq9
+ph8=ph9
+tt9=tt10
+ct9=ct10
+av9=av10
+hi9=hi10
+pw9=pw10
+fq9=fq10
+ph9=ph10
+tt10=tt11
+ct10=ct11
+av10=av11
+hi10=hi11
+pw10=pw11
+fq10=fq11
+ph10=ph11
+tt11=tt12
+ct11=ct12
+av11=av12
+hi11=hi12
+pw11=pw12
+fq11=fq12
+ph11=ph12
+tt12=tt13
+ct12=ct13
+av12=av13
+hi12=hi13
+pw12=pw13
+fq12=fq13
+ph12=ph13
+tt13=tt14
+ct13=ct14
+av13=av14
+hi13=hi14
+pw13=pw14
+fq13=fq14
+ph13=ph14
+tt14=tt15
+ct14=ct15
+av14=av15
+hi14=hi15
+pw14=pw15
+fq14=fq15
+ph14=ph15
+tt15=tt16
+ct15=ct16
+av15=av16
+hi15=hi16
+pw15=pw16
+fq15=fq16
+ph15=ph16
+tt16=tt17
+ct16=ct17
+av16=av17
+hi16=hi17
+pw16=pw17
+fq16=fq17
+ph16=ph17
+tt17=tt18
+ct17=ct18
+av17=av18
+hi17=hi18
+pw17=pw18
+fq17=fq18
+ph17=ph18
+tt18=tt19
+ct18=ct19
+av18=av19
+hi18=hi19
+pw18=pw19
+fq18=fq19
+ph18=ph19
+tt19=tt20
+ct19=ct20
+av19=av20
+hi19=hi20
+pw19=pw20
+fq19=fq20
+ph19=ph20
+tt20=tt21
+ct20=ct21
+av20=av21
+hi20=hi21
+pw20=pw21
+fq20=fq21
+ph20=ph21
+tt21=tt22
+ct21=ct22
+av21=av22
+hi21=hi22
+pw21=pw22
+fq21=fq22
+ph21=ph22
+tt22=tt23
+ct22=ct23
+av22=av23
+hi22=hi23
+pw22=pw23
+fq22=fq23
+ph22=ph23
+tt23=tt24
+ct23=ct24
+av23=av24
+hi23=hi24
+pw23=pw24
+fq23=fq24
+ph23=ph24
+tt24=tt25
+ct24=ct25
+av24=av25
+hi24=hi25
+pw24=pw25
+fq24=fq25
+ph24=ph25
+tt25=tt26
+ct25=ct26
+av25=av26
+hi25=hi26
+pw25=pw26
+fq25=fq26
+ph25=ph26
+tt26=tt27
+ct26=ct27
+av26=av27
+hi26=hi27
+pw26=pw27
+fq26=fq27
+ph26=ph27
+tt27=tt28
+ct27=ct28
+av27=av28
+hi27=hi28
+pw27=pw28
+fq27=fq28
+ph27=ph28
+tt28=tt29
+ct28=ct29
+av28=av29
+hi28=hi29
+pw28=pw29
+fq28=fq29
+ph28=ph29
+tt29=tt30
+ct29=ct30
+av29=av30
+hi29=hi30
+pw29=pw30
+fq29=fq30
+ph29=ph30
+tt30=tt31
+ct30=ct31
+av30=av31
+hi30=hi31
+pw30=pw31
+fq30=fq31
+ph30=ph31
+nBuf=31
+}
+if(nBuf==0)
+{
+tt0=sampleSec
+ct0=target10
+av0=mean10
+hi0=high10
+pw0=powerW
+fq0=freq100
+ph0=phase10
+}
+if(nBuf==1)
+{
+tt1=sampleSec
+ct1=target10
+av1=mean10
+hi1=high10
+pw1=powerW
+fq1=freq100
+ph1=phase10
+}
+if(nBuf==2)
+{
+tt2=sampleSec
+ct2=target10
+av2=mean10
+hi2=high10
+pw2=powerW
+fq2=freq100
+ph2=phase10
+}
+if(nBuf==3)
+{
+tt3=sampleSec
+ct3=target10
+av3=mean10
+hi3=high10
+pw3=powerW
+fq3=freq100
+ph3=phase10
+}
+if(nBuf==4)
+{
+tt4=sampleSec
+ct4=target10
+av4=mean10
+hi4=high10
+pw4=powerW
+fq4=freq100
+ph4=phase10
+}
+if(nBuf==5)
+{
+tt5=sampleSec
+ct5=target10
+av5=mean10
+hi5=high10
+pw5=powerW
+fq5=freq100
+ph5=phase10
+}
+if(nBuf==6)
+{
+tt6=sampleSec
+ct6=target10
+av6=mean10
+hi6=high10
+pw6=powerW
+fq6=freq100
+ph6=phase10
+}
+if(nBuf==7)
+{
+tt7=sampleSec
+ct7=target10
+av7=mean10
+hi7=high10
+pw7=powerW
+fq7=freq100
+ph7=phase10
+}
+if(nBuf==8)
+{
+tt8=sampleSec
+ct8=target10
+av8=mean10
+hi8=high10
+pw8=powerW
+fq8=freq100
+ph8=phase10
+}
+if(nBuf==9)
+{
+tt9=sampleSec
+ct9=target10
+av9=mean10
+hi9=high10
+pw9=powerW
+fq9=freq100
+ph9=phase10
+}
+if(nBuf==10)
+{
+tt10=sampleSec
+ct10=target10
+av10=mean10
+hi10=high10
+pw10=powerW
+fq10=freq100
+ph10=phase10
+}
+if(nBuf==11)
+{
+tt11=sampleSec
+ct11=target10
+av11=mean10
+hi11=high10
+pw11=powerW
+fq11=freq100
+ph11=phase10
+}
+if(nBuf==12)
+{
+tt12=sampleSec
+ct12=target10
+av12=mean10
+hi12=high10
+pw12=powerW
+fq12=freq100
+ph12=phase10
+}
+if(nBuf==13)
+{
+tt13=sampleSec
+ct13=target10
+av13=mean10
+hi13=high10
+pw13=powerW
+fq13=freq100
+ph13=phase10
+}
+if(nBuf==14)
+{
+tt14=sampleSec
+ct14=target10
+av14=mean10
+hi14=high10
+pw14=powerW
+fq14=freq100
+ph14=phase10
+}
+if(nBuf==15)
+{
+tt15=sampleSec
+ct15=target10
+av15=mean10
+hi15=high10
+pw15=powerW
+fq15=freq100
+ph15=phase10
+}
+if(nBuf==16)
+{
+tt16=sampleSec
+ct16=target10
+av16=mean10
+hi16=high10
+pw16=powerW
+fq16=freq100
+ph16=phase10
+}
+if(nBuf==17)
+{
+tt17=sampleSec
+ct17=target10
+av17=mean10
+hi17=high10
+pw17=powerW
+fq17=freq100
+ph17=phase10
+}
+if(nBuf==18)
+{
+tt18=sampleSec
+ct18=target10
+av18=mean10
+hi18=high10
+pw18=powerW
+fq18=freq100
+ph18=phase10
+}
+if(nBuf==19)
+{
+tt19=sampleSec
+ct19=target10
+av19=mean10
+hi19=high10
+pw19=powerW
+fq19=freq100
+ph19=phase10
+}
+if(nBuf==20)
+{
+tt20=sampleSec
+ct20=target10
+av20=mean10
+hi20=high10
+pw20=powerW
+fq20=freq100
+ph20=phase10
+}
+if(nBuf==21)
+{
+tt21=sampleSec
+ct21=target10
+av21=mean10
+hi21=high10
+pw21=powerW
+fq21=freq100
+ph21=phase10
+}
+if(nBuf==22)
+{
+tt22=sampleSec
+ct22=target10
+av22=mean10
+hi22=high10
+pw22=powerW
+fq22=freq100
+ph22=phase10
+}
+if(nBuf==23)
+{
+tt23=sampleSec
+ct23=target10
+av23=mean10
+hi23=high10
+pw23=powerW
+fq23=freq100
+ph23=phase10
+}
+if(nBuf==24)
+{
+tt24=sampleSec
+ct24=target10
+av24=mean10
+hi24=high10
+pw24=powerW
+fq24=freq100
+ph24=phase10
+}
+if(nBuf==25)
+{
+tt25=sampleSec
+ct25=target10
+av25=mean10
+hi25=high10
+pw25=powerW
+fq25=freq100
+ph25=phase10
+}
+if(nBuf==26)
+{
+tt26=sampleSec
+ct26=target10
+av26=mean10
+hi26=high10
+pw26=powerW
+fq26=freq100
+ph26=phase10
+}
+if(nBuf==27)
+{
+tt27=sampleSec
+ct27=target10
+av27=mean10
+hi27=high10
+pw27=powerW
+fq27=freq100
+ph27=phase10
+}
+if(nBuf==28)
+{
+tt28=sampleSec
+ct28=target10
+av28=mean10
+hi28=high10
+pw28=powerW
+fq28=freq100
+ph28=phase10
+}
+if(nBuf==29)
+{
+tt29=sampleSec
+ct29=target10
+av29=mean10
+hi29=high10
+pw29=powerW
+fq29=freq100
+ph29=phase10
+}
+if(nBuf==30)
+{
+tt30=sampleSec
+ct30=target10
+av30=mean10
+hi30=high10
+pw30=powerW
+fq30=freq100
+ph30=phase10
+}
+if(nBuf==31)
+{
+tt31=sampleSec
+ct31=target10
+av31=mean10
+hi31=high10
+pw31=powerW
+fq31=freq100
+ph31=phase10
+}
+nBuf=nBuf+1
+lastSec=sampleSec
+valid=1
+dirty=1
+}
+}
+}
+if(alarmPush==1)
+{
+alarmPush=0
+if(alarmIn>=1&&alarmIn<=8)
+{
+if(alarmOn==1)
+{
+if(alarmCode!=alarmIn)
+{
+ac5=ac4
+at5=at4
+as5=as4
+ac4=ac3
+at4=at3
+as4=as3
+ac3=ac2
+at3=at2
+as3=as2
+ac2=ac1
+at2=at1
+as2=as1
+ac1=ac0
+at1=at0
+as1=as0
+ac0=alarmIn
+at0=alarmSec
+as0=1
+}
+alarmCode=alarmIn
+}else
+{
+if(alarmCode==alarmIn)
+{
+alarmCode=0
+}
+if(ac0==alarmIn)
+{
+as0=3
+}
+if(ac1==alarmIn)
+{
+as1=3
+}
+if(ac2==alarmIn)
+{
+as2=3
+}
+if(ac3==alarmIn)
+{
+as3=3
+}
+if(ac4==alarmIn)
+{
+as4=3
+}
+if(ac5==alarmIn)
+{
+as5=3
+}
+}
+dirty=1
+}
+}
+if(dirty==1)
+{
+tState.txt="待机"
+if(run==1)
+{
+tState.txt="运行中"
+}
+dirty=0
+}
+
+## bTable  触摸弹起
+
+ref_stop
+vis bInput,0
+vis tFmt,0
+if(run==1)
+{
+tState.txt="运行中"
+}
+covx plim,bplim.txt,0,0
+ddopen=0
+vis bOpt0,0
+vis bOpt1,0
+vis bOpt2,0
+ref tPreview
+vis fr0,0
+vis bRow0,0
+vis ftg1,0
+vis btg1,0
+vis fhd1,0
+vis bhd1,0
+bRow0.bco=65535
+bRow0.pco=10631
+vis fr1,0
+vis bRow1,0
+vis ftg2,0
+vis btg2,0
+vis fhd2,0
+vis bhd2,0
+bRow1.bco=65535
+bRow1.pco=10631
+vis fr2,0
+vis bRow2,0
+vis ftg3,0
+vis btg3,0
+vis fhd3,0
+vis bhd3,0
+bRow2.bco=65535
+bRow2.pco=10631
+vis fr3,0
+vis bRow3,0
+vis ftg4,0
+vis btg4,0
+vis fhd4,0
+vis bhd4,0
+bRow3.bco=65535
+bRow3.pco=10631
+vis fr4,0
+vis bRow4,0
+vis ftg5,0
+vis btg5,0
+vis fhd5,0
+vis bhd5,0
+bRow4.bco=65535
+bRow4.pco=10631
+vis fr5,0
+vis bRow5,0
+vis ftg6,0
+vis btg6,0
+vis fhd6,0
+vis bhd6,0
+bRow5.bco=65535
+bRow5.pco=10631
+vis fr6,0
+vis bRow6,0
+vis ftg7,0
+vis btg7,0
+vis fhd7,0
+vis bhd7,0
+bRow6.bco=65535
+bRow6.pco=10631
+vis fr7,0
+vis bRow7,0
+vis ftg8,0
+vis btg8,0
+vis fhd8,0
+vis bhd8,0
+bRow7.bco=65535
+bRow7.pco=10631
+vis fr8,0
+vis bRow8,0
+vis ftg9,0
+vis btg9,0
+vis fhd9,0
+vis bhd9,0
+bRow8.bco=65535
+bRow8.pco=10631
+vis fr9,0
+vis bRow9,0
+vis ftg10,0
+vis btg10,0
+vis fhd10,0
+vis bhd10,0
+bRow9.bco=65535
+bRow9.pco=10631
+vis fr10,0
+vis bRow10,0
+vis ftg11,0
+vis btg11,0
+vis fhd11,0
+vis bhd11,0
+bRow10.bco=65535
+bRow10.pco=10631
+vis fr11,0
+vis bRow11,0
+vis ftg12,0
+vis btg12,0
+vis fhd12,0
+vis bhd12,0
+bRow11.bco=65535
+bRow11.pco=10631
+if(mode==0)
+{
+bMode.txt="LADRC"
+}
+if(mode==1)
+{
+bMode.txt="PID"
+}
+if(mode==2)
+{
+bMode.txt="模糊LADRC"
+}
+covx tg1,btg1.txt,0,0
+covx hd1,bhd1.txt,0,0
+if(stagepage==0&&nseg>=1)
+{
+vis fr0,1
+vis bRow0,1
+vis ftg1,1
+vis btg1,1
+vis fhd1,1
+vis bhd1,1
+if(sel==1)
+{
+bRow0.bco=5116
+bRow0.pco=65535
+}
+}
+covx tg2,btg2.txt,0,0
+covx hd2,bhd2.txt,0,0
+if(stagepage==0&&nseg>=2)
+{
+vis fr1,1
+vis bRow1,1
+vis ftg2,1
+vis btg2,1
+vis fhd2,1
+vis bhd2,1
+if(sel==2)
+{
+bRow1.bco=5116
+bRow1.pco=65535
+}
+}
+covx tg3,btg3.txt,0,0
+covx hd3,bhd3.txt,0,0
+if(stagepage==0&&nseg>=3)
+{
+vis fr2,1
+vis bRow2,1
+vis ftg3,1
+vis btg3,1
+vis fhd3,1
+vis bhd3,1
+if(sel==3)
+{
+bRow2.bco=5116
+bRow2.pco=65535
+}
+}
+covx tg4,btg4.txt,0,0
+covx hd4,bhd4.txt,0,0
+if(stagepage==0&&nseg>=4)
+{
+vis fr3,1
+vis bRow3,1
+vis ftg4,1
+vis btg4,1
+vis fhd4,1
+vis bhd4,1
+if(sel==4)
+{
+bRow3.bco=5116
+bRow3.pco=65535
+}
+}
+covx tg5,btg5.txt,0,0
+covx hd5,bhd5.txt,0,0
+if(stagepage==0&&nseg>=5)
+{
+vis fr4,1
+vis bRow4,1
+vis ftg5,1
+vis btg5,1
+vis fhd5,1
+vis bhd5,1
+if(sel==5)
+{
+bRow4.bco=5116
+bRow4.pco=65535
+}
+}
+covx tg6,btg6.txt,0,0
+covx hd6,bhd6.txt,0,0
+if(stagepage==0&&nseg>=6)
+{
+vis fr5,1
+vis bRow5,1
+vis ftg6,1
+vis btg6,1
+vis fhd6,1
+vis bhd6,1
+if(sel==6)
+{
+bRow5.bco=5116
+bRow5.pco=65535
+}
+}
+covx tg7,btg7.txt,0,0
+covx hd7,bhd7.txt,0,0
+if(stagepage==1&&nseg>=7)
+{
+vis fr6,1
+vis bRow6,1
+vis ftg7,1
+vis btg7,1
+vis fhd7,1
+vis bhd7,1
+if(sel==7)
+{
+bRow6.bco=5116
+bRow6.pco=65535
+}
+}
+covx tg8,btg8.txt,0,0
+covx hd8,bhd8.txt,0,0
+if(stagepage==1&&nseg>=8)
+{
+vis fr7,1
+vis bRow7,1
+vis ftg8,1
+vis btg8,1
+vis fhd8,1
+vis bhd8,1
+if(sel==8)
+{
+bRow7.bco=5116
+bRow7.pco=65535
+}
+}
+covx tg9,btg9.txt,0,0
+covx hd9,bhd9.txt,0,0
+if(stagepage==1&&nseg>=9)
+{
+vis fr8,1
+vis bRow8,1
+vis ftg9,1
+vis btg9,1
+vis fhd9,1
+vis bhd9,1
+if(sel==9)
+{
+bRow8.bco=5116
+bRow8.pco=65535
+}
+}
+covx tg10,btg10.txt,0,0
+covx hd10,bhd10.txt,0,0
+if(stagepage==1&&nseg>=10)
+{
+vis fr9,1
+vis bRow9,1
+vis ftg10,1
+vis btg10,1
+vis fhd10,1
+vis bhd10,1
+if(sel==10)
+{
+bRow9.bco=5116
+bRow9.pco=65535
+}
+}
+covx tg11,btg11.txt,0,0
+covx hd11,bhd11.txt,0,0
+if(stagepage==1&&nseg>=11)
+{
+vis fr10,1
+vis bRow10,1
+vis ftg11,1
+vis btg11,1
+vis fhd11,1
+vis bhd11,1
+if(sel==11)
+{
+bRow10.bco=5116
+bRow10.pco=65535
+}
+}
+covx tg12,btg12.txt,0,0
+covx hd12,bhd12.txt,0,0
+if(stagepage==1&&nseg>=12)
+{
+vis fr11,1
+vis bRow11,1
+vis ftg12,1
+vis btg12,1
+vis fhd12,1
+vis bhd12,1
+if(sel==12)
+{
+bRow11.bco=5116
+bRow11.pco=65535
+}
+}
+sumt=0
+ymax=1
+if(nseg>=1)
+{
+sumt=sumt+hd1
+if(tg1>ymax)
+{
+ymax=tg1
+}
+}
+if(nseg>=2)
+{
+sumt=sumt+hd2
+if(tg2>ymax)
+{
+ymax=tg2
+}
+}
+if(nseg>=3)
+{
+sumt=sumt+hd3
+if(tg3>ymax)
+{
+ymax=tg3
+}
+}
+if(nseg>=4)
+{
+sumt=sumt+hd4
+if(tg4>ymax)
+{
+ymax=tg4
+}
+}
+if(nseg>=5)
+{
+sumt=sumt+hd5
+if(tg5>ymax)
+{
+ymax=tg5
+}
+}
+if(nseg>=6)
+{
+sumt=sumt+hd6
+if(tg6>ymax)
+{
+ymax=tg6
+}
+}
+if(nseg>=7)
+{
+sumt=sumt+hd7
+if(tg7>ymax)
+{
+ymax=tg7
+}
+}
+if(nseg>=8)
+{
+sumt=sumt+hd8
+if(tg8>ymax)
+{
+ymax=tg8
+}
+}
+if(nseg>=9)
+{
+sumt=sumt+hd9
+if(tg9>ymax)
+{
+ymax=tg9
+}
+}
+if(nseg>=10)
+{
+sumt=sumt+hd10
+if(tg10>ymax)
+{
+ymax=tg10
+}
+}
+if(nseg>=11)
+{
+sumt=sumt+hd11
+if(tg11>ymax)
+{
+ymax=tg11
+}
+}
+if(nseg>=12)
+{
+sumt=sumt+hd12
+if(tg12>ymax)
+{
+ymax=tg12
+}
+}
+ymax=ymax+30
+covx ymax,ty99.txt,0,0
+tmp=ymax/2
+covx tmp,ty98.txt,0,0
+covx sumt,tx102.txt,0,0
+tmp=sumt/2
+covx tmp,tx101.txt,0,0
+tState.txt="待机"
+if(run==1)
+{
+tState.txt="运行中"
+}
+ref th16
+ref th85
+ref th266
+ref tPreview
+ref_star
+doevents
+fill 526,160,247,127,65535
+line 526,286,772,286,61342
+line 526,223,772,223,61342
+line 526,160,772,160,61342
+line 526,160,526,286,61342
+line 649,160,649,286,61342
+line 772,160,772,286,61342
+line 526,160,526,286,55004
+line 526,286,772,286,55004
+elapsed=0
+px=526
+py=286
+if(nseg>=1)
+{
+ny=tg1*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd1
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=2)
+{
+ny=tg2*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd2
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=3)
+{
+ny=tg3*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd3
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=4)
+{
+ny=tg4*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd4
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=5)
+{
+ny=tg5*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd5
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=6)
+{
+ny=tg6*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd6
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=7)
+{
+ny=tg7*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd7
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=8)
+{
+ny=tg8*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd8
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=9)
+{
+ny=tg9*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd9
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=10)
+{
+ny=tg10*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd10
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=11)
+{
+ny=tg11*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd11
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=12)
+{
+ny=tg12*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd12
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+line 750,65,758,73,31695
+line 758,73,766,65,31695

@@ -1,0 +1,1777 @@
+[
+  {
+    "category": "总览测量数据",
+    "var": "temp10",
+    "setup": [
+      "page 0"
+    ],
+    "commands": [
+      "temp10=1196",
+      "valid=1",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tActual.txt": "119.6"
+    }
+  },
+  {
+    "category": "总览测量数据",
+    "var": "target10",
+    "setup": [
+      "page 0"
+    ],
+    "commands": [
+      "target10=1200",
+      "valid=1",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tTarget.txt": "120.0"
+    }
+  },
+  {
+    "category": "总览测量数据",
+    "var": "powerW",
+    "setup": [
+      "page 0"
+    ],
+    "commands": [
+      "powerW=860",
+      "valid=1",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tPower.txt": "860"
+    }
+  },
+  {
+    "category": "总览测量数据",
+    "var": "bus10",
+    "setup": [
+      "page 0"
+    ],
+    "commands": [
+      "bus10=3080",
+      "valid=1",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tBus.txt": "308.0"
+    }
+  },
+  {
+    "category": "总览测量数据",
+    "var": "freq100",
+    "setup": [
+      "page 0"
+    ],
+    "commands": [
+      "freq100=2010",
+      "valid=1",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tFreq.txt": "20.10"
+    }
+  },
+  {
+    "category": "总览测量数据",
+    "var": "amp10",
+    "setup": [
+      "page 0"
+    ],
+    "commands": [
+      "amp10=182",
+      "valid=1",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tCurrent.txt": "18.2"
+    }
+  },
+  {
+    "category": "总览运行状态",
+    "var": "valid",
+    "setup": [
+      "page 0",
+      "nseg=3"
+    ],
+    "commands": [
+      "valid=0",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tActual.txt": "--"
+    }
+  },
+  {
+    "category": "总览运行状态",
+    "var": "run",
+    "setup": [
+      "page 0",
+      "nseg=3"
+    ],
+    "commands": [
+      "run=1",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tState.txt": "运行中"
+    }
+  },
+  {
+    "category": "总览运行状态",
+    "var": "stage",
+    "setup": [
+      "page 0",
+      "nseg=3"
+    ],
+    "commands": [
+      "stage=2",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tStage.txt": "2 / 3"
+    }
+  },
+  {
+    "category": "总览运行状态",
+    "var": "phaseState",
+    "setup": [
+      "page 0",
+      "nseg=3"
+    ],
+    "commands": [
+      "phaseState=2",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tPhase.txt": "保温"
+    }
+  },
+  {
+    "category": "总览运行状态",
+    "var": "locked",
+    "setup": [
+      "page 0",
+      "nseg=3"
+    ],
+    "commands": [
+      "locked=1",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tLock.txt": "已锁定"
+    }
+  },
+  {
+    "category": "总览运行状态",
+    "var": "totalSec",
+    "setup": [
+      "page 0",
+      "nseg=3"
+    ],
+    "commands": [
+      "totalSec=123",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tElapsed.txt": "123 s"
+    }
+  },
+  {
+    "category": "总览运行状态",
+    "var": "remain",
+    "setup": [
+      "page 0",
+      "nseg=3"
+    ],
+    "commands": [
+      "remain=456",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tRemain.txt": "456 s"
+    }
+  },
+  {
+    "category": "总览运行状态",
+    "var": "dirty",
+    "setup": [
+      "page 0",
+      "nseg=3"
+    ],
+    "commands": [
+      "valid=1",
+      "bus10=3080",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tBus.txt": "308.0",
+      "dirty": 0
+    }
+  },
+  {
+    "category": "温段方案设置",
+    "var": "nseg",
+    "setup": [
+      "page 1",
+      "run=0"
+    ],
+    "commands": [
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "expect": {
+      "nseg": 12,
+      "bRow5.txt": "6"
+    }
+  },
+  {
+    "category": "温段方案设置",
+    "var": "mode",
+    "setup": [
+      "page 1",
+      "run=0"
+    ],
+    "commands": [
+      "mode=2",
+      "click bTable,0"
+    ],
+    "expect": {
+      "bMode.txt": "模糊LADRC"
+    }
+  },
+  {
+    "category": "温段方案设置",
+    "var": "plim",
+    "setup": [
+      "page 1",
+      "run=0"
+    ],
+    "commands": [
+      "plim=1500",
+      "click bTable,0"
+    ],
+    "expect": {
+      "bplim.txt": "1500"
+    }
+  },
+  {
+    "category": "温段方案设置",
+    "var": "sel",
+    "setup": [
+      "page 1",
+      "run=0"
+    ],
+    "commands": [
+      "sel=2",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "expect": {
+      "sel": 2
+    }
+  },
+  {
+    "category": "温段方案设置",
+    "var": "stagepage",
+    "setup": [
+      "page 1",
+      "run=0"
+    ],
+    "commands": [
+      "nseg=12",
+      "sel=7",
+      "stagepage=1",
+      "click bTable,0"
+    ],
+    "expect": {
+      "bRow11.txt": "12"
+    }
+  },
+  {
+    "category": "十二段目标温度",
+    "var": "tg1",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "tg1=55",
+      "click bTable,0"
+    ],
+    "expect": {
+      "tg1": 55
+    }
+  },
+  {
+    "category": "十二段目标温度",
+    "var": "tg2",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "tg2=60",
+      "click bTable,0"
+    ],
+    "expect": {
+      "tg2": 60
+    }
+  },
+  {
+    "category": "十二段目标温度",
+    "var": "tg3",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "tg3=65",
+      "click bTable,0"
+    ],
+    "expect": {
+      "tg3": 65
+    }
+  },
+  {
+    "category": "十二段目标温度",
+    "var": "tg4",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "tg4=70",
+      "click bTable,0"
+    ],
+    "expect": {
+      "tg4": 70
+    }
+  },
+  {
+    "category": "十二段目标温度",
+    "var": "tg5",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "tg5=75",
+      "click bTable,0"
+    ],
+    "expect": {
+      "tg5": 75
+    }
+  },
+  {
+    "category": "十二段目标温度",
+    "var": "tg6",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "tg6=80",
+      "click bTable,0"
+    ],
+    "expect": {
+      "tg6": 80
+    }
+  },
+  {
+    "category": "十二段目标温度",
+    "var": "tg7",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "tg7=85",
+      "click bTable,0"
+    ],
+    "expect": {
+      "tg7": 85
+    }
+  },
+  {
+    "category": "十二段目标温度",
+    "var": "tg8",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "tg8=90",
+      "click bTable,0"
+    ],
+    "expect": {
+      "tg8": 90
+    }
+  },
+  {
+    "category": "十二段目标温度",
+    "var": "tg9",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "tg9=95",
+      "click bTable,0"
+    ],
+    "expect": {
+      "tg9": 95
+    }
+  },
+  {
+    "category": "十二段目标温度",
+    "var": "tg10",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "tg10=100",
+      "click bTable,0"
+    ],
+    "expect": {
+      "tg10": 100
+    }
+  },
+  {
+    "category": "十二段目标温度",
+    "var": "tg11",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "tg11=105",
+      "click bTable,0"
+    ],
+    "expect": {
+      "tg11": 105
+    }
+  },
+  {
+    "category": "十二段目标温度",
+    "var": "tg12",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "tg12=110",
+      "click bTable,0"
+    ],
+    "expect": {
+      "tg12": 110
+    }
+  },
+  {
+    "category": "十二段保温时间",
+    "var": "hd1",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "hd1=60",
+      "click bTable,0"
+    ],
+    "expect": {
+      "hd1": 60
+    }
+  },
+  {
+    "category": "十二段保温时间",
+    "var": "hd2",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "hd2=120",
+      "click bTable,0"
+    ],
+    "expect": {
+      "hd2": 120
+    }
+  },
+  {
+    "category": "十二段保温时间",
+    "var": "hd3",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "hd3=180",
+      "click bTable,0"
+    ],
+    "expect": {
+      "hd3": 180
+    }
+  },
+  {
+    "category": "十二段保温时间",
+    "var": "hd4",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "hd4=240",
+      "click bTable,0"
+    ],
+    "expect": {
+      "hd4": 240
+    }
+  },
+  {
+    "category": "十二段保温时间",
+    "var": "hd5",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "hd5=300",
+      "click bTable,0"
+    ],
+    "expect": {
+      "hd5": 300
+    }
+  },
+  {
+    "category": "十二段保温时间",
+    "var": "hd6",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "hd6=360",
+      "click bTable,0"
+    ],
+    "expect": {
+      "hd6": 360
+    }
+  },
+  {
+    "category": "十二段保温时间",
+    "var": "hd7",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "hd7=420",
+      "click bTable,0"
+    ],
+    "expect": {
+      "hd7": 420
+    }
+  },
+  {
+    "category": "十二段保温时间",
+    "var": "hd8",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "hd8=480",
+      "click bTable,0"
+    ],
+    "expect": {
+      "hd8": 480
+    }
+  },
+  {
+    "category": "十二段保温时间",
+    "var": "hd9",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "hd9=540",
+      "click bTable,0"
+    ],
+    "expect": {
+      "hd9": 540
+    }
+  },
+  {
+    "category": "十二段保温时间",
+    "var": "hd10",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "hd10=600",
+      "click bTable,0"
+    ],
+    "expect": {
+      "hd10": 600
+    }
+  },
+  {
+    "category": "十二段保温时间",
+    "var": "hd11",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "hd11=660",
+      "click bTable,0"
+    ],
+    "expect": {
+      "hd11": 660
+    }
+  },
+  {
+    "category": "十二段保温时间",
+    "var": "hd12",
+    "setup": [
+      "page 1",
+      "run=0",
+      "nseg=12",
+      "sel=1",
+      "stagepage=0",
+      "click bTable,0"
+    ],
+    "commands": [
+      "hd12=720",
+      "click bTable,0"
+    ],
+    "expect": {
+      "hd12": 720
+    }
+  },
+  {
+    "category": "温度曲线数据",
+    "var": "target10",
+    "setup": [
+      "page 2",
+      "tfrom=0",
+      "tto=60"
+    ],
+    "commands": [
+      "target10=1200",
+      "valid=1",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tTarget.txt": "120.0"
+    }
+  },
+  {
+    "category": "温度曲线数据",
+    "var": "mean10",
+    "setup": [
+      "page 2",
+      "tfrom=0",
+      "tto=60"
+    ],
+    "commands": [
+      "mean10=1196",
+      "valid=1",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tMean.txt": "119.6"
+    }
+  },
+  {
+    "category": "温度曲线数据",
+    "var": "high10",
+    "setup": [
+      "page 2",
+      "tfrom=0",
+      "tto=60"
+    ],
+    "commands": [
+      "high10=1248",
+      "valid=1",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tHigh.txt": "124.8"
+    }
+  },
+  {
+    "category": "温度曲线数据",
+    "var": "low10",
+    "setup": [
+      "page 2",
+      "tfrom=0",
+      "tto=60"
+    ],
+    "commands": [
+      "low10=1142",
+      "valid=1",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tLow.txt": "114.2"
+    }
+  },
+  {
+    "category": "温度曲线数据",
+    "var": "tfrom",
+    "setup": [
+      "page 2",
+      "tfrom=0",
+      "tto=60"
+    ],
+    "commands": [
+      "tfrom=10",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tfrom": 10
+    }
+  },
+  {
+    "category": "温度曲线数据",
+    "var": "tto",
+    "setup": [
+      "page 2",
+      "tfrom=0",
+      "tto=60"
+    ],
+    "commands": [
+      "tto=120",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tto": 120
+    }
+  },
+  {
+    "category": "功率曲线数据",
+    "var": "powerW",
+    "setup": [
+      "page 3",
+      "run=0",
+      "pfrom=0",
+      "pto=60"
+    ],
+    "commands": [
+      "powerW=860",
+      "valid=1",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tPower.txt": "860"
+    }
+  },
+  {
+    "category": "功率曲线数据",
+    "var": "angle10",
+    "setup": [
+      "page 3",
+      "run=0",
+      "pfrom=0",
+      "pto=60"
+    ],
+    "commands": [
+      "angle10=620",
+      "valid=1",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tAngle.txt": "62.0"
+    }
+  },
+  {
+    "category": "功率曲线数据",
+    "var": "plim",
+    "setup": [
+      "page 3",
+      "run=0",
+      "pfrom=0",
+      "pto=60"
+    ],
+    "commands": [
+      "plim=1800",
+      "page 3"
+    ],
+    "expect": {
+      "bplim.txt": "1800"
+    }
+  },
+  {
+    "category": "功率曲线数据",
+    "var": "pfrom",
+    "setup": [
+      "page 3",
+      "run=0",
+      "pfrom=0",
+      "pto=60"
+    ],
+    "commands": [
+      "pfrom=10",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "pfrom": 10
+    }
+  },
+  {
+    "category": "功率曲线数据",
+    "var": "pto",
+    "setup": [
+      "page 3",
+      "run=0",
+      "pfrom=0",
+      "pto=60"
+    ],
+    "commands": [
+      "pto=120",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "pto": 120
+    }
+  },
+  {
+    "category": "频率曲线数据",
+    "var": "freq100",
+    "setup": [
+      "page 4",
+      "run=0",
+      "flo=15",
+      "fhi=25",
+      "ffrom=0",
+      "fto=60"
+    ],
+    "commands": [
+      "freq100=2010",
+      "valid=1",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tFreq.txt": "20.10"
+    }
+  },
+  {
+    "category": "频率曲线数据",
+    "var": "locked",
+    "setup": [
+      "page 4",
+      "run=0",
+      "flo=15",
+      "fhi=25",
+      "ffrom=0",
+      "fto=60"
+    ],
+    "commands": [
+      "locked=1",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tLocked.txt": "已锁定"
+    }
+  },
+  {
+    "category": "频率曲线数据",
+    "var": "flo",
+    "setup": [
+      "page 4",
+      "run=0",
+      "flo=15",
+      "fhi=25",
+      "ffrom=0",
+      "fto=60"
+    ],
+    "commands": [
+      "flo=16",
+      "page 4"
+    ],
+    "expect": {
+      "bflo.txt": "16"
+    }
+  },
+  {
+    "category": "频率曲线数据",
+    "var": "fhi",
+    "setup": [
+      "page 4",
+      "run=0",
+      "flo=15",
+      "fhi=25",
+      "ffrom=0",
+      "fto=60"
+    ],
+    "commands": [
+      "fhi=24",
+      "page 4"
+    ],
+    "expect": {
+      "bfhi.txt": "24"
+    }
+  },
+  {
+    "category": "频率曲线数据",
+    "var": "ffrom",
+    "setup": [
+      "page 4",
+      "run=0",
+      "flo=15",
+      "fhi=25",
+      "ffrom=0",
+      "fto=60"
+    ],
+    "commands": [
+      "ffrom=10",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "ffrom": 10
+    }
+  },
+  {
+    "category": "频率曲线数据",
+    "var": "fto",
+    "setup": [
+      "page 4",
+      "run=0",
+      "flo=15",
+      "fhi=25",
+      "ffrom=0",
+      "fto=60"
+    ],
+    "commands": [
+      "fto=120",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "fto": 120
+    }
+  },
+  {
+    "category": "相位曲线数据",
+    "var": "phase10",
+    "setup": [
+      "page 6",
+      "afrom=0",
+      "ato=60"
+    ],
+    "commands": [
+      "phase10=-15",
+      "valid=1",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tAngle.txt": "-1.5"
+    }
+  },
+  {
+    "category": "相位曲线数据",
+    "var": "locked",
+    "setup": [
+      "page 6",
+      "afrom=0",
+      "ato=60"
+    ],
+    "commands": [
+      "locked=1",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tLocked.txt": "已锁定"
+    }
+  },
+  {
+    "category": "相位曲线数据",
+    "var": "afrom",
+    "setup": [
+      "page 6",
+      "afrom=0",
+      "ato=60"
+    ],
+    "commands": [
+      "afrom=10",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "afrom": 10
+    }
+  },
+  {
+    "category": "相位曲线数据",
+    "var": "ato",
+    "setup": [
+      "page 6",
+      "afrom=0",
+      "ato=60"
+    ],
+    "commands": [
+      "ato=120",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "ato": 120
+    }
+  },
+  {
+    "category": "保护阈值",
+    "var": "ov",
+    "setup": [
+      "page 5",
+      "run=0"
+    ],
+    "commands": [
+      "ov=360",
+      "page 5"
+    ],
+    "expect": {
+      "bov.txt": "360"
+    }
+  },
+  {
+    "category": "保护阈值",
+    "var": "uv",
+    "setup": [
+      "page 5",
+      "run=0"
+    ],
+    "commands": [
+      "uv=200",
+      "page 5"
+    ],
+    "expect": {
+      "buv.txt": "200"
+    }
+  },
+  {
+    "category": "保护阈值",
+    "var": "oc",
+    "setup": [
+      "page 5",
+      "run=0"
+    ],
+    "commands": [
+      "oc=30",
+      "page 5"
+    ],
+    "expect": {
+      "boc.txt": "30"
+    }
+  },
+  {
+    "category": "保护阈值",
+    "var": "ot1",
+    "setup": [
+      "page 5",
+      "run=0"
+    ],
+    "commands": [
+      "ot1=85",
+      "page 5"
+    ],
+    "expect": {
+      "bot1.txt": "85"
+    }
+  },
+  {
+    "category": "保护阈值",
+    "var": "ot2",
+    "setup": [
+      "page 5",
+      "run=0"
+    ],
+    "commands": [
+      "ot2=90",
+      "page 5"
+    ],
+    "expect": {
+      "bot2.txt": "90"
+    }
+  },
+  {
+    "category": "保护阈值",
+    "var": "ot3",
+    "setup": [
+      "page 5",
+      "run=0"
+    ],
+    "commands": [
+      "ot3=150",
+      "page 5"
+    ],
+    "expect": {
+      "bot3.txt": "150"
+    }
+  },
+  {
+    "category": "报警输入",
+    "var": "alarmIn",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "alarmIn=2",
+      "alarmOn=1",
+      "alarmSec=12",
+      "alarmPush=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tAlarm.txt": "锁相失败",
+      "a00.txt": "12 s"
+    }
+  },
+  {
+    "category": "报警输入",
+    "var": "alarmOn",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "alarmIn=2",
+      "alarmOn=1",
+      "alarmSec=12",
+      "alarmPush=1",
+      "click bInput,0",
+      "alarmIn=2",
+      "alarmOn=0",
+      "alarmPush=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "alarmCode": 0,
+      "a02.txt": "已恢复"
+    }
+  },
+  {
+    "category": "报警输入",
+    "var": "alarmSec",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "alarmIn=3",
+      "alarmOn=1",
+      "alarmSec=123",
+      "alarmPush=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "a00.txt": "123 s"
+    }
+  },
+  {
+    "category": "报警输入",
+    "var": "alarmPush",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "alarmIn=5",
+      "alarmOn=1",
+      "alarmSec=30",
+      "alarmPush=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tAlarm.txt": "谐振过流",
+      "alarmPush": 0
+    }
+  },
+  {
+    "category": "报警输入",
+    "var": "alarmCode",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "get alarmCode"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "曲线采样与缓存",
+    "var": "sampleSec",
+    "setup": [
+      "page 2",
+      "frozen=0",
+      "tfrom=0",
+      "tto=60",
+      "clearPlot=1",
+      "click bInput,0"
+    ],
+    "commands": [
+      "sampleSec=0"
+    ],
+    "expect": {
+      "sampleSec": 0
+    }
+  },
+  {
+    "category": "曲线采样与缓存",
+    "var": "push",
+    "setup": [
+      "page 2",
+      "frozen=0",
+      "tfrom=0",
+      "tto=60",
+      "clearPlot=1",
+      "click bInput,0"
+    ],
+    "commands": [
+      "sampleSec=1",
+      "mean10=600",
+      "push=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "nBuf": 1,
+      "push": 0
+    }
+  },
+  {
+    "category": "曲线采样与缓存",
+    "var": "clearPlot",
+    "setup": [
+      "page 2",
+      "frozen=0",
+      "tfrom=0",
+      "tto=60",
+      "clearPlot=1",
+      "click bInput,0"
+    ],
+    "commands": [
+      "clearPlot=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "nBuf": 0,
+      "lastSec": 0
+    }
+  },
+  {
+    "category": "曲线采样与缓存",
+    "var": "frozen",
+    "setup": [
+      "page 2",
+      "frozen=0",
+      "tfrom=0",
+      "tto=60",
+      "clearPlot=1",
+      "click bInput,0"
+    ],
+    "commands": [
+      "frozen=1"
+    ],
+    "expect": {
+      "frozen": 1
+    }
+  },
+  {
+    "category": "曲线采样与缓存",
+    "var": "nBuf",
+    "setup": [
+      "page 2",
+      "frozen=0",
+      "tfrom=0",
+      "tto=60",
+      "clearPlot=1",
+      "click bInput,0"
+    ],
+    "commands": [
+      "get nBuf"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "曲线采样与缓存",
+    "var": "lastSec",
+    "setup": [
+      "page 2",
+      "frozen=0",
+      "tfrom=0",
+      "tto=60",
+      "clearPlot=1",
+      "click bInput,0"
+    ],
+    "commands": [
+      "get lastSec"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "曲线采样与缓存",
+    "var": "dataErr",
+    "setup": [
+      "page 2",
+      "frozen=0",
+      "tfrom=0",
+      "tto=60",
+      "clearPlot=1",
+      "click bInput,0"
+    ],
+    "commands": [
+      "get dataErr"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "按钮请求",
+    "var": "cmd",
+    "setup": [
+      "page 0",
+      "run=0"
+    ],
+    "commands": [
+      "page 0",
+      "click bStart,0",
+      "get cmd"
+    ],
+    "expect": {
+      "cmd": 1
+    }
+  },
+  {
+    "category": "按钮请求",
+    "var": "cmd",
+    "setup": [
+      "page 0",
+      "run=0"
+    ],
+    "commands": [
+      "page 0",
+      "click bStop,0",
+      "get cmd"
+    ],
+    "expect": {
+      "cmd": 2
+    }
+  },
+  {
+    "category": "按钮请求",
+    "var": "cmd",
+    "setup": [
+      "page 0",
+      "run=0"
+    ],
+    "commands": [
+      "page 1",
+      "click bApply,0",
+      "get cmd"
+    ],
+    "expect": {
+      "cmd": 3
+    }
+  },
+  {
+    "category": "按钮请求",
+    "var": "cmd",
+    "setup": [
+      "page 0",
+      "run=0"
+    ],
+    "commands": [
+      "page 1",
+      "click bSave,0",
+      "get cmd"
+    ],
+    "expect": {
+      "cmd": 4
+    }
+  },
+  {
+    "category": "按钮请求",
+    "var": "cmd",
+    "setup": [
+      "page 0",
+      "run=0"
+    ],
+    "commands": [
+      "page 4",
+      "click bLock,0",
+      "get cmd"
+    ],
+    "expect": {
+      "cmd": 5
+    }
+  },
+  {
+    "category": "按钮请求",
+    "var": "cmd",
+    "setup": [
+      "page 0",
+      "run=0"
+    ],
+    "commands": [
+      "page 5",
+      "click bReset,0",
+      "get cmd"
+    ],
+    "expect": {
+      "cmd": 6
+    }
+  },
+  {
+    "category": "按钮请求",
+    "var": "cmd",
+    "setup": [
+      "page 0",
+      "run=0"
+    ],
+    "commands": [
+      "page 5",
+      "click bAck,0",
+      "get cmd"
+    ],
+    "expect": {
+      "cmd": 7
+    }
+  },
+  {
+    "category": "按钮请求",
+    "var": "cmd",
+    "setup": [
+      "page 0",
+      "run=0"
+    ],
+    "commands": [
+      "cmd=0",
+      "get cmd"
+    ],
+    "expect": {
+      "cmd": 0
+    }
+  },
+  {
+    "category": "六条报警记录读取",
+    "var": "ac0",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "get ac0"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "六条报警记录读取",
+    "var": "at0",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "get at0"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "六条报警记录读取",
+    "var": "as0",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "get as0"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "六条报警记录读取",
+    "var": "ac1",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "get ac1"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "六条报警记录读取",
+    "var": "at1",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "get at1"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "六条报警记录读取",
+    "var": "as1",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "get as1"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "六条报警记录读取",
+    "var": "ac2",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "get ac2"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "六条报警记录读取",
+    "var": "at2",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "get at2"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "六条报警记录读取",
+    "var": "as2",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "get as2"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "六条报警记录读取",
+    "var": "ac3",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "get ac3"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "六条报警记录读取",
+    "var": "at3",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "get at3"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "六条报警记录读取",
+    "var": "as3",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "get as3"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "六条报警记录读取",
+    "var": "ac4",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "get ac4"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "六条报警记录读取",
+    "var": "at4",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "get at4"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "六条报警记录读取",
+    "var": "as4",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "get as4"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "六条报警记录读取",
+    "var": "ac5",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "get ac5"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "六条报警记录读取",
+    "var": "at5",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "get at5"
+    ],
+    "expect": {}
+  },
+  {
+    "category": "六条报警记录读取",
+    "var": "as5",
+    "setup": [
+      "page 5"
+    ],
+    "commands": [
+      "get as5"
+    ],
+    "expect": {}
+  }
+]

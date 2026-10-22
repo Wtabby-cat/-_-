@@ -1,0 +1,74 @@
+"""Validate the bidirectional contract against the emitted V8 project."""
+from pathlib import Path
+import json,re
+import verify_generated as v
+root=Path(__file__).resolve().parent
+_,files,_=v.unpack(v.TARGET)
+pages={int(n[:-3]):v.page(b) for n,b in files.items() if n.endswith('.pa')}
+g={k:int(x) for k,x in re.findall(r'^int (\w+)=(-?\d+)\r?$',files['Program.s'].decode('gbk'),re.M)}
+spec=json.loads((root/'界面定义.json').read_text('utf8'))
+examples=json.loads((root/'双向通信例子.json').read_text('utf8'))
+md=(root/'指令调试说明.md').read_text('utf8')
+for page in pages.values():
+    for obj in page:
+        if obj['attr']['type']==98:assert obj['attr']['sendkey']==0
+        if obj['attr']['objname'] in ('bInput','bTable'):
+            assert not any(s.startswith(('prints ','printh ')) for lines in obj['events'].values() for s in lines)
+def send(rt,lines):
+    for s in lines:
+        try:rt.command(s)
+        except v.Jump as change:rt.enter(change.target)
+def fresh(pid):
+    rt=v.Runtime(pages,g);rt.g.update(run=0,nseg=12,ov=360,uv=200,oc=30,ot1=85,ot2=90,ot3=150)
+    rt.enter(pid);return rt
+business=[(0,'bStart',1),(0,'bStop',2),(1,'bApply',3),(3,'bApply',3),(1,'bSave',4),(5,'bSave',4),(4,'bLock',5),(5,'bReset',6),(5,'bAck',7)]
+for pid,name,expected in business:
+    rt=fresh(pid);rt.click(name);assert rt.g['cmd']==expected,(pid,name)
+    wire=(b'\x71'+expected.to_bytes(4,'little')+b'\xff'*3).hex(' ').upper()
+    assert wire in md
+for pid,name in [(1,'bApply'),(3,'bApply'),(4,'bLock'),(5,'bSave')]:
+    rt=fresh(pid);rt.g['run']=1;rt.click(name);assert rt.g['cmd']==0
+rt=fresh(5);rt.g['ov']=0;rt.click('bSave');assert rt.g['cmd']==0
+for pr in spec['params']:
+    var=pr['var'];name='b'+var
+    pid=next(pid for pid,objs in pages.items() if any(o['attr']['objname']==name for o in objs))
+    rt=fresh(pid)
+    if var.startswith(('tg','hd')):
+        index=int(var[2:]);rt.g.update(stagepage=(index-1)//6,sel=index);rt.enter(pid)
+    rt.click(name);assert rt.pid==7,(var,'keypad')
+    assert rt.g['field']==pr['id']
+    rt.g['editval']=examples['parameter_examples'][var]
+    rt.click('bOK');assert rt.pid==pid and rt.g[var]==examples['parameter_examples'][var],var
+    assert rt.g['cmd']==0,var
+    assert '`get '+var+'`' in md,var
+    previous=rt.g[var];rt.click(name);rt.g['editval']=1;rt.click('bCancel');assert rt.g[var]==previous
+rt=fresh(1);rt.click('bMode');assert rt.g['ddopen']==1
+rt.click('bOpt1');assert rt.g['mode']==1 and rt.g['ddopen']==0 and rt.g['cmd']==0
+rt.click('btg1')
+for key in ['k6','k8','k4']:rt.click(key)
+assert rt.g['editval']==135 and rt.g['tg1']==60
+rt.click('k11');assert rt.g['editval']==13
+rt.click('k10');assert rt.g['editval']==0
+rt.click('bCancel');assert rt.g['tg1']==60
+for pid in [2,3,4,6]:
+    rt=fresh(pid);rt.click('bFreeze');assert rt.g['frozen']==1 and rt.g['cmd']==0
+    rt.click('bLive');assert rt.g['frozen']==0 and rt.g['cmd']==0
+for label in ['start','stop','lock','sample','alarm','restore']:
+    rt=fresh({'lock':4,'sample':2,'alarm':5,'restore':5}.get(label,0))
+    if label=='restore':send(rt,examples['alarm'])
+    send(rt,examples[label])
+    for cmd in examples[label]:assert cmd in md
+    if label=='start':assert rt.get('tPhase.txt')=='升温' and rt.g['run']==1
+    if label=='stop':assert rt.get('tState.txt')=='待机' and rt.g['remain']==0
+    if label=='lock':assert rt.get('tFreq.txt')=='20.10' and rt.get('tLocked.txt')=='已锁定'
+    if label=='sample':assert rt.g['nBuf']==1 and rt.g['lastSec']==10 and rt.g['dataErr']==0
+    if label=='alarm':assert rt.get('a01.txt')=='母线过压' and rt.g['run']==0
+    if label=='restore':assert rt.get('a02.txt')=='已恢复' and rt.g['alarmCode']==0
+allowed={'bStop','bStart','bSetup','bMode','bAdd','bRemove','bPrev','bNext','bSave','bApply','bFreeze','bLive','bLock','bAck','bReset','bCancel','bOK','bInput','bTable'}
+allowed|={'b'+p['var'] for p in spec['params']}
+allowed|={f'bNav{i}' for i in range(4)}|{f'bTab{i}' for i in range(4)}|{f'bOpt{i}' for i in range(3)}|{f'bRow{i}' for i in range(12)}|{f'k{i}' for i in range(12)}
+actual={(pid,o['attr']['objname']) for pid,objs in pages.items() for o in objs if o['attr']['type']==98}
+assert not {name for _,name in actual}-allowed
+assert all(n in g for n in examples['config'])
+assert md.count('```')%2==0
+print(f'PASS: {len(actual)} button instances covered; 41 confirmed/cancelled inputs; 9 business button events; feedback examples; active frames validated separately.')

@@ -1,0 +1,348 @@
+[
+  {
+    "id": "alarm_trigger",
+    "commands": [
+      "page 5",
+      "alarmIn=3",
+      "alarmOn=1",
+      "alarmSec=123",
+      "alarmPush=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tAlarm.txt": "母线过压",
+      "a00.txt": "123 s",
+      "a01.txt": "母线过压",
+      "a02.txt": "未确认"
+    },
+    "hex": true
+  },
+  {
+    "id": "alarm_ack",
+    "commands": [
+      "page 5",
+      "click bAck,0",
+      "click bInput,0"
+    ],
+    "expect": {
+      "cmd": 7
+    },
+    "hex": false
+  },
+  {
+    "id": "alarm_restore",
+    "commands": [
+      "page 5",
+      "alarmIn=3",
+      "alarmOn=0",
+      "alarmPush=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "alarmCode": 0
+    },
+    "hex": false
+  },
+  {
+    "id": "other_alarm",
+    "commands": [
+      "page 5",
+      "alarmIn=5",
+      "alarmOn=1",
+      "alarmSec=200",
+      "alarmPush=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tAlarm.txt": "谐振过流",
+      "a00.txt": "200 s"
+    },
+    "hex": false
+  },
+  {
+    "id": "temperature_curve",
+    "commands": [
+      "page 2",
+      "frozen=0",
+      "tfrom=0",
+      "tto=20",
+      "clearPlot=1",
+      "click bInput,0",
+      "sampleSec=0",
+      "target10=600",
+      "mean10=550",
+      "high10=580",
+      "push=1",
+      "click bInput,0",
+      "sampleSec=10",
+      "target10=900",
+      "mean10=850",
+      "high10=920",
+      "push=1",
+      "click bInput,0",
+      "sampleSec=20",
+      "target10=1200",
+      "mean10=1196",
+      "high10=1248",
+      "push=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "nBuf": 3,
+      "lastSec": 20,
+      "tMean.txt": "119.6",
+      "dataErr": 0
+    },
+    "hex": true
+  },
+  {
+    "id": "temperature_append",
+    "commands": [
+      "page 2",
+      "frozen=0",
+      "tfrom=0",
+      "tto=20",
+      "clearPlot=1",
+      "click bInput,0",
+      "sampleSec=0",
+      "target10=600",
+      "mean10=550",
+      "high10=580",
+      "push=1",
+      "click bInput,0",
+      "sampleSec=10",
+      "target10=900",
+      "mean10=850",
+      "high10=920",
+      "push=1",
+      "click bInput,0",
+      "sampleSec=20",
+      "target10=1200",
+      "mean10=1196",
+      "high10=1248",
+      "push=1",
+      "click bInput,0",
+      "tto=30",
+      "sampleSec=30",
+      "target10=1200",
+      "mean10=1205",
+      "high10=1250",
+      "push=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "nBuf": 4,
+      "lastSec": 30
+    },
+    "hex": false,
+    "combined": true
+  },
+  {
+    "id": "power_curve",
+    "commands": [
+      "page 3",
+      "frozen=0",
+      "pfrom=0",
+      "pto=20",
+      "clearPlot=1",
+      "click bInput,0",
+      "sampleSec=0",
+      "powerW=1200",
+      "push=1",
+      "click bInput,0",
+      "sampleSec=10",
+      "powerW=1000",
+      "push=1",
+      "click bInput,0",
+      "sampleSec=20",
+      "powerW=860",
+      "push=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "nBuf": 3,
+      "tPower.txt": "860",
+      "pw2": 860
+    },
+    "hex": false
+  },
+  {
+    "id": "frequency_curve",
+    "commands": [
+      "page 4",
+      "frozen=0",
+      "ffrom=0",
+      "fto=20",
+      "clearPlot=1",
+      "click bInput,0",
+      "sampleSec=0",
+      "freq100=2100",
+      "push=1",
+      "click bInput,0",
+      "sampleSec=10",
+      "freq100=2050",
+      "push=1",
+      "click bInput,0",
+      "sampleSec=20",
+      "freq100=2010",
+      "push=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "nBuf": 3,
+      "tFreq.txt": "20.10",
+      "fq2": 2010
+    },
+    "hex": false
+  },
+  {
+    "id": "phase_curve",
+    "commands": [
+      "page 6",
+      "frozen=0",
+      "afrom=0",
+      "ato=20",
+      "clearPlot=1",
+      "click bInput,0",
+      "sampleSec=0",
+      "phase10=100",
+      "push=1",
+      "click bInput,0",
+      "sampleSec=10",
+      "phase10=40",
+      "push=1",
+      "click bInput,0",
+      "sampleSec=20",
+      "phase10=-15",
+      "push=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "nBuf": 3,
+      "tAngle.txt": "-1.5",
+      "ph2": -15
+    },
+    "hex": false
+  },
+  {
+    "id": "time_window",
+    "commands": [
+      "page 2",
+      "tfrom=5",
+      "tto=15",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tfrom": 5,
+      "tto": 15
+    },
+    "hex": false
+  },
+  {
+    "id": "clear_curve",
+    "commands": [
+      "page 2",
+      "clearPlot=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "nBuf": 0,
+      "lastSec": 0
+    },
+    "hex": false
+  },
+  {
+    "id": "bus_reading",
+    "commands": [
+      "page 0",
+      "bus10=3080",
+      "valid=1",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tBus.txt": "308.0"
+    },
+    "hex": false
+  },
+  {
+    "id": "running",
+    "commands": [
+      "page 0",
+      "nseg=3",
+      "run=1",
+      "stage=2",
+      "phaseState=2",
+      "locked=1",
+      "totalSec=123",
+      "remain=456",
+      "dirty=1",
+      "click bInput,0"
+    ],
+    "expect": {
+      "tStage.txt": "2 / 3",
+      "tPhase.txt": "保温",
+      "tElapsed.txt": "123 s"
+    },
+    "hex": false
+  },
+  {
+    "id": "programme",
+    "commands": [
+      "page 1",
+      "run=0",
+      "nseg=2",
+      "sel=1",
+      "stagepage=0",
+      "mode=1",
+      "plim=1500",
+      "tg1=80",
+      "hd1=60",
+      "tg2=120",
+      "hd2=180",
+      "click bTable,0"
+    ],
+    "expect": {
+      "nseg": 2,
+      "bMode.txt": "PID",
+      "btg2.txt": "120",
+      "bhd2.txt": "180"
+    },
+    "hex": false
+  },
+  {
+    "id": "protection",
+    "commands": [
+      "run=0",
+      "ov=360",
+      "uv=200",
+      "oc=30",
+      "ot1=85",
+      "ot2=90",
+      "ot3=150",
+      "page 5"
+    ],
+    "expect": {
+      "bov.txt": "360",
+      "buv.txt": "200",
+      "bot3.txt": "150"
+    },
+    "hex": false
+  },
+  {
+    "id": "button_read",
+    "commands": [
+      "page 0",
+      "run=0",
+      "dirty=1",
+      "click bInput,0",
+      "click bStart,0",
+      "get cmd"
+    ],
+    "expect": {
+      "cmd": 1
+    },
+    "hex": false
+  }
+]

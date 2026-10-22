@@ -54,7 +54,7 @@
 /* V_RES_SCALE = 0.4 * 3.3 / 31 ≈ 0.04258 V/V */
 
 /* ---- 保护阈值（比较器 DAC 基准电压） ---- */
-#define ZC_THRESHOLD_V            1.65f     /* 过零检测阈值 (V) */
+#define ZC_THRESHOLD_V            1.59f     /* 过零检测阈值 (V)，跟随 ADC 偏置实测值 */
 #define RES_OCP_THRESHOLD_V       3.10f     /* 谐振过流保护阈值 (V) */
 #define BUS_OVP_THRESHOLD_V       3.20f     /* 母线过压保护阈值 (V) */
 
