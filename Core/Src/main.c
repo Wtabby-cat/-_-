@@ -330,6 +330,8 @@ int main(void)
   HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_3, HRTIM_FAULTMODECTL_ENABLED);
 
   StartPowerStagePwm();
+  /* Enable the external gate drivers after PWM and protection are ready. */
+  HAL_GPIO_WritePin(PWM_EN_N_GPIO_Port, PWM_EN_N_Pin, GPIO_PIN_RESET);
   pc13_blink_tick = HAL_GetTick();
   relay_tick      = HAL_GetTick();  /* soft-start timer begins now */
 
@@ -902,12 +904,15 @@ static void MX_HRTIM1_Init(void)
     Error_Handler();
   }
 
-  pDeadTimeCfg.Prescaler = HRTIM_TIMDEADTIME_PRESCALERRATIO_MUL8;
-  pDeadTimeCfg.RisingValue = 40;
+  /* fHRTIM = 170 MHz: DIV1 gives 85 / 170 MHz = 500 ns on both edges.
+   * This deadtime stays fixed when the PWM period is changed for a sweep.
+   */
+  pDeadTimeCfg.Prescaler = HRTIM_TIMDEADTIME_PRESCALERRATIO_DIV1;
+  pDeadTimeCfg.RisingValue = 85;
   pDeadTimeCfg.RisingSign = HRTIM_TIMDEADTIME_RISINGSIGN_POSITIVE;
   pDeadTimeCfg.RisingLock = HRTIM_TIMDEADTIME_RISINGLOCK_WRITE;
   pDeadTimeCfg.RisingSignLock = HRTIM_TIMDEADTIME_RISINGSIGNLOCK_WRITE;
-  pDeadTimeCfg.FallingValue = 40;
+  pDeadTimeCfg.FallingValue = 85;
   pDeadTimeCfg.FallingSign = HRTIM_TIMDEADTIME_FALLINGSIGN_POSITIVE;
   pDeadTimeCfg.FallingLock = HRTIM_TIMDEADTIME_FALLINGLOCK_WRITE;
   pDeadTimeCfg.FallingSignLock = HRTIM_TIMDEADTIME_FALLINGSIGNLOCK_WRITE;
@@ -951,13 +956,13 @@ static void MX_HRTIM1_Init(void)
     Error_Handler();
   }
 
-  pCompareCfg.CompareValue = 8458;   /* Timer B 90° phase shift (33830/4) */
+  pCompareCfg.CompareValue = 5638;   /* Timer B lags Timer A by 60 degrees (33830/6). */
   if (HAL_HRTIM_WaveformCompareConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_B, HRTIM_COMPAREUNIT_1, &pCompareCfg) != HAL_OK)
   {
     Error_Handler();
   }
 
-  pCompareCfg.CompareValue = 25373;  /* CMP1 + 50% duty = 8458 + 16915 */
+  pCompareCfg.CompareValue = 22553;  /* CMP1 + half a period: 50% duty. */
   if (HAL_HRTIM_WaveformCompareConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_B, HRTIM_COMPAREUNIT_2, &pCompareCfg) != HAL_OK)
   {
     Error_Handler();
@@ -968,8 +973,8 @@ static void MX_HRTIM1_Init(void)
     Error_Handler();
   }
 
-  pOutputCfg.SetSource = HRTIM_OUTPUTSET_TIMCMP1;   /* 8458: 90° phase */
-  pOutputCfg.ResetSource = HRTIM_OUTPUTRESET_TIMCMP2; /* 25373: 90° + 50% duty */
+  pOutputCfg.SetSource = HRTIM_OUTPUTSET_TIMCMP1;   /* 60-degree phase delay. */
+  pOutputCfg.ResetSource = HRTIM_OUTPUTRESET_TIMCMP2;
   if (HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_B, HRTIM_OUTPUT_TB1, &pOutputCfg) != HAL_OK)
   {
     Error_Handler();
