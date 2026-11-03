@@ -66,6 +66,13 @@ for fid in (1,4):
 assert overview['tPower']['x']+overview['tPower']['w']<=overview['utPower']['x']
 assert overview['utPower']['x']+overview['utPower']['w']<=800
 validate_ids()
+power_rt=Runtime(pages,g)
+power_rt.enter(3); power_rt.g.update(powerSet100=5000,dirty=1); power_rt.tick()
+assert power_rt.get('tSetpoint.txt')=='50.00 W'
+power_rt.g.update(powerSet100=2000,dirty=1); power_rt.tick()
+assert power_rt.get('tSetpoint.txt')=='20.00 W'
+power_rt.enter(5); power_rt.g.update(internalFault=4096,dirty=1); power_rt.tick()
+assert power_rt.get('tAlarm.txt')=='功率闭环异常'
 font = files['3.zi']
 glyphs = {}
 for i in range(struct.unpack_from('<I', font, 12)[0]):

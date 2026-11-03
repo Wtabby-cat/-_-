@@ -6,7 +6,7 @@ def install(pages,g,windows,rgb,draw,blue,green,teal):
     g.update(cmd=0,dirty=0,valid=0,temp10=0,target10=0,mean10=0,high10=0,low10=0,bus10=0,amp10=0,freq100=0,power100=0,phase10=0,angle10=0,locked=0,phaseState=0,
              sampleSec=0,push=0,clearPlot=0,nBuf=0,lastSec=0,dataErr=0,fmtval=0,fmtfrac=0,span=1,ta=0,tb=0,ya=0,yb=0,delta=0,
              alarmIn=0,alarmOn=0,alarmSec=0,alarmPush=0,alarmCode=0)
-    g.update(msgCode=0,msgA=0,msgB=0,msgPush=0,internalFault=0,trackState=0)
+    g.update(msgCode=0,msgA=0,msgB=0,msgPush=0,internalFault=0,trackState=0,powerSet100=5000)
     g.update(temp110=0,temp210=0,temp1mv=0,temp2mv=0,follow=1,adcClipped=0)
     g.update(fwVersion=0,tripCount=0,tripGate=0,tripMs=0,tripRaw1=0,tripRaw2=0)
     for i in range(ALARM_ROWS):
@@ -112,6 +112,8 @@ def install(pages,g,windows,rgb,draw,blue,green,teal):
             refresh += ['if(run==1&&trackState==1)','{',f'{dest}.txt="启动中"','}',
                         'if(run==1&&trackState==2)','{',f'{dest}.txt="搜频中"','}',
                         'if(run==1&&trackState==3)','{',f'{dest}.txt="锁相捕获"','}']
+        if p.pid==3:
+            refresh += dec('powerSet100','tSetpoint',2,' W')
         if p.pid==6:
             refresh += ['tInfo.txt="启动后显示相位"','if(run==1)','{',
                         'tInfo.txt="等待有效相位"','fieldOK=dataFlags&64','if(fieldOK>0)','{',
@@ -127,6 +129,7 @@ def install(pages,g,windows,rgb,draw,blue,green,teal):
                 refresh+=['}']
             refresh += ['if(internalFault>0)','{','tAlarm.txt="采样或通信异常"','tAlarm.pco=63488','}']
             refresh += ['fieldOK=internalFault&4','if(fieldOK>0)','{','tAlarm.txt="搜频或锁相异常"','}']
+            refresh += ['fieldOK=internalFault&4096','if(fieldOK>0)','{','tAlarm.txt="功率闭环异常"','}']
         if p.pid in (0,5):
             # Append after all original visible controls to retain their IDs.
             p.text('tDiag','',408,416,380,20,font=3)

@@ -7,6 +7,8 @@
 #include "ih_workpiece.h"
 #include "ih_history.h"
 #include "ih_tracking.h"
+#include "ih_power.h"
+#include <math.h>
 
 extern HRTIM_HandleTypeDef hhrtim1;
 extern COMP_HandleTypeDef hcomp2, hcomp3, hcomp5, hcomp6;
@@ -55,6 +57,7 @@ static void StopOutputs(void)
 {
   History_Stop();
   Tracking_Stop();
+  Power_Stop();
   /* Both normal STOP and heating faults preserve the NTC bypass. */
   DisableGate();
   Pwm_Cancel(); pwm_priming = 0U;
@@ -119,6 +122,8 @@ static int InputsReady(void)
   Measurement m;
   Measurement_Get(&m);
   return Protection_ParamsValid(&protection) && m.adc_valid && m.bus_valid &&
+         m.power_valid && !m.adc_clipped && isfinite(m.active_power_w) &&
+         (uint32_t)(HAL_GetTick()-m.power_sample_tick)<IH_POWER_STALE_MS &&
          m.bus_v > (float)protection.uv && m.bus_v < (float)protection.ov &&
          PresentFaults(1U) == 0U;
 }
@@ -143,7 +148,8 @@ uint32_t App_StartBlockReasons(void)
   uint32_t blocked = 0U;
   Measurement_Get(&m);
   if (!Protection_ParamsValid(&protection)) blocked |= IH_START_PARAMS;
-  if (!m.adc_valid) blocked |= IH_START_ADC;
+  if (!m.adc_valid || !m.power_valid || m.adc_clipped || !isfinite(m.active_power_w) ||
+      (uint32_t)(HAL_GetTick()-m.power_sample_tick)>=IH_POWER_STALE_MS) blocked |= IH_START_ADC;
   if (!m.bus_valid) blocked |= IH_START_BUS;
   if (m.bus_valid && protection.uv > 0 && m.bus_v <= (float)protection.uv) blocked |= IH_START_UV;
   if (m.bus_valid && protection.ov > 0 &&
@@ -209,6 +215,7 @@ void App_Init(void)
   StopOutputs();
   if (!Pwm_Init()) Error_Handler();
   Tracking_Init();
+  Power_Init();
   relay_power_tick = HAL_GetTick();
   HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, IH_DAC_CODE(IH_HW_OVP_V));
   HAL_DAC_SetValue(&hdac4, DAC_CHANNEL_2, DAC_ALIGN_12B_R, IH_DAC_CODE(IH_HW_OCP_V));
@@ -244,6 +251,7 @@ void App_Task(void)
     measure_tick = now;
     Measurement_SetFrequency(App_Frequency100());
     Measurement_Task();
+    Power_SetLimitW((float)Program_Get()->power_limit_w);
   }
   faults = PresentFaults((state == IH_RUNNING || state == IH_PRECHARGE) ? 1U : 0U);
   /* A short comparator pulse must also remain visible via the HRTIM flags. */
@@ -281,6 +289,8 @@ void App_Task(void)
         if (dbg_ovp_fault) faults |= IH_FAULT_OV;
         if (dbg_ocp_fault) faults |= IH_FAULT_OC;
         if (faults != 0U) Trip(faults);
+        else if (!Power_Start(HAL_GetTick(),IH_POWER_TARGET_W,(float)Program_Get()->power_limit_w))
+          Trip(IH_FAULT_POWER);
         else {
           HAL_GPIO_WritePin(PWM_EN_N_GPIO_Port, PWM_EN_N_Pin, GPIO_PIN_RESET);
           ++dbg_pwm_start_count;
@@ -295,7 +305,13 @@ void App_Task(void)
     Measurement_Get(&m);
     Tracking_Task(HAL_GetTick(),&m);
     if (Tracking_State()==TRACK_FAILED) Trip(IH_FAULT_TRACK);
-    else Pwm_Task(HAL_GetTick(), m.bus_valid && m.bus_v > (float)protection.uv && Tracking_AllowRamp());
+    else {
+      Power_Task(HAL_GetTick(),&m,Tracking_Locked());
+      if (Power_State()==POWER_FAILED) Trip(IH_FAULT_POWER);
+      else if (Power_State()==POWER_STOP_REQUEST) App_Stop();
+      else Pwm_Task(HAL_GetTick(), m.bus_valid && m.bus_v > (float)protection.uv &&
+                    Tracking_AllowRamp() && Power_AllowStartupRise(HAL_GetTick()));
+    }
   }
   Hmi_Task();
   if ((uint32_t)(now - led_tick) >= 500U) {

@@ -145,7 +145,7 @@ def makefont(fid,height,ascii_only=False,bold=False):
 PARAMS=[];GLOBALS=OrderedDict(run=0,field=0,backpg=1,editval=0,editmin=0,editmax=9999,fresh=1,nseg=3,mode=0,frozen=0,stagepage=0,sel=1,ddopen=0,stage=0,stageSec=0,totalSec=0,remain=0,hold=0,tgAct=0,done=0,saved=0,ack=0,tmp=0,sumt=0,ymax=150,elapsed=0,px=0,py=0,nx=0,ny=0)
 def param(var,label,initial,unit,low,high):
     GLOBALS[var]=initial;PARAMS.append(dict(id=len(PARAMS)+1,var=var,label=label,initial=initial,unit=unit,low=low,high=high));return PARAMS[-1]
-PLIM=param('plim','功率上限',1500,'W',1,9999)
+PLIM=param('plim','功率上限',50,'W',1,9999)
 STAGES=[]
 for i in range(MAX_STAGES):
     t=[60,90,120][i] if i<3 else 120;h=[600,1800,3600][i] if i<3 else 300
@@ -312,12 +312,14 @@ for i,(label,name,unit) in enumerate([('目标温度','tTarget','℃'),('区域�
 
 # 3: power
 p=Page(3,'曲线调试功率','功率曲线',2);p.frame();p.tabs(1);p.curve_controls()
-plot(p,60,140,460,176,(0,1500),[(0,'0'),(500,'500'),(1000,'1000'),(1500,'1500')],[(0,'0'),(.5,'300'),(1,'600')],[],'电功率 / W','时间 / s')
+plot(p,60,140,460,176,(0,50),[(0,'0'),(50/3,'16'),(100/3,'33'),(50,'50')],[(0,'0'),(.5,'300'),(1,'600')],[],'电功率 / W','时间 / s')
 p.line(548,98,548,364)
 p.text('lPower','当前功率',570,110,100,28,font=2);p.text('tPower','--',570,146,178,48,font=4,color=TEAL,align=1);p.text('uPower','W',754,167,30,25,font=2)
 p.text('lMax','功率上限',570,232,100,30,font=2);p.field(PLIM,678,230,84);p.text('uMax','W',766,234,24,28,font=2)
 p.text('lAngle','调功移相角',570,280,116,28,font=2);p.text('tAngle','--',692,280,90,28,color=TEAL)
 p.button('bApply','应用设置',570,322,214,36,font=2,color=WHITE,bg=BLUE,code='if(run==0)\r\n{\r\ntFoot.txt="设置已暂存；主控未连接"\r\n}')
+p.text('lSetpoint','目标功率',570,200,100,24,font=2)
+p.text('tSetpoint','50.00 W',670,200,114,24,font=2,color=TEAL,align=1)
 
 # 4: frequency
 p=Page(4,'曲线调试频率','频率曲线',2);p.frame();p.tabs(2);p.curve_controls()

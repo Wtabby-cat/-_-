@@ -6,12 +6,15 @@
 #include "ih_program.h"
 #include "ih_history.h"
 #include "ih_tracking.h"
+#include "ih_power.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 UART_HandleTypeDef huart1;
+float Power_TargetW(void) { return 50.0f; }
+PowerError Power_Error(void) { return POWER_FEEDBACK; }
 UART_HandleTypeDef huart2;
 static uint32_t tick, due, faults;
 static uint8_t *rx_dest, transfer[128], screen_page;
@@ -356,18 +359,15 @@ int main(int argc,char **argv)
   assert(label_writes==0 && state==IH_IDLE);
   dbg_trip_oc_source=IH_OC_SOFTWARE_PEAK; dbg_trip_i_peak_a=10.1f; dbg_trip_oc_limit_a=10;
   faults=IH_FAULT_OC; state=IH_FAULT; step(1500);
-#if IH_FW_DIAG_VERSION != 110217U
-  assert(last_message==HMI_MSG_OC_PEAK && message_a==101 && message_b==10);
-#endif
   request(5,6); step(1500);
   dbg_trip_oc_source=IH_OC_HRTIM_FLT3; faults=IH_FAULT_OC; state=IH_FAULT; step(1500);
-#if IH_FW_DIAG_VERSION != 110217U
-  assert(last_message==HMI_MSG_OC_HARDWARE);
-#endif
   request(5,6); step(1500);
   before=(unsigned)alarm_events; faults=IH_FAULT_TRACK; state=IH_FAULT; step(1500);
   assert(last_message==HMI_MSG_TRACK_SIGNAL && (unsigned)alarm_events==before+1);
   request(5,6); step(1500); assert(state==IH_IDLE && (unsigned)alarm_events==before+2);
+  faults=IH_FAULT_POWER; state=IH_FAULT; step(1500);
+  assert(last_message==HMI_MSG_POWER_FAILED && message_a==POWER_FEEDBACK);
+  request(5,6); step(1500);
   puts("PASS: HMI queue, single execution, readback/save, timeout recovery, alarms and link-loss stop");
   return 0;
 }

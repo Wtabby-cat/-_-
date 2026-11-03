@@ -24,7 +24,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'History test compilation failed' }
     & ./tmp/test_history.exe
     if ($LASTEXITCODE -ne 0) { throw 'History tests failed' }
-    & gcc @flags @includeArgs Tests/test_app.c Core/Src/ih_protection.c Core/Src/ih_program.c Core/Src/ih_history.c Core/Src/ih_tracking.c -o tmp/test_app.exe
+    & gcc @flags @includeArgs Tests/test_app.c Core/Src/ih_protection.c Core/Src/ih_program.c Core/Src/ih_history.c Core/Src/ih_tracking.c Core/Src/ih_power.c -o tmp/test_app.exe
     if ($LASTEXITCODE -ne 0) { throw 'Application test compilation failed' }
     & ./tmp/test_app.exe
     if ($LASTEXITCODE -ne 0) { throw 'Application tests failed' }
@@ -40,6 +40,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Search/PLL test compilation failed' }
     & ./tmp/test_tracking.exe
     if ($LASTEXITCODE -ne 0) { throw 'Search/PLL tests failed' }
+    & gcc @flags @includeArgs Tests/test_power.c Core/Src/ih_power.c -o tmp/test_power.exe
+    if ($LASTEXITCODE -ne 0) { throw 'Power loop test compilation failed' }
+    & ./tmp/test_power.exe
+    if ($LASTEXITCODE -ne 0) { throw 'Power loop tests failed' }
     & gcc @flags @includeArgs Tests/test_phase_pwm.c Core/Src/ih_phase.c -o tmp/test_phase_pwm.exe
     if ($LASTEXITCODE -ne 0) { throw 'PWM phase test compilation failed' }
     & ./tmp/test_phase_pwm.exe

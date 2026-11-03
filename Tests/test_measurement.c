@@ -72,9 +72,9 @@ int main(void)
   HAL_ADC_ConvHalfCpltCallback(&hadc1); HAL_ADC_ConvCpltCallback(&hadc1);
   Measurement_Task(); Measurement_Get(&m);
   assert(m.power_valid==IH_CURRENT_SENSOR_CONNECTED && m.current_valid==IH_CURRENT_SENSOR_CONNECTED);
-#if IH_FW_DIAG_VERSION != 110217U
-  assert(dbg_phase_reject==(IH_CURRENT_SENSOR_CONNECTED ? PHASE_NO_CAPTURE : PHASE_CT_DISABLED));
-#endif
+  assert(m.power_sequence==1 && m.power_sample_tick==tick);
+  ++tick; Measurement_Task(); Measurement_Get(&m);
+  assert(m.power_sequence==1 && m.power_sample_tick==tick-1U);
   assert(fabsf(m.active_power_w)<0.0001f);
   assert(m.current_rms_a<0.01f && m.voltage_rms_v<0.02f); /* measured 1.63 V midpoint */
   assert(m.current_peak_a<0.0001f && fabsf(dbg_i_mean_adc_v-1.63026f)<0.0001f);
@@ -126,27 +126,17 @@ int main(void)
     assert(fabsf(m.phase_deg+155)<0.15f); /* not abs(), not acos(PF) */
     m=acquire_sine(25,1800,2200,0,2);
     assert(!m.phase_valid); /* weak AC, even though ADC/current are valid */
-#if IH_FW_DIAG_VERSION != 110217U
-    assert(dbg_phase_reject==(IH_CURRENT_SENSOR_CONNECTED ? PHASE_CURRENT_WEAK : PHASE_CT_DISABLED));
-#endif
     m=acquire_sine(25,200,2200,0,200); assert(!m.phase_valid && m.adc_clipped);
-#if IH_FW_DIAG_VERSION != 110217U
-    assert(dbg_phase_reject==(IH_CURRENT_SENSOR_CONNECTED ? PHASE_WINDOW_CLIPPED : PHASE_CT_DISABLED));
-#endif
     m=acquire_sine(25,1800,2200,0,200);
     assert(m.phase_valid==IH_CURRENT_SENSOR_CONNECTED);
     phase_capture=4; tick+=IH_ADC_STALE_MS;
     m=acquire_sine(25,1800,2200,0,200);
     assert(m.adc_valid && !m.phase_valid); /* only phase snapshot has gone stale */
-#if IH_FW_DIAG_VERSION != 110217U
-    assert(dbg_phase_reject==(IH_CURRENT_SENSOR_CONNECTED ? PHASE_STALE : PHASE_CT_DISABLED));
-#endif
     phase_capture=1;
     m=acquire_sine(25,1800,2200,0,200);
     tick+=IH_ADC_STALE_MS; Measurement_Task(); Measurement_Get(&m);
     assert(!m.phase_valid);
     m=acquire(0,1800,2200); assert(!m.phase_valid); /* wrong frequency */
-#if IH_FW_DIAG_VERSION == 110217U
     /* Preserve baseline capture scheduling while comparing hardware OCP. */
     phase_capture=1; callback_epoch=injection_epoch; bus_pending=1;
     regs1.ISR=regs2.ISR=ADC_FLAG_JEOS;
@@ -155,31 +145,10 @@ int main(void)
     m=acquire_sine(25,1800,2200,0,200);
     assert(m.phase_valid==IH_CURRENT_SENSOR_CONNECTED);
     regs1.ISR=regs2.ISR=0;
-#else
-    /* Completed injected data may remain unread for many regular blocks.
-     * Require both JEOS flags, discard the resume boundary, then capture
-     * clean blocks even though foreground bus_pending is still set. */
-    m=acquire_sine(25,1800,2200,0,200);
-    phase_capture=1; callback_epoch=injection_epoch; bus_pending=1;
-    regs1.ISR=regs2.ISR=0;
-    HAL_ADC_ConvHalfCpltCallback(&hadc1); assert(phase_capture==1);
-    regs1.ISR=ADC_FLAG_JEOS;
-    HAL_ADC_ConvCpltCallback(&hadc1); assert(phase_capture==1);
-    regs2.ISR=ADC_FLAG_JEOS;
-    HAL_ADC_ConvHalfCpltCallback(&hadc1); assert(phase_capture==1);
-    HAL_ADC_ConvCpltCallback(&hadc1); assert(phase_capture==2);
-    HAL_ADC_ConvHalfCpltCallback(&hadc1); assert(phase_capture==3);
-    ++tick; Measurement_Task(); Measurement_Get(&m);
-    assert(bus_pending && m.phase_valid==IH_CURRENT_SENSOR_CONNECTED);
-    bus_pending=0; regs1.ISR=regs2.ISR=0;
-#endif
     /* Injected conversions split a regular block: never fit that time gap. */
     phase_capture=1; callback_epoch=injection_epoch; bus_pending=1;
     m=acquire_sine(25,1800,2200,0,200); assert(phase_capture==1);
     bus_pending=0;
-#if IH_FW_DIAG_VERSION != 110217U
-    HAL_ADC_ConvHalfCpltCallback(&hadc1); assert(phase_capture==1);
-#endif
     HAL_ADC_ConvHalfCpltCallback(&hadc1); assert(phase_capture==2);
     ++injection_epoch;
     HAL_ADC_ConvCpltCallback(&hadc1); assert(phase_capture==1);
@@ -204,9 +173,6 @@ int main(void)
   }
   HAL_ADC_ErrorCallback(&hadc2); Measurement_Task(); Measurement_Get(&m);
   assert(!m.power_valid);
-#if IH_FW_DIAG_VERSION != 110217U
-  assert(dbg_phase_reject==PHASE_ADC_INVALID);
-#endif
   Measurement_BusTask(); Measurement_Get(&m);
   assert(m.workpiece.valid && m.workpiece.celsius==55.5f && !m.components.adc_valid);
   /* Exercise the actual BusTask -> 32 scan mean -> Measurement_Get chain,

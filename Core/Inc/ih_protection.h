@@ -9,6 +9,7 @@
 #define IH_FAULT_ADC (1UL << 9)
 #define IH_FAULT_BUS (1UL << 10)
 #define IH_FAULT_COM (1UL << 11)
+#define IH_FAULT_POWER (1UL << 12)
 /* Frozen OC source bits can coexist. Hardware input is PB11, not PA0. */
 #define IH_OC_SOFTWARE_PEAK 1U
 #define IH_OC_COMP6_LEVEL   2U

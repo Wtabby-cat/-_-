@@ -12,7 +12,7 @@
   {"name":"START_LINK","text":"禁止启动：屏幕通信未恢复"},
   {"name":"START_STATE","text":"正在启动或加热中"},
   {"name":"WAIT_SYNC","text":"正在同步屏幕，请稍候"},
-  {"name":"STARTED","text":"正在搜频锁相，温控尚未启用"},
+  {"name":"STARTED","text":"正在搜频，锁定后稳功率50W"},
   {"name":"PROGRAM_UNAVAILABLE","text":"温控方案保存功能尚未接入"},
   {"name":"SAVE_BUSY","text":"请先停止加热，等待保存完成"},
   {"name":"READING_PARAMS","text":"正在读取保护参数"},
@@ -32,7 +32,7 @@
   {"name":"SAVE_TIMEOUT","text":"读取超时，参数未修改"},
   {"name":"UV_HISTORY","text":"上次欠压","format":"uv_history"},
   {"name":"READING_PROGRAM","text":"正在读取温控或功率设置"},
-  {"name":"PROGRAM_APPLIED","text":"目标已应用；温控及限功率尚未启用"},
+  {"name":"PROGRAM_APPLIED","text":"设置已应用，温控尚未启用"},
   {"name":"PROGRAM_INVALID","text":"应用失败，请检查参数与运行状态"},
   {"name":"SEARCH_READING","text":"正在读取搜频上下限"},
   {"name":"SEARCH_INVALID","text":"搜频范围须在11至40kHz内"},
@@ -43,5 +43,6 @@
   {"name":"TRACK_PWM","text":"调频更新失败，已停止加热"},
   {"name":"OC_PEAK","text":"本次峰值过流","format":"oc"},
   {"name":"OC_HARDWARE","text":"硬件过流已锁存，请核对PB11"},
-  {"name":"OC_LATCHED","text":"过流已锁存，请检查采样与保护"}
+  {"name":"OC_LATCHED","text":"过流已锁存，请检查采样与保护"},
+  {"name":"POWER_FAILED","text":"功率环异常，已停止加热"}
 ]

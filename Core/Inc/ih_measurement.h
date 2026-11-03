@@ -8,6 +8,7 @@ typedef struct {
   float current_peak_a, bus_v, bus_adc_v;
   float bus_peak_v;
   float active_power_w, apparent_power_va, power_factor;
+  uint32_t power_sequence, power_sample_tick;
   float phase_deg;
   uint8_t phase_valid;
   uint32_t phase_sequence,phase_sample_tick,phase_frequency100;

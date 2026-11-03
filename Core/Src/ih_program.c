@@ -3,7 +3,7 @@ static HeatProgram applied;
 void Program_Init(void)
 {
   uint32_t i;
-  applied.count = 3; applied.mode = 0; applied.power_limit_w = 1500;
+  applied.count = 3; applied.mode = 0; applied.power_limit_w = 50;
   for (i = 0; i < IH_PROGRAM_STAGES; ++i) {
     applied.target_c[i] = i == 0U ? 60 : i == 1U ? 90 : 120;
     applied.hold_s[i] = i == 0U ? 600 : i == 1U ? 1800 : i == 2U ? 3600 : 300;

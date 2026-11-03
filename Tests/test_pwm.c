@@ -32,6 +32,41 @@ static void update_barrier(void)
 uint32_t HAL_RCC_GetSysClockFreq(void) { return 170000000U; }
 HAL_StatusTypeDef HAL_HRTIM_SoftwareUpdate(HRTIM_HandleTypeDef *h,uint32_t timers)
 { assert(h==&hhrtim1 && timers==UPDATE_ALL); repetition(); return HAL_OK; }
+/* Model set/reset events, deliberately NOT generating CMP2 when it equals
+ * PER: the counter resets there. The separate master event must terminate B.
+ * Integrate ideal upper-switch levels (dead time is checked separately). */
+static void check_waveform(void)
+{
+  uint32_t edge[]={0,active1,active_half,active2,active_period};
+  uint32_t a=0,b=1,high_a=0,high_b=0,bridge=0,i;
+  uint32_t set_a=fake_hrtim.sTimerxRegs[0].SETx1R;
+  uint32_t rst_a=fake_hrtim.sTimerxRegs[0].RSTx1R;
+  uint32_t set_b=fake_hrtim.sTimerxRegs[1].SETx1R;
+  uint32_t rst_b=fake_hrtim.sTimerxRegs[1].RSTx1R;
+  assert(set_a==HRTIM_SET1R_MSTPER && rst_a==HRTIM_RST1R_CMP1);
+  assert(set_b==HRTIM_SET1R_CMP1 && rst_b==(HRTIM_RST1R_CMP2|HRTIM_RST1R_MSTPER));
+  assert(active1>=96 && active1<=active_half && active2==active1+active_half);
+  assert(fake_hrtim.sTimerxRegs[1].DTxR==0x1234 && fake_hrtim.sTimerxRegs[1].FLTxR==3);
+  for(i=0;i<5;++i) {
+    uint32_t t=edge[i],master=(t==0 || t==active_period);
+    uint32_t sa=master && (set_a&HRTIM_SET1R_MSTPER);
+    uint32_t ra=t==active_half && (rst_a&HRTIM_RST1R_CMP1);
+    uint32_t sb=t==active1 && (set_b&HRTIM_SET1R_CMP1);
+    uint32_t rb=(master && (rst_b&HRTIM_RST1R_MSTPER)) ||
+                (t==active2 && t<active_period && (rst_b&HRTIM_RST1R_CMP2));
+    assert(!(sa && ra) && !(sb && rb));
+    if(sa) a=1;
+    if(ra) a=0;
+    if(sb) b=1;
+    if(rb) b=0;
+    if(master) assert(a==1 && b==0);
+    if(i<4) {
+      uint32_t duration=edge[i+1]-t;
+      high_a+=a*duration; high_b+=b*duration; bridge+=(a!=b)*duration;
+    }
+  }
+  assert(high_a==active_half && high_b==active_half && bridge==2*active1);
+}
 int main(void)
 {
   uint32_t tick=0, previous, count;
@@ -41,6 +76,10 @@ int main(void)
   fake_hrtim.sTimerxRegs[1].PERxR=33830;
   fake_hrtim.sTimerxRegs[1].CMP1xR=5638;
   fake_hrtim.sTimerxRegs[1].CMP2xR=22553;
+  fake_hrtim.sTimerxRegs[0].SETx1R=HRTIM_SET1R_PER;
+  fake_hrtim.sTimerxRegs[0].RSTx1R=HRTIM_RST1R_CMP1;
+  fake_hrtim.sTimerxRegs[1].SETx1R=HRTIM_SET1R_CMP1;
+  fake_hrtim.sTimerxRegs[1].RSTx1R=HRTIM_RST1R_CMP2;
   fake_hrtim.sTimerxRegs[1].DTxR=0x1234;
   fake_hrtim.sTimerxRegs[1].FLTxR=0x3;
   fake_hrtim.sCommonRegs.CR1=HRTIM_CR1_TCUDIS;
@@ -100,6 +139,53 @@ int main(void)
     assert(dbg_pwm_phase10==600U);
   }
   puts("PASS: PWM boundary updates, 2-to-60 degree ramp, UV hold, stop/restart and tick wrap");
+  previous=active1;
+  assert(Pwm_SetPhase10(200) && active1==previous && !dbg_pwm_softstart);
+  repetition(); assert(dbg_pwm_phase10==200 && active2-active1==active_period/2);
+  assert(!Pwm_SetPhase10(19) && !Pwm_SetPhase10(1801));
+  assert(Pwm_SetPhase10(20)); repetition();
+  assert(Pwm_SetFrequency100(4000)); repetition(); assert(active1>=96);
+  assert(Pwm_SetPhase10(1200)); repetition();
+  assert(dbg_pwm_phase10==1200 && active2-active1==active_period/2);
+  assert(fake_hrtim.sTimerxRegs[1].DTxR==0x1234 && fake_hrtim.sTimerxRegs[1].FLTxR==3);
   puts("PASS: common master period updates, 11-40 kHz limits, even periods, 50-percent duty, phase preservation and unchanged dead-time/faults");
+  /* Every 0.1 degree across 11..40 kHz. In particular 179.9 -> 180 -> 179.9
+   * keeps routing fixed and has no dead band or latched high right bridge. */
+  for(count=1100;count<=4000;count+=100) {
+    assert(Pwm_SetPhase10(1800)); repetition(); check_waveform();
+    assert(Pwm_SetFrequency100(count)); repetition(); check_waveform();
+    assert(active1==active_half && active2==active_period && dbg_pwm_phase10==1800);
+    for(tick=20;tick<=1800;++tick) {
+      assert(Pwm_SetPhase10(tick)); repetition(); check_waveform();
+    }
+    for(tick=1800;tick>=1700;--tick) {
+      assert(Pwm_SetPhase10(tick)); repetition(); check_waveform();
+      assert(dbg_pwm_phase10==tick);
+    }
+  }
+  assert(!Pwm_PrepareAt(2500,1801));
+  assert(Pwm_PrepareAt(2500,1800)); Pwm_RampStart(0); previous=active1;
+  for(tick=1;tick<=IH_PWM_SOFTSTART_MS;++tick) {
+    Pwm_Task(tick,1); repetition(); check_waveform();
+    assert(active1>=previous); previous=active1;
+  }
+  assert(dbg_pwm_phase10==1800 && !dbg_pwm_softstart);
+  Pwm_RampTo(20,1000); previous=active1;
+  for(tick=1001;tick<=1000+IH_PWM_SOFTSTART_MS;++tick) {
+    Pwm_Task(tick,0); repetition(); check_waveform();
+    assert(active1<=previous); previous=active1;
+  }
+  assert(dbg_pwm_phase10==20 && !dbg_pwm_softstart);
+  assert(Pwm_SetFrequency100(4000)); repetition();
+  Pwm_RampTo(1800,2000);
+  for(tick=2001;tick<=2000+IH_PWM_SOFTSTART_MS;++tick) {
+    Pwm_Task(tick,1); repetition(); check_waveform();
+  }
+  Pwm_RampTo(20,3000);
+  for(tick=3001;tick<=3000+IH_PWM_SOFTSTART_MS;++tick) {
+    Pwm_Task(tick,0); repetition(); check_waveform();
+  }
+  assert(active1==96 && !dbg_pwm_softstart);
+  puts("PASS: 2..180 degree event waveforms, exact 180 without boundary CMP2, fixed event routes, PLL frequency changes and bidirectional ramps");
   return 0;
 }

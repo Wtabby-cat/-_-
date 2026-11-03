@@ -90,9 +90,23 @@
 #define IH_TRACK_MAX_FREQ100     4000U
 #define IH_TRACK_DEFAULT_LO100   1500U
 #define IH_TRACK_DEFAULT_HI100   2500U
-/* Temporary open-loop power setting until a power controller owns this.
- * The frequency/phase PLL must never raise this angle after lock. */
+/* Probe ceiling before the power controller takes over after phase lock. */
 #define IH_PWM_FIXED_PHASE10     600U
+#define IH_POWER_TARGET_W        50.0f
+#define IH_POWER_MAX_W           50.0f
+#define IH_POWER_TRIP_W          75.0f
+#define IH_POWER_MIN_PHASE10     20U
+#define IH_POWER_MAX_PHASE10     1800U
+#define IH_POWER_KP_PHASE10_W    1.5f
+#define IH_POWER_KI_PHASE10_WS   5.0f
+#define IH_POWER_FILTER_ALPHA    0.20f
+#define IH_POWER_RISE_W_S        25.0f
+#define IH_POWER_UP_PHASE10_S    200.0f
+#define IH_POWER_DOWN_PHASE10_S  600.0f
+#define IH_POWER_FRESH_MS        30U
+#define IH_POWER_STALE_MS        100U
+#define IH_POWER_REVERSE_W       (-2.0f)
+#define IH_POWER_REVERSE_MS      100U
 #define IH_SEARCH_STEP100        10U
 #define IH_TRACK_SETTLE_MS       50U
 #define IH_TRACK_SIGNAL_MS       250U
@@ -113,7 +127,7 @@
 #define IH_HMI_QUERY_TIMEOUT_MS   600U
 #define IH_HMI_RESYNC_MS          3000U
 /* Visible build identifier for field diagnostics. */
-#define IH_FW_DIAG_VERSION        110217U
+#define IH_FW_DIAG_VERSION        110219U
 
 /* No guessed physical protection thresholds: configure/save on page 5. */
 #define IH_DEFAULT_OV_V           0

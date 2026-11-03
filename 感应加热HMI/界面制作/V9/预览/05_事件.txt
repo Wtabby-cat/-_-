@@ -462,6 +462,11 @@ if(fieldOK>0)
 {
 tAlarm.txt="搜频或锁相异常"
 }
+fieldOK=internalFault&4096
+if(fieldOK>0)
+{
+tAlarm.txt="功率闭环异常"
+}
 tDiag.txt="固件号："
 covx fwVersion,tFmt.txt,0,0
 tDiag.txt=tDiag.txt+tFmt.txt
@@ -551,7 +556,7 @@ tFoot.txt="正在同步屏幕，请稍候"
 }
 if(msgCode==14)
 {
-tFoot.txt="正在搜频锁相，温控尚未启用"
+tFoot.txt="正在搜频，锁定后稳功率50W"
 }
 if(msgCode==15)
 {
@@ -642,7 +647,7 @@ tFoot.txt="正在读取温控或功率设置"
 }
 if(msgCode==34)
 {
-tFoot.txt="目标已应用；温控及限功率尚未启用"
+tFoot.txt="设置已应用，温控尚未启用"
 }
 if(msgCode==35)
 {
@@ -698,6 +703,10 @@ tFoot.txt="硬件过流已锁存，请核对PB11"
 if(msgCode==45)
 {
 tFoot.txt="过流已锁存，请检查采样与保护"
+}
+if(msgCode==46)
+{
+tFoot.txt="功率环异常，已停止加热"
 }
 }
 
@@ -1114,6 +1123,11 @@ if(fieldOK>0)
 {
 tAlarm.txt="搜频或锁相异常"
 }
+fieldOK=internalFault&4096
+if(fieldOK>0)
+{
+tAlarm.txt="功率闭环异常"
+}
 tDiag.txt="固件号："
 covx fwVersion,tFmt.txt,0,0
 tDiag.txt=tDiag.txt+tFmt.txt
@@ -1201,7 +1215,7 @@ tFoot.txt="正在同步屏幕，请稍候"
 }
 if(msgCode==14)
 {
-tFoot.txt="正在搜频锁相，温控尚未启用"
+tFoot.txt="正在搜频，锁定后稳功率50W"
 }
 if(msgCode==15)
 {
@@ -1292,7 +1306,7 @@ tFoot.txt="正在读取温控或功率设置"
 }
 if(msgCode==34)
 {
-tFoot.txt="目标已应用；温控及限功率尚未启用"
+tFoot.txt="设置已应用，温控尚未启用"
 }
 if(msgCode==35)
 {
@@ -1348,6 +1362,10 @@ tFoot.txt="硬件过流已锁存，请核对PB11"
 if(msgCode==45)
 {
 tFoot.txt="过流已锁存，请检查采样与保护"
+}
+if(msgCode==46)
+{
+tFoot.txt="功率环异常，已停止加热"
 }
 }
 
@@ -1983,6 +2001,11 @@ if(fieldOK>0)
 {
 tAlarm.txt="搜频或锁相异常"
 }
+fieldOK=internalFault&4096
+if(fieldOK>0)
+{
+tAlarm.txt="功率闭环异常"
+}
 tDiag.txt="固件号："
 covx fwVersion,tFmt.txt,0,0
 tDiag.txt=tDiag.txt+tFmt.txt
@@ -2072,7 +2095,7 @@ tFoot.txt="正在同步屏幕，请稍候"
 }
 if(msgCode==14)
 {
-tFoot.txt="正在搜频锁相，温控尚未启用"
+tFoot.txt="正在搜频，锁定后稳功率50W"
 }
 if(msgCode==15)
 {
@@ -2163,7 +2186,7 @@ tFoot.txt="正在读取温控或功率设置"
 }
 if(msgCode==34)
 {
-tFoot.txt="目标已应用；温控及限功率尚未启用"
+tFoot.txt="设置已应用，温控尚未启用"
 }
 if(msgCode==35)
 {
@@ -2219,5 +2242,9 @@ tFoot.txt="硬件过流已锁存，请核对PB11"
 if(msgCode==45)
 {
 tFoot.txt="过流已锁存，请检查采样与保护"
+}
+if(msgCode==46)
+{
+tFoot.txt="功率环异常，已停止加热"
 }
 }

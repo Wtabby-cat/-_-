@@ -7,6 +7,7 @@
 #include "ih_pwm.h"
 #include "ih_history.h"
 #include "ih_tracking.h"
+#include "ih_power.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -353,7 +354,10 @@ static void Telemetry(void)
     Command("power100=%ld", (long)(Active() ? Scaled(m.active_power_w, 100.0f) : 0));
     Command("adcClipped=%u", m.adc_clipped ? 1U : 0U);
   }
-  if (page == 3U) Command("angle10=%lu", (unsigned long)dbg_pwm_phase10);
+  if (page == 3U) {
+    Command("angle10=%lu", (unsigned long)dbg_pwm_phase10);
+    Command("powerSet100=%ld",(long)Scaled(Power_TargetW(),100.0f));
+  }
   if (page == 6U) Command("phase10=%ld", (long)Scaled(m.phase_deg, 10.0f));
   if (page == 0U || page == 5U) {
     Command("fwVersion=%lu", (unsigned long)IH_FW_DIAG_VERSION);
@@ -364,7 +368,7 @@ static void Telemetry(void)
     Command("tripRaw1=%lu", (unsigned long)dbg_trip_bus_rank1_raw);
     Command("tripRaw2=%lu", (unsigned long)dbg_trip_bus_rank2_raw);
   }
-  Command("internalFault=%lu", (unsigned long)(App_Faults() & (IH_FAULT_ADC | IH_FAULT_BUS | IH_FAULT_COM | IH_FAULT_TRACK)));
+  Command("internalFault=%lu", (unsigned long)(App_Faults() & (IH_FAULT_ADC | IH_FAULT_BUS | IH_FAULT_COM | IH_FAULT_TRACK | IH_FAULT_POWER)));
   /* The HMI owns all field labels and feedback text. */
   Command("dataFlags=%u", (Active() ? 32U : 0U) | 2U | 256U | (m.bus_valid ? 8U : 0U) | (m.current_valid ? 16U : 0U) |
           (m.power_valid ? 4U : 0U) | (m.workpiece.valid ? 1U : 0U) |
@@ -440,6 +444,7 @@ static void Alarms(void)
     Message(HMI_MSG_UV_LATCHED, (int32_t)(dbg_trip_bus_v * 10.0f + 0.5f), (int32_t)dbg_trip_uv_v);
   if (delta & faults & (IH_FAULT_ADC | IH_FAULT_BUS | IH_FAULT_COM))
     Message(HMI_MSG_INTERNAL_FAULT, 0, 0);
+  if (delta & faults & IH_FAULT_POWER) Message(HMI_MSG_POWER_FAILED,(int32_t)Power_Error(),0);
   if (delta & faults & IH_FAULT_TRACK) {
     HmiMessage message=HMI_MSG_TRACK_SIGNAL;
     switch (Tracking_Error()) {

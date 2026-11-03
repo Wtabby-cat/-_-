@@ -107,7 +107,7 @@
       "page": 1,
       "id": 12,
       "name": "bplim",
-      "label": "1500",
+      "label": "50",
       "touch": "65 01 0C 00 FF FF FF",
       "requests": []
     },
@@ -699,7 +699,7 @@
       "page": 3,
       "id": 37,
       "name": "bplim",
-      "label": "1500",
+      "label": "50",
       "touch": "65 03 25 00 FF FF FF",
       "requests": []
     },
@@ -1189,7 +1189,7 @@
       "id": 1,
       "var": "plim",
       "label": "功率上限",
-      "initial": 1500,
+      "initial": 50,
       "unit": "W",
       "low": 1,
       "high": 9999

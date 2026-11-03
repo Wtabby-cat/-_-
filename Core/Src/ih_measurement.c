@@ -214,12 +214,13 @@ static void PhaseTask(uint32_t now)
 
 void Measurement_Task(void)
 {
-  uint32_t now = HAL_GetTick(), count, peak, mask;
+  uint32_t now = HAL_GetTick(), count, peak, mask, power_tick;
   uint64_t si, sv;
   int64_t siv, sdi, sdv;
   uint8_t clipped;
   mask = __get_PRIMASK(); __disable_irq();
   count = sample_count; si = current_sum2; sv = voltage_sum2; peak = peak_counts;
+  power_tick = last_adc_tick;
   siv = product_sum; sdi = current_sum; sdv = voltage_sum; clipped = sample_clipped;
   sample_count = 0U; current_sum2 = 0U; voltage_sum2 = 0U; peak_counts = 0U;
   product_sum = current_sum = voltage_sum = 0; sample_clipped = 0U;
@@ -246,6 +247,7 @@ void Measurement_Task(void)
     measured.current_rms_a = dbg_i_ac_rms_adc_v / IH_CURRENT_SCALE;
     measured.voltage_rms_v = sqrtf(ac_v2) * k / IH_RESONANT_SCALE;
     measured.current_peak_a = (float)peak * IH_ADC_VREF_V / 4095.0f / IH_CURRENT_SCALE;
+    ++measured.power_sequence; measured.power_sample_tick=power_tick;
   }
   measured.adc_valid = adc_seen && !adc_error && (uint32_t)(now - last_adc_tick) < IH_ADC_STALE_MS;
   measured.current_valid = measured.adc_valid && IH_CURRENT_SENSOR_CONNECTED;

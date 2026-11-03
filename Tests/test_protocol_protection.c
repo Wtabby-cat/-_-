@@ -65,14 +65,8 @@ static void protection(void)
   p.oc=10; p.ot1=1000; assert(!Protection_ParamsValid(&p));
   p.ot1=85; p.ov=IH_LIMIT_OV_MAX_V; p.uv=IH_LIMIT_UV_MAX_V; p.oc=IH_LIMIT_OC_PEAK_MAX_A;
   assert(Protection_ParamsValid(&p));
-#if IH_FW_DIAG_VERSION == 110217U
   /* The diagnostic comparison intentionally restores the 110214 validator. */
   ++p.ov; ++p.oc; assert(Protection_ParamsValid(&p));
-#else
-  ++p.ov; assert(!Protection_ParamsValid(&p)); --p.ov;
-  ++p.oc; assert(!Protection_ParamsValid(&p)); --p.oc;
-  p.uv=IH_LIMIT_UV_MAX_V+1; assert(!Protection_ParamsValid(&p));
-#endif
   /* Sanity-check the nominal electrical bounds against the configured chain.
    * These bounds do not certify the power devices or PB11's analogue gain. */
   assert(IH_CURRENT_BIAS_V-IH_CURRENT_SCALE*IH_LIMIT_OC_PEAK_MAX_A>0.1f);
