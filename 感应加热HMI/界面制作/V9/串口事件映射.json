@@ -839,7 +839,7 @@
       "page": 4,
       "id": 43,
       "name": "bLock",
-      "label": "重新搜频",
+      "label": "搜频并启动",
       "touch": "65 04 2B 00 FF FF FF",
       "requests": [
         5
@@ -1496,8 +1496,8 @@
       "label": "搜频下限",
       "initial": 15,
       "unit": "kHz",
-      "low": 1,
-      "high": 99
+      "low": 11,
+      "high": 39
     },
     {
       "id": 35,
@@ -1505,8 +1505,8 @@
       "label": "搜频上限",
       "initial": 25,
       "unit": "kHz",
-      "low": 1,
-      "high": 99
+      "low": 12,
+      "high": 40
     },
     {
       "id": 36,
@@ -1514,8 +1514,8 @@
       "label": "母线过压",
       "initial": 0,
       "unit": "V",
-      "low": 1,
-      "high": 9999
+      "low": 2,
+      "high": 31
     },
     {
       "id": 37,
@@ -1524,16 +1524,16 @@
       "initial": 0,
       "unit": "V",
       "low": 1,
-      "high": 9999
+      "high": 30
     },
     {
       "id": 38,
       "var": "oc",
-      "label": "谐振过流",
+      "label": "谐振峰值过流",
       "initial": 0,
       "unit": "A",
       "low": 1,
-      "high": 9999
+      "high": 26
     },
     {
       "id": 39,

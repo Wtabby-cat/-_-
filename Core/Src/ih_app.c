@@ -6,6 +6,7 @@
 #include "ih_program.h"
 #include "ih_workpiece.h"
 #include "ih_history.h"
+#include "ih_tracking.h"
 
 extern HRTIM_HandleTypeDef hhrtim1;
 extern COMP_HandleTypeDef hcomp2, hcomp3, hcomp5, hcomp6;
@@ -32,7 +33,6 @@ volatile float dbg_start_bus_v;
 volatile uint32_t dbg_trip_bus_rank1_raw, dbg_trip_bus_rank2_raw;
 volatile uint32_t dbg_trip_state, dbg_trip_phase10, dbg_trip_sample_age_ms;
 volatile uint32_t dbg_trip_bus_min_raw, dbg_trip_bus_max_raw;
-
 static void DisableGate(void)
 {
   /* Direct register writes are usable even with interrupts/HAL unavailable. */
@@ -54,6 +54,7 @@ void App_EmergencyOff(void)
 static void StopOutputs(void)
 {
   History_Stop();
+  Tracking_Stop();
   /* Both normal STOP and heating faults preserve the NTC bypass. */
   DisableGate();
   Pwm_Cancel(); pwm_priming = 0U;
@@ -166,8 +167,15 @@ int App_Start(void)
   StopOutputs();
   start_tick = HAL_GetTick(); elapsed_ms = 0U;
   state = IH_PRECHARGE;
+  Tracking_Start(HAL_GetTick());
   History_Start(HAL_GetTick());
   return 1;
+}
+int App_StartSearch(uint32_t lo100,uint32_t hi100)
+{
+  if (state!=IH_IDLE) { dbg_start_block=App_StartBlockReasons(); return 0; }
+  if (!Tracking_SetBounds(lo100,hi100)) return 0;
+  return App_Start();
 }
 int App_ResetFault(void)
 {
@@ -200,6 +208,7 @@ void App_Init(void)
   App_EmergencyOff();
   StopOutputs();
   if (!Pwm_Init()) Error_Handler();
+  Tracking_Init();
   relay_power_tick = HAL_GetTick();
   HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, IH_DAC_CODE(IH_HW_OVP_V));
   HAL_DAC_SetValue(&hdac4, DAC_CHANNEL_2, DAC_ALIGN_12B_R, IH_DAC_CODE(IH_HW_OCP_V));
@@ -260,7 +269,8 @@ void App_Task(void)
     }
     else if (dbg_relay && (uint32_t)(now - relay_tick) >= IH_RELAY_SETTLE_MS) {
       if (!pwm_priming) {
-        if (!Pwm_Prepare()) Error_Handler();
+        if (!Pwm_PrepareAt(Tracking_Upper100(),IH_PWM_FIXED_PHASE10)) Error_Handler();
+        __HAL_HRTIM_SETCOUNTER(&hhrtim1, HRTIM_TIMERINDEX_MASTER, 0U);
         __HAL_HRTIM_SETCOUNTER(&hhrtim1, HRTIM_TIMERINDEX_TIMER_A, 0U);
         __HAL_HRTIM_SETCOUNTER(&hhrtim1, HRTIM_TIMERINDEX_TIMER_B, 0U);
         if (HAL_HRTIM_WaveformOutputStart(&hhrtim1, IH_POWER_OUTPUTS) != HAL_OK ||
@@ -283,7 +293,9 @@ void App_Task(void)
   if (state == IH_RUNNING) {
     Measurement m;
     Measurement_Get(&m);
-    Pwm_Task(HAL_GetTick(), m.bus_valid && m.bus_v > (float)protection.uv);
+    Tracking_Task(HAL_GetTick(),&m);
+    if (Tracking_State()==TRACK_FAILED) Trip(IH_FAULT_TRACK);
+    else Pwm_Task(HAL_GetTick(), m.bus_valid && m.bus_v > (float)protection.uv && Tracking_AllowRamp());
   }
   Hmi_Task();
   if ((uint32_t)(now - led_tick) >= 500U) {

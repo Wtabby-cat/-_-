@@ -436,6 +436,11 @@
               <FilePath>../Core/Src/ih_phase.c</FilePath>
             </File>
             <File>
+              <FileName>ih_tracking.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/ih_tracking.c</FilePath>
+            </File>
+            <File>
               <FileName>ih_protection.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/ih_protection.c</FilePath>

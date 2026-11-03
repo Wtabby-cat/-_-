@@ -17,6 +17,7 @@ void App_Init(void);
 void App_Task(void);
 void App_Stop(void);
 int App_Start(void);
+int App_StartSearch(uint32_t lo100,uint32_t hi100);
 uint32_t App_StartBlockReasons(void);
 int App_ResetFault(void);
 void App_CommunicationFault(void);

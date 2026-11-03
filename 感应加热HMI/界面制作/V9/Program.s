@@ -106,6 +106,7 @@ int msgA=0
 int msgB=0
 int msgPush=0
 int internalFault=0
+int trackState=0
 int temp110=0
 int temp210=0
 int temp1mv=0

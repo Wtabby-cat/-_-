@@ -7,7 +7,7 @@ The original project is read only. All output is written beside this script.
 """
 from pathlib import Path
 from collections import OrderedDict
-import struct, math, json, hashlib, html
+import struct, math, json, hashlib, html, re
 from PIL import Image, ImageDraw, ImageFont
 from debug_runtime import ALARM_ROWS
 
@@ -156,8 +156,17 @@ for pid,prefix,value in [(2,'t',600),(3,'p',600),(4,'f',60),(6,'a',60)]:
     for item in pair:item['view_only']=True
     WINDOWS[pid]=pair
 
-FLO=param('flo','搜频下限',15,'kHz',1,99);FHI=param('fhi','搜频上限',25,'kHz',1,99)
-PROTECT=[param(v,l,0,u,1,9999 if i<3 else 999) for i,(v,l,u) in enumerate([('ov','母线过压','V'),('uv','母线欠压','V'),('oc','谐振过流','A'),('ot1','功率管过温','℃'),('ot2','整流桥过温','℃'),('ot3','工件超温','℃')])]
+FLO=param('flo','搜频下限',15,'kHz',11,39);FHI=param('fhi','搜频上限',25,'kHz',12,40)
+_config=(SCRIPT_ROOT.parent.parent/'Core/Inc/ih_config.h').read_text('utf8')
+def protection_limit(name):
+    match=re.search(r'^#define\s+'+name+r'\s+(\d+)\s*$',_config,re.M)
+    if not match:raise ValueError('Missing protection limit: '+name)
+    return int(match[1])
+PROTECT=[param(v,l,0,u,low,protection_limit(limit)) for v,l,u,low,limit in [
+    ('ov','母线过压','V',2,'IH_LIMIT_OV_MAX_V'),('uv','母线欠压','V',1,'IH_LIMIT_UV_MAX_V'),
+    ('oc','谐振峰值过流','A',1,'IH_LIMIT_OC_PEAK_MAX_A'),
+    ('ot1','功率管过温','℃',1,'IH_LIMIT_OT_MAX_C'),('ot2','整流桥过温','℃',1,'IH_LIMIT_OT_MAX_C'),
+    ('ot3','工件超温','℃',1,'IH_LIMIT_OT_MAX_C')]]
 
 PAGES=[]
 class Page:
@@ -227,7 +236,7 @@ def plot(page,x,y,w,h,yrange,yticks,xticks,series,title,unit):
 
 # 0: overview
 p=Page(0,'运行总览','运行总览',0);p.frame()
-for idx,(label,value,unit,name) in enumerate([('实际温度','--','℃','tActual'),('目标温度','--','℃','tTarget'),('电功率','--','W','tPower'),('母线电压','--','V','tBus'),('工作频率','--','kHz','tFreq'),('谐振电流','--','A','tCurrent')]):
+for idx,(label,value,unit,name) in enumerate([('实际温度','--','℃','tActual'),('目标温度','--','℃','tTarget'),('电功率','--','W','tPower'),('母线电压','--','V','tBus'),('工作频率','--','kHz','tFreq'),('谐振电流有效值','--','A','tCurrent')]):
     x=28+(idx%3)*264;y=62+(idx//3)*106
     p.text('l'+name,label,x,y,240,28)
     # Keep every unit in its original column. Long signed power values use a
@@ -318,7 +327,7 @@ p.text('uFreq','kHz',730,158,46,26,font=3,align=1)
 p.text('tLocked','未锁定',570,202,214,28,font=2,color=TEAL,align=1)
 p.text('lLow','搜频下限',568,244,106,28,font=2);p.field(FLO,680,240,70);p.text('uLow','kHz',754,244,42,28,font=3)
 p.text('lHigh','搜频上限',568,288,106,28,font=2);p.field(FHI,680,284,70);p.text('uHigh','kHz',754,288,42,28,font=3)
-p.button('bLock','重新搜频',568,330,214,34,font=2,code='if(run==0)\r\n{\r\ntFoot.txt="搜频命令预留；主控未连接"\r\n}')
+p.button('bLock','搜频并启动',568,330,214,34,font=2,code='if(run==0)\r\n{\r\ntFoot.txt="搜频请求待主控处理"\r\n}')
 
 # 5: protection and alarms
 p=Page(5,'保护报警','保护报警',3);p.frame()
@@ -514,7 +523,7 @@ def run():
         lines=['# '+p.name,'\n## 200ms 输入刷新定时器\n',p.timer,'\n## 页面后初始化\n','\n'.join(p.load)]
         for o in p.items:
             if o['code']:lines+=['\n## '+o['name']+' '+o['txt']+' 触摸弹起\n',o['code']]
-        (ROOT/'预览'/f'{p.pid:02d}_事件.txt').write_text('\n'.join(lines),'utf8')
+        (ROOT/'预览'/f'{p.pid:02d}_事件.txt').write_text('\n'.join(lines).replace('\r\n','\n'),'utf8',newline='\n')
     gallery='<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>感应加热 HMI 页面预览</title><style>body{margin:24px;background:#e9edf2;color:#29313e;font:16px Microsoft YaHei}nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}button{padding:10px 18px;border:0;background:white;cursor:pointer}button.active{background:#137de1;color:white}img{display:block;width:min(100%,1000px);box-shadow:0 10px 35px #0002}p{color:#6d7785}</style><h2>感应加热 · HMI 界面预览</h2><p>800×480 · 原生工程页面的离线渲染预览 · 初始数据为空</p><nav>'
     for p in PAGES:gallery+=f'<button onclick="show({p.pid},this)">{html.escape(p.title)}</button>'
     paths=[f'预览/{p.pid:02d}_{p.name}.png' for p in PAGES]

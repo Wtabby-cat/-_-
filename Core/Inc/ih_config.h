@@ -31,7 +31,7 @@
 #define IH_PHASE_MIN_VOLTAGE_QUALITY 0.35f
 #define IH_ZC_THRESHOLD_V         1.63f
 #define IH_HW_OVP_V               3.20f
-#define IH_HW_OCP_V               3.10f
+#define IH_HW_OCP_V               3.03f
 #define IH_DAC_CODE(v)            ((uint32_t)((v) / IH_ADC_VREF_V * 4095.0f))
 
 /* PA7 feeds COMP2 and ADC2_IN4. Nominal board: Vadc = Vbus / 31 * 3.3.
@@ -43,6 +43,13 @@
  * Apply the same correction to mean and peak protection values; clamp at 0. */
 #define IH_BUS_CAL_GAIN           (5.0f / 4.7f)
 #define IH_BUS_CAL_OFFSET_V       (-0.276595745f)
+/* Retain the matching HMI keypad bounds. This 110217 comparison build uses
+ * the original 110214 MCU parameter validator and a fixed 3.03 V COMP6 DAC;
+ * saving OC changes the software peak threshold only. */
+#define IH_LIMIT_OV_MAX_V         31
+#define IH_LIMIT_UV_MAX_V         30
+#define IH_LIMIT_OC_PEAK_MAX_A    26
+#define IH_LIMIT_OT_MAX_C         999
 #define IH_BUS_SAMPLE_MS          10U
 #define IH_BUS_BURST_PERIOD_MS    20U
 #define IH_BUS_BURST_SCANS        32U
@@ -78,6 +85,26 @@
 #define IH_PWM_SOFTSTART_MS       500U
 #define IH_PWM_START_MDEG         2000U
 #define IH_PWM_RAMP_MAX_STEP_MS   5U
+/* Frequency is kHz * 100. Phase compensation is intentionally zero for now. */
+#define IH_TRACK_MIN_FREQ100     1100U
+#define IH_TRACK_MAX_FREQ100     4000U
+#define IH_TRACK_DEFAULT_LO100   1500U
+#define IH_TRACK_DEFAULT_HI100   2500U
+/* Temporary open-loop power setting until a power controller owns this.
+ * The frequency/phase PLL must never raise this angle after lock. */
+#define IH_PWM_FIXED_PHASE10     600U
+#define IH_SEARCH_STEP100        10U
+#define IH_TRACK_SETTLE_MS       50U
+#define IH_TRACK_SIGNAL_MS       250U
+#define IH_SEARCH_TIMEOUT_MS     15000U
+#define IH_PLL_TIMEOUT_MS        5000U
+#define IH_PLL_TARGET_DEG        10.0f
+#define IH_PLL_BAND_DEG          3.0f
+#define IH_PLL_MIN_PHASE_DEG     3.0f
+#define IH_PLL_LOCK_MS           300U
+#define IH_PLL_KP_HZ_PER_DEG     8.0f
+#define IH_PLL_KI_HZ_PER_DEG_S    40.0f
+#define IH_PLL_MAX_STEP100       2.0f
 #define IH_RESET_STABLE_MS        200U
 #define IH_ADC_BUF_SIZE           256U
 #define IH_HMI_BAUD               9600U
@@ -85,8 +112,8 @@
 #define IH_HMI_BOOT_MS            1500U
 #define IH_HMI_QUERY_TIMEOUT_MS   600U
 #define IH_HMI_RESYNC_MS          3000U
-/* Visible build identifier for field diagnostics; no heating-policy change. */
-#define IH_FW_DIAG_VERSION        110211U
+/* Visible build identifier for field diagnostics. */
+#define IH_FW_DIAG_VERSION        110217U
 
 /* No guessed physical protection thresholds: configure/save on page 5. */
 #define IH_DEFAULT_OV_V           0
@@ -97,5 +124,5 @@
 #define IH_DEFAULT_OT3_C          0
 
 #define IH_POWER_OUTPUTS (HRTIM_OUTPUT_TA1 | HRTIM_OUTPUT_TA2 | HRTIM_OUTPUT_TB1 | HRTIM_OUTPUT_TB2)
-#define IH_POWER_TIMERS  (HRTIM_TIMERID_TIMER_A | HRTIM_TIMERID_TIMER_B)
+#define IH_POWER_TIMERS  (HRTIM_TIMERID_MASTER | HRTIM_TIMERID_TIMER_A | HRTIM_TIMERID_TIMER_B)
 #endif

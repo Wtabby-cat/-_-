@@ -4,6 +4,8 @@ $projectRoot = Split-Path -Parent $PSScriptRoot
 Push-Location $projectRoot
 try {
     New-Item -ItemType Directory -Force tmp | Out-Null
+    & python Tests/test_keil_project.py
+    if ($LASTEXITCODE -ne 0) { throw 'Keil project module check failed' }
     $includeArgs = @('-ICore/Inc', '-IDrivers/STM32G4xx_HAL_Driver/Inc',
         '-IDrivers/CMSIS/Device/ST/STM32G4xx/Include', '-IDrivers/CMSIS/Include')
     $flags = @('-std=c99', '-DSTM32G474xx', '-DUSE_HAL_DRIVER', '-Wall', '-Wextra', '-Werror',
@@ -22,16 +24,26 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'History test compilation failed' }
     & ./tmp/test_history.exe
     if ($LASTEXITCODE -ne 0) { throw 'History tests failed' }
-    & gcc @flags @includeArgs Tests/test_app.c Core/Src/ih_protection.c Core/Src/ih_program.c Core/Src/ih_history.c -o tmp/test_app.exe
+    & gcc @flags @includeArgs Tests/test_app.c Core/Src/ih_protection.c Core/Src/ih_program.c Core/Src/ih_history.c Core/Src/ih_tracking.c -o tmp/test_app.exe
     if ($LASTEXITCODE -ne 0) { throw 'Application test compilation failed' }
     & ./tmp/test_app.exe
     if ($LASTEXITCODE -ne 0) { throw 'Application tests failed' }
     & ./tmp/test_app.exe boot_fault
     if ($LASTEXITCODE -ne 0) { throw 'NTC bypass boot-fault test failed' }
+    & ./tmp/test_app.exe boot_saved
+    if ($LASTEXITCODE -ne 0) { throw 'Saved hardware OCP threshold boot test failed' }
     & gcc @flags @includeArgs Tests/test_pwm.c -o tmp/test_pwm.exe
     if ($LASTEXITCODE -ne 0) { throw 'PWM test compilation failed' }
     & ./tmp/test_pwm.exe
     if ($LASTEXITCODE -ne 0) { throw 'PWM soft-start tests failed' }
+    & gcc @flags @includeArgs Tests/test_tracking.c Core/Src/ih_tracking.c -o tmp/test_tracking.exe
+    if ($LASTEXITCODE -ne 0) { throw 'Search/PLL test compilation failed' }
+    & ./tmp/test_tracking.exe
+    if ($LASTEXITCODE -ne 0) { throw 'Search/PLL tests failed' }
+    & gcc @flags @includeArgs Tests/test_phase_pwm.c Core/Src/ih_phase.c -o tmp/test_phase_pwm.exe
+    if ($LASTEXITCODE -ne 0) { throw 'PWM phase test compilation failed' }
+    & ./tmp/test_phase_pwm.exe
+    if ($LASTEXITCODE -ne 0) { throw 'PWM phase tests failed' }
     & gcc @flags @includeArgs Tests/test_temperature.c Core/Src/ih_temperature.c -o tmp/test_temperature.exe
     if ($LASTEXITCODE -ne 0) { throw 'Temperature test compilation failed' }
     & ./tmp/test_temperature.exe

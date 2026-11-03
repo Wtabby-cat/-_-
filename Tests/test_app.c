@@ -3,6 +3,7 @@
 #include "ih_hmi.h"
 #include "ih_config.h"
 #include "ih_settings.h"
+#include "ih_tracking.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,8 +29,20 @@ DAC_HandleTypeDef hdac1,hdac4;
 static uint32_t tick;
 static int comparator_ov,comparator_oc,link_ok=1,timer_starts,output_starts,save_ok=1;
 static int load_ok;
+static uint32_t dac_oc_code,dac_zc_code;
+#if IH_FW_DIAG_VERSION == 110217U
+/* Exact 110214-based comparison: saved OC affects software protection only. */
+#define EXPECT_OCP_CODE(peak) IH_DAC_CODE(IH_HW_OCP_V)
+#else
+#define EXPECT_OCP_CODE(peak) IH_DAC_CODE(IH_CURRENT_BIAS_V+IH_CURRENT_SCALE*(peak))
+#endif
 static int freeze_bus_tick;
+static int phase_enabled=1;
 static Measurement sample;
+volatile float dbg_i_mean_adc_v=1.63f;
+volatile uint32_t dbg_phase_reject,dbg_phase_samples;
+volatile float dbg_phase_quality_i,dbg_phase_quality_v;
+volatile float dbg_phase_rms_i_adc_v,dbg_phase_rms_v_adc_v;
 static ProtectionParams saved={28,18,10,85,90,150};
 static void hardware_barrier(void)
 {
@@ -46,8 +59,12 @@ void Workpiece_Init(void) { }
 void Workpiece_Task(void) { }
 int Hmi_LinkHealthy(void) { return link_ok; }
 void Measurement_Init(void) { }
-void Measurement_Task(void) { }
-void Measurement_SetFrequency(uint32_t f) { assert(f==2010); }
+void Measurement_Task(void) {
+  sample.phase_frequency100=Pwm_Frequency100(); sample.phase_sample_tick=tick;
+  ++sample.phase_sequence; sample.phase_valid=(uint8_t)phase_enabled;
+  sample.phase_deg=10.0f+((float)Pwm_Frequency100()-2000.0f)*0.1f;
+}
+void Measurement_SetFrequency(uint32_t f) { assert(f>=1100 && f<=4000); }
 void Measurement_BusTask(void) { }
 void Measurement_Get(Measurement *m) { *m=sample; }
 int Settings_Load(ProtectionParams *p) { if(!load_ok) return 0; *p=saved; return 1; }
@@ -57,7 +74,14 @@ uint32_t HAL_COMP_GetOutputLevel(const COMP_HandleTypeDef *c)
 HAL_StatusTypeDef HAL_COMP_Start(COMP_HandleTypeDef *c) { (void)c; return HAL_OK; }
 HAL_StatusTypeDef HAL_DAC_Start(DAC_HandleTypeDef *d,uint32_t c) { (void)d;(void)c;return HAL_OK; }
 HAL_StatusTypeDef HAL_DAC_SetValue(DAC_HandleTypeDef *d,uint32_t c,uint32_t a,uint32_t v)
-{ (void)d;(void)c;(void)a;(void)v;return HAL_OK; }
+{
+  assert(a==DAC_ALIGN_12B_R && v<=4095U);
+  if (d==&hdac4 && c==DAC_CHANNEL_2) {
+    assert(!dbg_pwm_en); dac_oc_code=v;
+  }
+  if (d==&hdac1 && c==DAC_CHANNEL_1) dac_zc_code=v;
+  return HAL_OK;
+}
 void HAL_HRTIM_FaultModeCtl(HRTIM_HandleTypeDef *h,uint32_t f,uint32_t e)
 { (void)h;(void)f;(void)e; }
 HAL_StatusTypeDef HAL_HRTIM_WaveformCountStart(HRTIM_HandleTypeDef *h,uint32_t mask)
@@ -65,7 +89,7 @@ HAL_StatusTypeDef HAL_HRTIM_WaveformCountStart(HRTIM_HandleTypeDef *h,uint32_t m
 HAL_StatusTypeDef HAL_HRTIM_WaveformOutputStart(HRTIM_HandleTypeDef *h,uint32_t mask)
 { (void)h;(void)mask;++output_starts;return HAL_OK; }
 HAL_StatusTypeDef HAL_HRTIM_SoftwareUpdate(HRTIM_HandleTypeDef *h,uint32_t timers)
-{ assert(!dbg_pwm_en && timers==HRTIM_TIMERUPDATE_B); h->Instance->sCommonRegs.CR2=timers; return HAL_OK; }
+{ assert(!dbg_pwm_en && timers==UPDATE_ALL); h->Instance->sCommonRegs.CR2=timers; return HAL_OK; }
 HAL_StatusTypeDef HAL_HRTIM_WaveformOutputStop(HRTIM_HandleTypeDef *h,uint32_t mask)
 { (void)h;(void)mask;return HAL_OK; }
 HAL_StatusTypeDef HAL_HRTIM_WaveformCountStop(HRTIM_HandleTypeDef *h,uint32_t mask)
@@ -82,9 +106,11 @@ void HAL_GPIO_TogglePin(GPIO_TypeDef *p,uint16_t pin) { (void)p;(void)pin; }
 static void step(unsigned ms)
 { while(ms--) { ++tick; if (!freeze_bus_tick && tick%20U==0U) sample.bus_sample_tick=tick; App_Task(); } }
 static void start_and_wait(void)
-{ uint32_t generation=History_Generation(); assert(App_Start());
+{ uint32_t generation=History_Generation(),wait; assert(App_Start());
   assert(History_Recording() && History_Generation()==generation+1U);
-  step(IH_RELAY_DELAY_MS+IH_RELAY_SETTLE_MS+1U); assert(App_State()==IH_RUNNING); }
+  for(wait=0;wait<8000 && (!Tracking_Locked() || dbg_pwm_softstart || App_State()!=IH_RUNNING);++wait) step(1);
+  assert(App_State()==IH_RUNNING && Tracking_Locked() && !dbg_pwm_softstart);
+  assert(dbg_pwm_phase10==IH_PWM_FIXED_PHASE10); }
 static void reset(void)
 { step(IH_RESET_STABLE_MS+1U); assert(App_ResetFault()); assert(App_State()==IH_IDLE); }
 int main(int argc, char **argv)
@@ -99,7 +125,23 @@ int main(int argc, char **argv)
   fake_hrtim.sTimerxRegs[HRTIM_TIMERINDEX_TIMER_B].CMP1xR=5638;
   fake_hrtim.sTimerxRegs[HRTIM_TIMERINDEX_TIMER_B].CMP2xR=22553;
   sample.bus_valid=sample.adc_valid=1; sample.bus_v=0; sample.current_peak_a=1; link_ok=0;
+  if (argc>1 && strcmp(argv[1],"boot_saved")==0) load_ok=1;
   power_tick=tick; App_Init(); hardware_barrier();
+  assert(dac_zc_code==IH_DAC_CODE(IH_ZC_THRESHOLD_V));
+  if (load_ok) {
+    assert(dac_oc_code==EXPECT_OCP_CODE(10.0f));
+#if IH_FW_DIAG_VERSION != 110217U
+    assert(dbg_hw_ocp_v>2.189f && dbg_hw_ocp_v<=2.1901f);
+#endif
+    assert(!dbg_pwm_en && App_Protection()->oc==10);
+#if IH_FW_DIAG_VERSION == 110217U
+    puts("PASS: comparison uses fixed COMP6 3.03 V after loading saved OC; zero crossing stays at 1.63 V");
+#else
+    puts("PASS: saved 10 A peak setting restores COMP6 DAC at boot; zero crossing stays at 1.63 V");
+#endif
+    return 0;
+  }
+  assert(dac_oc_code==IH_DAC_CODE(IH_HW_OCP_V));
   assert(!History_Recording() && !History_HasData());
   if (argc>1 && strcmp(argv[1],"boot_fault")==0) {
     /* A heating fault before the delay expires must not cancel the bypass. */
@@ -124,6 +166,10 @@ int main(int argc, char **argv)
   step(IH_RELAY_SETTLE_MS);
   sample.bus_v=24; link_ok=1;
   assert(App_SaveProtection(&saved) && dbg_relay && !dbg_pwm_en);
+  assert(dac_oc_code==EXPECT_OCP_CODE(10.0f));
+#if IH_FW_DIAG_VERSION != 110217U
+  assert(dbg_hw_ocp_v>2.189f && dbg_hw_ocp_v<=2.1901f);
+#endif
   assert(App_Frequency100()==2010);
   /* Regression for a rejected START after the automatic NTC bypass closes:
    * a zero/undervoltage bus must reject PWM without dropping the relay. */
@@ -151,9 +197,16 @@ int main(int argc, char **argv)
   assert(App_State()==IH_RUNNING && dbg_relay && dbg_pwm_en && timer_starts==1);
   assert(dbg_pwm_softstart && dbg_pwm_phase10==20U);
   assert(!App_SaveProtection(&changed));
+  assert(dac_oc_code==EXPECT_OCP_CODE(10.0f));
   /* Brief hardware fault is caught even after comparator output returns low. */
   fake_hrtim.sCommonRegs.ISR=HRTIM_ISR_FLT3;
   step(1); assert(App_State()==IH_FAULT && (App_Faults()&IH_FAULT_OC));
+#if IH_FW_DIAG_VERSION != 110217U
+  assert(dbg_trip_oc_source==IH_OC_HRTIM_FLT3 && dbg_trip_i_peak_a==sample.current_peak_a);
+#endif
+#if IH_FW_DIAG_VERSION != 110217U
+  assert(dbg_trip_oc_limit_a==10 && dbg_oc_trip_count==1);
+#endif
   assert(!dbg_pwm_en && dbg_relay && !App_Start());
   App_Stop(); assert(dbg_relay && !dbg_pwm_en && App_State()==IH_FAULT);
   comparator_oc=1; step(300); assert(!App_ResetFault());
@@ -172,7 +225,7 @@ int main(int argc, char **argv)
   assert(dbg_trip_mask==IH_FAULT_UV && dbg_trip_bus_v==17.0f && dbg_trip_uv_v==18.0f);
   assert(dbg_trip_bus_raw>2200U && dbg_trip_bus_raw<2300U);
   assert(dbg_start_bus_v==24.0f && dbg_trip_pwm_en==1U);
-  assert(dbg_trip_state==IH_RUNNING && dbg_trip_phase10==600U);
+  assert(dbg_trip_state==IH_RUNNING && dbg_trip_phase10==IH_PWM_FIXED_PHASE10);
   assert(dbg_trip_sample_age_ms<20U);
   {
     uint32_t starts=dbg_start_count, pwm_starts=dbg_pwm_start_count, trips=dbg_trip_count;
@@ -195,15 +248,56 @@ int main(int argc, char **argv)
   start_and_wait(); sample.bus_valid=0; step(1);
   assert((App_Faults()&IH_FAULT_BUS) && dbg_relay && !dbg_pwm_en);
   sample.bus_valid=1; reset();
-  start_and_wait(); sample.current_peak_a=10; step(1);
+  start_and_wait(); sample.current_rms_a=5.0f; sample.current_peak_a=7.1f; step(50);
+  assert(App_State()==IH_RUNNING && App_Faults()==0U);
+  sample.current_peak_a=10.1f; step(1);
   assert((App_Faults()&IH_FAULT_OC) && dbg_relay && !dbg_pwm_en);
+#if IH_FW_DIAG_VERSION != 110217U
+  assert(dbg_trip_oc_source==IH_OC_SOFTWARE_PEAK && dbg_trip_i_rms_a==5.0f && dbg_trip_i_peak_a>10.0f);
+#endif
+#if IH_FW_DIAG_VERSION != 110217U
+  assert(dbg_trip_i_mean_adc_v==1.63f);
+#endif
+  sample.current_rms_a=0; sample.current_peak_a=0; step(20);
+#if IH_FW_DIAG_VERSION != 110217U
+  assert(dbg_trip_i_rms_a==5.0f && dbg_trip_i_peak_a>10.0f); /* frozen after shutdown */
+#endif
   sample.current_peak_a=1; reset();
+  start_and_wait(); comparator_oc=1; step(1);
+  assert(App_Faults()&IH_FAULT_OC);
+#if IH_FW_DIAG_VERSION != 110217U
+  assert(dbg_trip_oc_source==IH_OC_COMP6_LEVEL);
+#endif
+  comparator_oc=0; reset();
+  start_and_wait(); phase_enabled=0;
+  dbg_phase_reject=1; dbg_phase_samples=42;
+  dbg_phase_quality_i=0.82f; dbg_phase_quality_v=0.4f;
+  dbg_phase_rms_i_adc_v=0.3f; dbg_phase_rms_v_adc_v=0.6f;
+  step(IH_TRACK_SIGNAL_MS+30U);
+  assert((App_Faults()&IH_FAULT_TRACK) && !dbg_pwm_en && dbg_relay && !Tracking_Locked());
+#if IH_FW_DIAG_VERSION != 110217U
+  assert(dbg_trip_phase_reject==1 && dbg_trip_phase_samples==42);
+#endif
+#if IH_FW_DIAG_VERSION != 110217U
+  assert(dbg_trip_phase_quality_i==0.82f && dbg_trip_phase_quality_v==0.4f);
+#endif
+#if IH_FW_DIAG_VERSION != 110217U
+  assert(dbg_trip_phase_rms_i_adc_v==0.3f && dbg_trip_phase_rms_v_adc_v==0.6f);
+#endif
+#if IH_FW_DIAG_VERSION != 110217U
+  assert(dbg_trip_phase_freq100==dbg_trip_pwm_freq100);
+#endif
+  dbg_phase_reject=7; dbg_phase_quality_i=0; dbg_phase_rms_i_adc_v=0; step(30);
+#if IH_FW_DIAG_VERSION != 110217U
+  assert(dbg_trip_phase_reject==1 && dbg_trip_phase_quality_i==0.82f && dbg_trip_phase_rms_i_adc_v==0.3f);
+#endif
+  assert(!History_Recording()); phase_enabled=1; reset();
   /* Cancelling during gate-off priming must never enable the driver later. */
   assert(App_Start()); step(1); assert(pwm_priming && !dbg_pwm_en);
   App_Stop(); step(IH_PWM_PRIME_MS+1U);
   assert(App_State()==IH_IDLE && !dbg_pwm_en && !dbg_pwm_softstart && dbg_relay);
   assert(App_Start()); step(IH_PWM_PRIME_MS+1U); step(20);
-  assert(dbg_pwm_softstart && dbg_pwm_phase10>20U && dbg_pwm_phase10<600U);
+  assert(dbg_pwm_softstart && dbg_pwm_phase10>20U && dbg_pwm_phase10<IH_PWM_FIXED_PHASE10);
   sample.current_peak_a=10; step(1);
   assert((App_Faults()&IH_FAULT_OC) && !dbg_pwm_en && !dbg_pwm_softstart && dbg_relay);
   sample.current_peak_a=1; reset();
@@ -215,7 +309,25 @@ int main(int argc, char **argv)
   assert(dbg_relay && !dbg_pwm_en && (App_Faults()&IH_FAULT_COM));
   link_ok=1; reset();
   save_ok=0; assert(!App_SaveProtection(&changed) && App_Protection()->ov==28);
+  assert(dac_oc_code==EXPECT_OCP_CODE(10.0f));
   save_ok=1; assert(App_SaveProtection(&changed) && App_Protection()->ov==27);
+  assert(dac_oc_code==EXPECT_OCP_CODE(9.0f));
+  {
+    ProtectionParams limit=changed;
+    limit.oc=IH_LIMIT_OC_PEAK_MAX_A;
+    assert(App_SaveProtection(&limit));
+#if IH_FW_DIAG_VERSION != 110217U
+    assert(dbg_hw_ocp_v>3.085f && dbg_hw_ocp_v<=IH_HW_OCP_V);
+#endif
+    ++limit.oc;
+#if IH_FW_DIAG_VERSION == 110217U
+    assert(App_SaveProtection(&limit) && App_Protection()->oc==limit.oc);
+#else
+    assert(!App_SaveProtection(&limit) && App_Protection()->oc==IH_LIMIT_OC_PEAK_MAX_A);
+#endif
+    assert(dac_oc_code==EXPECT_OCP_CODE(26.0f));
+    assert(dac_zc_code==IH_DAC_CODE(IH_ZC_THRESHOLD_V));
+  }
   /* Reproduce the user's exact 7 V bus / 1 V UV setting. Stable 7 V must
    * survive priming and the full ramp; a real 0.6 V input must still trip. */
   {
@@ -229,7 +341,7 @@ int main(int argc, char **argv)
     assert(dbg_trip_state==IH_PRECHARGE);
     sample.bus_v=7.0f; sample.bus_adc_v=7.0f*IH_BUS_SCALE; reset();
     start_and_wait(); step(500);
-    assert(App_Faults()==0U && dbg_pwm_en && dbg_pwm_phase10==600U);
+    assert(App_Faults()==0U && dbg_pwm_en && dbg_pwm_phase10==IH_PWM_FIXED_PHASE10);
     sample.bus_v=0.6f; sample.bus_adc_v=0.6f*IH_BUS_SCALE;
     sample.bus_rank1_raw=80; sample.bus_rank2_raw=79;
     sample.bus_min_raw=0; sample.bus_max_raw=82;

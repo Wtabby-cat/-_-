@@ -201,6 +201,9 @@ static void PhaseTask(uint32_t now)
     dbg_phase_quality_i = result.quality_i; dbg_phase_quality_v = result.quality_v;
     dbg_fundamental_power_w = result.fundamental_power_w;
     phase_result_tick = captured; phase_seen = 1U; ++dbg_phase_samples;
+    measured.phase_sequence=dbg_phase_samples;
+    measured.phase_sample_tick=captured;
+    measured.phase_frequency100=phase_frequency100;
     __DMB();
     phase_capture = 1U;
   }

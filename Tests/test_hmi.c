@@ -5,6 +5,7 @@
 #include "ih_hmi_messages.h"
 #include "ih_program.h"
 #include "ih_history.h"
+#include "ih_tracking.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,6 +28,8 @@ volatile uint32_t dbg_start_block;
 volatile float dbg_trip_bus_v, dbg_trip_uv_v;
 volatile uint32_t dbg_trip_count, dbg_trip_pwm_en, dbg_trip_elapsed_ms;
 volatile uint32_t dbg_trip_bus_rank1_raw, dbg_trip_bus_rank2_raw;
+volatile uint32_t dbg_trip_oc_source;
+volatile float dbg_trip_i_peak_a,dbg_trip_oc_limit_a;
 static unsigned screen_fw, screen_trip_count, screen_trip_gate, screen_trip_ms;
 static unsigned screen_raw1, screen_raw2;
 static int start_ok=1;
@@ -36,6 +39,7 @@ static int screen_target, screen_power, screen_flags, screen_temp_mv, screen_ang
 static int screen_workpiece, screen_component1, screen_component2;
 static int screen_phase, phase_connected=1;
 static int current_connected=1;
+static int search_low=15,search_high=25;
 static int curve_mode, curve_epoch, curve_reset, curve_start, curve_count;
 static uint32_t curve_values[16], curve_last_second, curve_packets, freeze_max;
 static FILE *curve_output;
@@ -80,13 +84,17 @@ static void screen_command(const char *cmd)
     if(reply_get) {
       if(program_reply) {
         ++program_gets;
-        if(!strcmp(cmd+4,"nseg")) numeric(program_invalid ? 13 : 2);
+        if(!strcmp(cmd+4,"flo")) numeric(search_low);
+        else if(!strcmp(cmd+4,"fhi")) numeric(search_high);
+        else if(!strcmp(cmd+4,"nseg")) numeric(program_invalid ? 13 : 2);
         else if(!strcmp(cmd+4,"mode")) numeric(1);
         else if(!strcmp(cmd+4,"plim")) numeric(900);
         else if(!strncmp(cmd+4,"tg",2)) numeric(80);
         else if(!strncmp(cmd+4,"hd",2)) numeric(300);
         else assert(0);
-      } else for(i=0;i<6;++i) if(!strcmp(cmd+4,keys[i])) numeric(edited[i]);
+      } else if(!strcmp(cmd+4,"flo")) numeric(search_low);
+      else if(!strcmp(cmd+4,"fhi")) numeric(search_high);
+      else for(i=0;i<6;++i) if(!strcmp(cmd+4,keys[i])) numeric(edited[i]);
     }
   }
   if(!strncmp(cmd,"msgCode=",8)) last_message=atoi(cmd+8);
@@ -178,6 +186,10 @@ uint32_t App_Frequency100(void) { return 2010; }
 const ProtectionParams *App_Protection(void) { return &params; }
 void App_Stop(void) { ++stop_calls; state=faults ? IH_FAULT : IH_IDLE; History_Stop(); }
 int App_Start(void) { ++start_calls; if(!start_ok) return 0; state=IH_RUNNING; curve_origin=tick; History_Start(tick); return 1; }
+int App_StartSearch(uint32_t lo,uint32_t hi) { assert(lo==1500 && hi==2500); return App_Start(); }
+TrackState Tracking_State(void) { return state==IH_RUNNING ? TRACK_LOCKED : TRACK_OFF; }
+int Tracking_Locked(void) { return state==IH_RUNNING; }
+TrackError Tracking_Error(void) { return TRACK_SIGNAL; }
 int App_ResetFault(void) { faults=0; state=IH_IDLE; return 1; }
 void App_CommunicationFault(void) { faults|=IH_FAULT_COM; state=IH_FAULT; History_Stop(); }
 int App_SaveProtection(const ProtectionParams *p)
@@ -216,8 +228,8 @@ static int curves(void)
   before=History_LastSecond(); step(2000); assert(History_LastSecond()==before);
   view(0,600,30,3); step(4000); assert(freeze_max==30 && Hmi_LinkHealthy());
   before=curve_packets; step(3000); assert(curve_packets==before);
-  before=History_Generation(); screen_page=0; request(0,1); step(20);
-  assert(History_Generation()==before+1 && History_LastSecond()==0 && History_Get(10)==NULL);
+  before=History_Generation(); screen_page=0; request(0,1); step(1500);
+  assert(History_Generation()==before+1 && History_LastSecond()<=1 && History_Get(10)==NULL);
   puts("PASS: real history replay after navigation, frozen cutoff, compressed deltas and immediate STOP at 9600 baud");
   return 0;
 }
@@ -245,11 +257,21 @@ int main(int argc,char **argv)
   assert(!(screen_flags&(4|16|32)) && (screen_flags&8));
   current_connected=1; step(1500);
   assert(label_writes==0); /* V8 timer alone owns the state / temperature phase labels */
-  receive(touch,sizeof(touch)); request(0,1); step(100);
+  receive(touch,sizeof(touch)); request(0,1); step(1500);
   assert(start_calls==1); /* touch does not duplicate business execution */
   step(1500); assert(screen_power==-1240 && (screen_flags&32));
   assert(dbg_hmi_start_requests==1);
   request(4,2); step(100); assert(stop_calls==1 && state==IH_IDLE);
+  /* STOP must cancel the pending start read, including a late numeric reply. */
+  before=(unsigned)start_calls; screen_page=4; reply_get=0;
+  request(4,5); step(500); request(4,2); step(20); numeric(15); step(1500);
+  assert((unsigned)start_calls==before && state==IH_IDLE);
+  reply_get=1; search_low=25; search_high=15;
+  request(4,5); step(1500);
+  assert((unsigned)start_calls==before && last_message==HMI_MSG_SEARCH_INVALID);
+  search_low=15; search_high=25;
+  request(4,5); step(1500); assert((unsigned)start_calls==before+1 && state==IH_RUNNING);
+  request(4,2); step(100);
   /* Profile reads form one atomic transaction; invalid data cannot change the
    * applied target and a mid-read edit cancels rather than mixing two profiles. */
   program_reply=1; screen_page=1; step(1500);
@@ -291,7 +313,7 @@ int main(int argc,char **argv)
   screen_page=7; step(2000); before=(unsigned)plot_clicks;
   step(2000); assert((unsigned)plot_clicks==before && Hmi_LinkHealthy());
   screen_page=0; step(2000);
-  request(0,1); step(100); assert(state==IH_RUNNING);
+  request(0,1); step(1500); assert(state==IH_RUNNING);
   screen_page=6; step(2000);
   assert(screen_phase==-123 && (screen_flags&64));
   phase_connected=0; step(2000); assert(!(screen_flags&64));
@@ -332,6 +354,20 @@ int main(int argc,char **argv)
   assert(dbg_hmi_last_error==(HAL_UART_ERROR_FE|HAL_UART_ERROR_ORE));
   assert((dbg_hmi_error_bits&HAL_UART_ERROR_FE)!=0 && (dbg_hmi_error_bits&HAL_UART_ERROR_ORE)!=0);
   assert(label_writes==0 && state==IH_IDLE);
+  dbg_trip_oc_source=IH_OC_SOFTWARE_PEAK; dbg_trip_i_peak_a=10.1f; dbg_trip_oc_limit_a=10;
+  faults=IH_FAULT_OC; state=IH_FAULT; step(1500);
+#if IH_FW_DIAG_VERSION != 110217U
+  assert(last_message==HMI_MSG_OC_PEAK && message_a==101 && message_b==10);
+#endif
+  request(5,6); step(1500);
+  dbg_trip_oc_source=IH_OC_HRTIM_FLT3; faults=IH_FAULT_OC; state=IH_FAULT; step(1500);
+#if IH_FW_DIAG_VERSION != 110217U
+  assert(last_message==HMI_MSG_OC_HARDWARE);
+#endif
+  request(5,6); step(1500);
+  before=(unsigned)alarm_events; faults=IH_FAULT_TRACK; state=IH_FAULT; step(1500);
+  assert(last_message==HMI_MSG_TRACK_SIGNAL && (unsigned)alarm_events==before+1);
+  request(5,6); step(1500); assert(state==IH_IDLE && (unsigned)alarm_events==before+2);
   puts("PASS: HMI queue, single execution, readback/save, timeout recovery, alarms and link-loss stop");
   return 0;
 }

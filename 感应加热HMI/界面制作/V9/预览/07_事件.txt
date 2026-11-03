@@ -2,96 +2,96 @@
 
 ## 200ms 输入刷新定时器
 
-if(runId!=seenRun)
-{
-seenRun=runId
-clearPlot=1
-}
-if(clearPlot==1)
-{
-clearPlot=0
-frozen=0
-follow=1
-dirty=1
-tfrom=0
-tto=600
-pfrom=0
-pto=600
-ffrom=0
-fto=60
-afrom=0
-ato=60
-if(curvePage!=255)
-{
-click bView,0
-}
-}
-if(alarmPush==1)
-{
-alarmPush=0
-if(alarmIn>=1&&alarmIn<=8)
-{
-if(alarmOn==1)
-{
-if(alarmCode!=alarmIn)
-{
-ac5=ac4
-at5=at4
-as5=as4
-ac4=ac3
-at4=at3
-as4=as3
-ac3=ac2
-at3=at2
-as3=as2
-ac2=ac1
-at2=at1
-as2=as1
-ac1=ac0
-at1=at0
-as1=as0
-ac0=alarmIn
-at0=alarmSec
-as0=1
-}
-alarmCode=alarmIn
-}else
-{
-if(alarmCode==alarmIn)
-{
-alarmCode=0
-}
-if(ac0==alarmIn)
-{
-as0=3
-}
-if(ac1==alarmIn)
-{
-as1=3
-}
-if(ac2==alarmIn)
-{
-as2=3
-}
-if(ac3==alarmIn)
-{
-as3=3
-}
-if(ac4==alarmIn)
-{
-as4=3
-}
-if(ac5==alarmIn)
-{
-as5=3
-}
-}
-dirty=1
-}
-}
-if(dirty==1)
-{
-dirty=0
+if(runId!=seenRun)
+{
+seenRun=runId
+clearPlot=1
+}
+if(clearPlot==1)
+{
+clearPlot=0
+frozen=0
+follow=1
+dirty=1
+tfrom=0
+tto=600
+pfrom=0
+pto=600
+ffrom=0
+fto=60
+afrom=0
+ato=60
+if(curvePage!=255)
+{
+click bView,0
+}
+}
+if(alarmPush==1)
+{
+alarmPush=0
+if(alarmIn>=1&&alarmIn<=8)
+{
+if(alarmOn==1)
+{
+if(alarmCode!=alarmIn)
+{
+ac5=ac4
+at5=at4
+as5=as4
+ac4=ac3
+at4=at3
+as4=as3
+ac3=ac2
+at3=at2
+as3=as2
+ac2=ac1
+at2=at1
+as2=as1
+ac1=ac0
+at1=at0
+as1=as0
+ac0=alarmIn
+at0=alarmSec
+as0=1
+}
+alarmCode=alarmIn
+}else
+{
+if(alarmCode==alarmIn)
+{
+alarmCode=0
+}
+if(ac0==alarmIn)
+{
+as0=3
+}
+if(ac1==alarmIn)
+{
+as1=3
+}
+if(ac2==alarmIn)
+{
+as2=3
+}
+if(ac3==alarmIn)
+{
+as3=3
+}
+if(ac4==alarmIn)
+{
+as4=3
+}
+if(ac5==alarmIn)
+{
+as5=3
+}
+}
+dirty=1
+}
+}
+if(dirty==1)
+{
+dirty=0
 }
 
 ## 页面后初始化
@@ -104,710 +104,710 @@ vis bCurve,0
 curvePage=255
 fresh=1
 covx editval,tValue.txt,0,0
-if(field==1)
-{
-tParam.txt="功率上限 / W"
-tRange.txt="输入范围：1 至 9999"
+if(field==1)
+{
+tParam.txt="功率上限 / W"
+tRange.txt="输入范围：1 至 9999"
 }
-if(field==2)
-{
-tParam.txt="温段1目标温度 / ℃"
-tRange.txt="输入范围：1 至 999"
+if(field==2)
+{
+tParam.txt="温段1目标温度 / ℃"
+tRange.txt="输入范围：1 至 999"
 }
-if(field==3)
-{
-tParam.txt="温段1保温时间 / s"
-tRange.txt="输入范围：1 至 9999"
+if(field==3)
+{
+tParam.txt="温段1保温时间 / s"
+tRange.txt="输入范围：1 至 9999"
 }
-if(field==4)
-{
-tParam.txt="温段2目标温度 / ℃"
-tRange.txt="输入范围：1 至 999"
+if(field==4)
+{
+tParam.txt="温段2目标温度 / ℃"
+tRange.txt="输入范围：1 至 999"
 }
-if(field==5)
-{
-tParam.txt="温段2保温时间 / s"
-tRange.txt="输入范围：1 至 9999"
+if(field==5)
+{
+tParam.txt="温段2保温时间 / s"
+tRange.txt="输入范围：1 至 9999"
 }
-if(field==6)
-{
-tParam.txt="温段3目标温度 / ℃"
-tRange.txt="输入范围：1 至 999"
+if(field==6)
+{
+tParam.txt="温段3目标温度 / ℃"
+tRange.txt="输入范围：1 至 999"
 }
-if(field==7)
-{
-tParam.txt="温段3保温时间 / s"
-tRange.txt="输入范围：1 至 9999"
+if(field==7)
+{
+tParam.txt="温段3保温时间 / s"
+tRange.txt="输入范围：1 至 9999"
 }
-if(field==8)
-{
-tParam.txt="温段4目标温度 / ℃"
-tRange.txt="输入范围：1 至 999"
+if(field==8)
+{
+tParam.txt="温段4目标温度 / ℃"
+tRange.txt="输入范围：1 至 999"
 }
-if(field==9)
-{
-tParam.txt="温段4保温时间 / s"
-tRange.txt="输入范围：1 至 9999"
+if(field==9)
+{
+tParam.txt="温段4保温时间 / s"
+tRange.txt="输入范围：1 至 9999"
 }
-if(field==10)
-{
-tParam.txt="温段5目标温度 / ℃"
-tRange.txt="输入范围：1 至 999"
+if(field==10)
+{
+tParam.txt="温段5目标温度 / ℃"
+tRange.txt="输入范围：1 至 999"
 }
-if(field==11)
-{
-tParam.txt="温段5保温时间 / s"
-tRange.txt="输入范围：1 至 9999"
+if(field==11)
+{
+tParam.txt="温段5保温时间 / s"
+tRange.txt="输入范围：1 至 9999"
 }
-if(field==12)
-{
-tParam.txt="温段6目标温度 / ℃"
-tRange.txt="输入范围：1 至 999"
+if(field==12)
+{
+tParam.txt="温段6目标温度 / ℃"
+tRange.txt="输入范围：1 至 999"
 }
-if(field==13)
-{
-tParam.txt="温段6保温时间 / s"
-tRange.txt="输入范围：1 至 9999"
+if(field==13)
+{
+tParam.txt="温段6保温时间 / s"
+tRange.txt="输入范围：1 至 9999"
 }
-if(field==14)
-{
-tParam.txt="温段7目标温度 / ℃"
-tRange.txt="输入范围：1 至 999"
+if(field==14)
+{
+tParam.txt="温段7目标温度 / ℃"
+tRange.txt="输入范围：1 至 999"
 }
-if(field==15)
-{
-tParam.txt="温段7保温时间 / s"
-tRange.txt="输入范围：1 至 9999"
+if(field==15)
+{
+tParam.txt="温段7保温时间 / s"
+tRange.txt="输入范围：1 至 9999"
 }
-if(field==16)
-{
-tParam.txt="温段8目标温度 / ℃"
-tRange.txt="输入范围：1 至 999"
+if(field==16)
+{
+tParam.txt="温段8目标温度 / ℃"
+tRange.txt="输入范围：1 至 999"
 }
-if(field==17)
-{
-tParam.txt="温段8保温时间 / s"
-tRange.txt="输入范围：1 至 9999"
+if(field==17)
+{
+tParam.txt="温段8保温时间 / s"
+tRange.txt="输入范围：1 至 9999"
 }
-if(field==18)
-{
-tParam.txt="温段9目标温度 / ℃"
-tRange.txt="输入范围：1 至 999"
+if(field==18)
+{
+tParam.txt="温段9目标温度 / ℃"
+tRange.txt="输入范围：1 至 999"
 }
-if(field==19)
-{
-tParam.txt="温段9保温时间 / s"
-tRange.txt="输入范围：1 至 9999"
+if(field==19)
+{
+tParam.txt="温段9保温时间 / s"
+tRange.txt="输入范围：1 至 9999"
 }
-if(field==20)
-{
-tParam.txt="温段10目标温度 / ℃"
-tRange.txt="输入范围：1 至 999"
+if(field==20)
+{
+tParam.txt="温段10目标温度 / ℃"
+tRange.txt="输入范围：1 至 999"
 }
-if(field==21)
-{
-tParam.txt="温段10保温时间 / s"
-tRange.txt="输入范围：1 至 9999"
+if(field==21)
+{
+tParam.txt="温段10保温时间 / s"
+tRange.txt="输入范围：1 至 9999"
 }
-if(field==22)
-{
-tParam.txt="温段11目标温度 / ℃"
-tRange.txt="输入范围：1 至 999"
+if(field==22)
+{
+tParam.txt="温段11目标温度 / ℃"
+tRange.txt="输入范围：1 至 999"
 }
-if(field==23)
-{
-tParam.txt="温段11保温时间 / s"
-tRange.txt="输入范围：1 至 9999"
+if(field==23)
+{
+tParam.txt="温段11保温时间 / s"
+tRange.txt="输入范围：1 至 9999"
 }
-if(field==24)
-{
-tParam.txt="温段12目标温度 / ℃"
-tRange.txt="输入范围：1 至 999"
+if(field==24)
+{
+tParam.txt="温段12目标温度 / ℃"
+tRange.txt="输入范围：1 至 999"
 }
-if(field==25)
-{
-tParam.txt="温段12保温时间 / s"
-tRange.txt="输入范围：1 至 9999"
+if(field==25)
+{
+tParam.txt="温段12保温时间 / s"
+tRange.txt="输入范围：1 至 9999"
 }
-if(field==26)
-{
-tParam.txt="时间起点 / s"
-tRange.txt="输入范围：0 至 86399"
+if(field==26)
+{
+tParam.txt="时间起点 / s"
+tRange.txt="输入范围：0 至 86399"
 }
-if(field==27)
-{
-tParam.txt="时间终点 / s"
-tRange.txt="输入范围：1 至 86400"
+if(field==27)
+{
+tParam.txt="时间终点 / s"
+tRange.txt="输入范围：1 至 86400"
 }
-if(field==28)
-{
-tParam.txt="时间起点 / s"
-tRange.txt="输入范围：0 至 86399"
+if(field==28)
+{
+tParam.txt="时间起点 / s"
+tRange.txt="输入范围：0 至 86399"
 }
-if(field==29)
-{
-tParam.txt="时间终点 / s"
-tRange.txt="输入范围：1 至 86400"
+if(field==29)
+{
+tParam.txt="时间终点 / s"
+tRange.txt="输入范围：1 至 86400"
 }
-if(field==30)
-{
-tParam.txt="时间起点 / s"
-tRange.txt="输入范围：0 至 86399"
+if(field==30)
+{
+tParam.txt="时间起点 / s"
+tRange.txt="输入范围：0 至 86399"
 }
-if(field==31)
-{
-tParam.txt="时间终点 / s"
-tRange.txt="输入范围：1 至 86400"
+if(field==31)
+{
+tParam.txt="时间终点 / s"
+tRange.txt="输入范围：1 至 86400"
 }
-if(field==32)
-{
-tParam.txt="时间起点 / s"
-tRange.txt="输入范围：0 至 86399"
+if(field==32)
+{
+tParam.txt="时间起点 / s"
+tRange.txt="输入范围：0 至 86399"
 }
-if(field==33)
-{
-tParam.txt="时间终点 / s"
-tRange.txt="输入范围：1 至 86400"
+if(field==33)
+{
+tParam.txt="时间终点 / s"
+tRange.txt="输入范围：1 至 86400"
 }
-if(field==34)
-{
-tParam.txt="搜频下限 / kHz"
-tRange.txt="输入范围：1 至 99"
+if(field==34)
+{
+tParam.txt="搜频下限 / kHz"
+tRange.txt="输入范围：11 至 39"
 }
-if(field==35)
-{
-tParam.txt="搜频上限 / kHz"
-tRange.txt="输入范围：1 至 99"
+if(field==35)
+{
+tParam.txt="搜频上限 / kHz"
+tRange.txt="输入范围：12 至 40"
 }
-if(field==36)
-{
-tParam.txt="母线过压 / V"
-tRange.txt="输入范围：1 至 9999"
+if(field==36)
+{
+tParam.txt="母线过压 / V"
+tRange.txt="输入范围：2 至 31"
 }
-if(field==37)
-{
-tParam.txt="母线欠压 / V"
-tRange.txt="输入范围：1 至 9999"
+if(field==37)
+{
+tParam.txt="母线欠压 / V"
+tRange.txt="输入范围：1 至 30"
 }
-if(field==38)
-{
-tParam.txt="谐振过流 / A"
-tRange.txt="输入范围：1 至 9999"
+if(field==38)
+{
+tParam.txt="谐振峰值过流 / A"
+tRange.txt="输入范围：1 至 26"
 }
-if(field==39)
-{
-tParam.txt="功率管过温 / ℃"
-tRange.txt="输入范围：1 至 999"
+if(field==39)
+{
+tParam.txt="功率管过温 / ℃"
+tRange.txt="输入范围：1 至 999"
 }
-if(field==40)
-{
-tParam.txt="整流桥过温 / ℃"
-tRange.txt="输入范围：1 至 999"
+if(field==40)
+{
+tParam.txt="整流桥过温 / ℃"
+tRange.txt="输入范围：1 至 999"
 }
-if(field==41)
-{
-tParam.txt="工件超温 / ℃"
-tRange.txt="输入范围：1 至 999"
+if(field==41)
+{
+tParam.txt="工件超温 / ℃"
+tRange.txt="输入范围：1 至 999"
 }
 
 ## k0 7 触摸弹起
 
-printh 65 07 06 00 FF FF FF
-if(fresh==1)
-{
-editval=0
-fresh=0
-}
-if(editval<10000)
-{
-editval=editval*10+7
-covx editval,tValue.txt,0,0
+printh 65 07 06 00 FF FF FF
+if(fresh==1)
+{
+editval=0
+fresh=0
+}
+if(editval<10000)
+{
+editval=editval*10+7
+covx editval,tValue.txt,0,0
 }
 
 ## k1 8 触摸弹起
 
-printh 65 07 07 00 FF FF FF
-if(fresh==1)
-{
-editval=0
-fresh=0
-}
-if(editval<10000)
-{
-editval=editval*10+8
-covx editval,tValue.txt,0,0
+printh 65 07 07 00 FF FF FF
+if(fresh==1)
+{
+editval=0
+fresh=0
+}
+if(editval<10000)
+{
+editval=editval*10+8
+covx editval,tValue.txt,0,0
 }
 
 ## k2 9 触摸弹起
 
-printh 65 07 08 00 FF FF FF
-if(fresh==1)
-{
-editval=0
-fresh=0
-}
-if(editval<10000)
-{
-editval=editval*10+9
-covx editval,tValue.txt,0,0
+printh 65 07 08 00 FF FF FF
+if(fresh==1)
+{
+editval=0
+fresh=0
+}
+if(editval<10000)
+{
+editval=editval*10+9
+covx editval,tValue.txt,0,0
 }
 
 ## k3 4 触摸弹起
 
-printh 65 07 09 00 FF FF FF
-if(fresh==1)
-{
-editval=0
-fresh=0
-}
-if(editval<10000)
-{
-editval=editval*10+4
-covx editval,tValue.txt,0,0
+printh 65 07 09 00 FF FF FF
+if(fresh==1)
+{
+editval=0
+fresh=0
+}
+if(editval<10000)
+{
+editval=editval*10+4
+covx editval,tValue.txt,0,0
 }
 
 ## k4 5 触摸弹起
 
-printh 65 07 0A 00 FF FF FF
-if(fresh==1)
-{
-editval=0
-fresh=0
-}
-if(editval<10000)
-{
-editval=editval*10+5
-covx editval,tValue.txt,0,0
+printh 65 07 0A 00 FF FF FF
+if(fresh==1)
+{
+editval=0
+fresh=0
+}
+if(editval<10000)
+{
+editval=editval*10+5
+covx editval,tValue.txt,0,0
 }
 
 ## k5 6 触摸弹起
 
-printh 65 07 0B 00 FF FF FF
-if(fresh==1)
-{
-editval=0
-fresh=0
-}
-if(editval<10000)
-{
-editval=editval*10+6
-covx editval,tValue.txt,0,0
+printh 65 07 0B 00 FF FF FF
+if(fresh==1)
+{
+editval=0
+fresh=0
+}
+if(editval<10000)
+{
+editval=editval*10+6
+covx editval,tValue.txt,0,0
 }
 
 ## k6 1 触摸弹起
 
-printh 65 07 0C 00 FF FF FF
-if(fresh==1)
-{
-editval=0
-fresh=0
-}
-if(editval<10000)
-{
-editval=editval*10+1
-covx editval,tValue.txt,0,0
+printh 65 07 0C 00 FF FF FF
+if(fresh==1)
+{
+editval=0
+fresh=0
+}
+if(editval<10000)
+{
+editval=editval*10+1
+covx editval,tValue.txt,0,0
 }
 
 ## k7 2 触摸弹起
 
-printh 65 07 0D 00 FF FF FF
-if(fresh==1)
-{
-editval=0
-fresh=0
-}
-if(editval<10000)
-{
-editval=editval*10+2
-covx editval,tValue.txt,0,0
+printh 65 07 0D 00 FF FF FF
+if(fresh==1)
+{
+editval=0
+fresh=0
+}
+if(editval<10000)
+{
+editval=editval*10+2
+covx editval,tValue.txt,0,0
 }
 
 ## k8 3 触摸弹起
 
-printh 65 07 0E 00 FF FF FF
-if(fresh==1)
-{
-editval=0
-fresh=0
-}
-if(editval<10000)
-{
-editval=editval*10+3
-covx editval,tValue.txt,0,0
+printh 65 07 0E 00 FF FF FF
+if(fresh==1)
+{
+editval=0
+fresh=0
+}
+if(editval<10000)
+{
+editval=editval*10+3
+covx editval,tValue.txt,0,0
 }
 
 ## k9 0 触摸弹起
 
-printh 65 07 0F 00 FF FF FF
-if(fresh==1)
-{
-editval=0
-fresh=0
-}
-if(editval<10000)
-{
-editval=editval*10+0
-covx editval,tValue.txt,0,0
+printh 65 07 0F 00 FF FF FF
+if(fresh==1)
+{
+editval=0
+fresh=0
+}
+if(editval<10000)
+{
+editval=editval*10+0
+covx editval,tValue.txt,0,0
 }
 
 ## k10 清空 触摸弹起
 
-printh 65 07 10 00 FF FF FF
-editval=0
-fresh=0
+printh 65 07 10 00 FF FF FF
+editval=0
+fresh=0
 covx editval,tValue.txt,0,0
 
 ## k11 退格 触摸弹起
 
-printh 65 07 11 00 FF FF FF
-editval=editval/10
-fresh=0
+printh 65 07 11 00 FF FF FF
+editval=editval/10
+fresh=0
 covx editval,tValue.txt,0,0
 
 ## bCancel 取消 触摸弹起
 
-printh 65 07 12 00 FF FF FF
+printh 65 07 12 00 FF FF FF
 page backpg
 
 ## bOK 确认 触摸弹起
 
-printh 65 07 13 00 FF FF FF
-if(field==33&&editval<=afrom)
-{
-tRange.txt="起点必须小于终点"
-}else
-{
-if(field==32&&editval>=ato)
-{
-tRange.txt="起点必须小于终点"
-}else
-{
-if(field==31&&editval<=ffrom)
-{
-tRange.txt="起点必须小于终点"
-}else
-{
-if(field==30&&editval>=fto)
-{
-tRange.txt="起点必须小于终点"
-}else
-{
-if(field==29&&editval<=pfrom)
-{
-tRange.txt="起点必须小于终点"
-}else
-{
-if(field==28&&editval>=pto)
-{
-tRange.txt="起点必须小于终点"
-}else
-{
-if(field==27&&editval<=tfrom)
-{
-tRange.txt="起点必须小于终点"
-}else
-{
-if(field==26&&editval>=tto)
-{
-tRange.txt="起点必须小于终点"
-}else
-{
-if(field==34&&editval>=fhi)
-{
-tRange.txt="搜频下限必须小于上限"
-}else
-{
-if(field==35&&editval<=flo)
-{
-tRange.txt="搜频上限必须大于下限"
-}else
-{
-if(editval>=editmin&&editval<=editmax)
-{
-if(field==1)
-{
-plim=editval
-}
-if(field==2)
-{
-tg1=editval
-}
-if(field==3)
-{
-hd1=editval
-}
-if(field==4)
-{
-tg2=editval
-}
-if(field==5)
-{
-hd2=editval
-}
-if(field==6)
-{
-tg3=editval
-}
-if(field==7)
-{
-hd3=editval
-}
-if(field==8)
-{
-tg4=editval
-}
-if(field==9)
-{
-hd4=editval
-}
-if(field==10)
-{
-tg5=editval
-}
-if(field==11)
-{
-hd5=editval
-}
-if(field==12)
-{
-tg6=editval
-}
-if(field==13)
-{
-hd6=editval
-}
-if(field==14)
-{
-tg7=editval
-}
-if(field==15)
-{
-hd7=editval
-}
-if(field==16)
-{
-tg8=editval
-}
-if(field==17)
-{
-hd8=editval
-}
-if(field==18)
-{
-tg9=editval
-}
-if(field==19)
-{
-hd9=editval
-}
-if(field==20)
-{
-tg10=editval
-}
-if(field==21)
-{
-hd10=editval
-}
-if(field==22)
-{
-tg11=editval
-}
-if(field==23)
-{
-hd11=editval
-}
-if(field==24)
-{
-tg12=editval
-}
-if(field==25)
-{
-hd12=editval
-}
-if(field==26)
-{
-tfrom=editval
-follow=0
-}
-if(field==27)
-{
-tto=editval
-follow=0
-}
-if(field==28)
-{
-pfrom=editval
-follow=0
-}
-if(field==29)
-{
-pto=editval
-follow=0
-}
-if(field==30)
-{
-ffrom=editval
-follow=0
-}
-if(field==31)
-{
-fto=editval
-follow=0
-}
-if(field==32)
-{
-afrom=editval
-follow=0
-}
-if(field==33)
-{
-ato=editval
-follow=0
-}
-if(field==34)
-{
-flo=editval
-}
-if(field==35)
-{
-fhi=editval
-}
-if(field==36)
-{
-ov=editval
-}
-if(field==37)
-{
-uv=editval
-}
-if(field==38)
-{
-oc=editval
-}
-if(field==39)
-{
-ot1=editval
-}
-if(field==40)
-{
-ot2=editval
-}
-if(field==41)
-{
-ot3=editval
-}
-printh A5 5A 02
-prints backpg,1
-prints field,1
-prints editval,4
-printh FF FF FF
-page backpg
-}else
-{
-tRange.txt="数值超出范围，请重新输入"
-tRange.pco=55881
-}
-}
-}
-}
-}
-}
-}
-}
-}
-}
+printh 65 07 13 00 FF FF FF
+if(field==33&&editval<=afrom)
+{
+tRange.txt="起点必须小于终点"
+}else
+{
+if(field==32&&editval>=ato)
+{
+tRange.txt="起点必须小于终点"
+}else
+{
+if(field==31&&editval<=ffrom)
+{
+tRange.txt="起点必须小于终点"
+}else
+{
+if(field==30&&editval>=fto)
+{
+tRange.txt="起点必须小于终点"
+}else
+{
+if(field==29&&editval<=pfrom)
+{
+tRange.txt="起点必须小于终点"
+}else
+{
+if(field==28&&editval>=pto)
+{
+tRange.txt="起点必须小于终点"
+}else
+{
+if(field==27&&editval<=tfrom)
+{
+tRange.txt="起点必须小于终点"
+}else
+{
+if(field==26&&editval>=tto)
+{
+tRange.txt="起点必须小于终点"
+}else
+{
+if(field==34&&editval>=fhi)
+{
+tRange.txt="搜频下限必须小于上限"
+}else
+{
+if(field==35&&editval<=flo)
+{
+tRange.txt="搜频上限必须大于下限"
+}else
+{
+if(editval>=editmin&&editval<=editmax)
+{
+if(field==1)
+{
+plim=editval
+}
+if(field==2)
+{
+tg1=editval
+}
+if(field==3)
+{
+hd1=editval
+}
+if(field==4)
+{
+tg2=editval
+}
+if(field==5)
+{
+hd2=editval
+}
+if(field==6)
+{
+tg3=editval
+}
+if(field==7)
+{
+hd3=editval
+}
+if(field==8)
+{
+tg4=editval
+}
+if(field==9)
+{
+hd4=editval
+}
+if(field==10)
+{
+tg5=editval
+}
+if(field==11)
+{
+hd5=editval
+}
+if(field==12)
+{
+tg6=editval
+}
+if(field==13)
+{
+hd6=editval
+}
+if(field==14)
+{
+tg7=editval
+}
+if(field==15)
+{
+hd7=editval
+}
+if(field==16)
+{
+tg8=editval
+}
+if(field==17)
+{
+hd8=editval
+}
+if(field==18)
+{
+tg9=editval
+}
+if(field==19)
+{
+hd9=editval
+}
+if(field==20)
+{
+tg10=editval
+}
+if(field==21)
+{
+hd10=editval
+}
+if(field==22)
+{
+tg11=editval
+}
+if(field==23)
+{
+hd11=editval
+}
+if(field==24)
+{
+tg12=editval
+}
+if(field==25)
+{
+hd12=editval
+}
+if(field==26)
+{
+tfrom=editval
+follow=0
+}
+if(field==27)
+{
+tto=editval
+follow=0
+}
+if(field==28)
+{
+pfrom=editval
+follow=0
+}
+if(field==29)
+{
+pto=editval
+follow=0
+}
+if(field==30)
+{
+ffrom=editval
+follow=0
+}
+if(field==31)
+{
+fto=editval
+follow=0
+}
+if(field==32)
+{
+afrom=editval
+follow=0
+}
+if(field==33)
+{
+ato=editval
+follow=0
+}
+if(field==34)
+{
+flo=editval
+}
+if(field==35)
+{
+fhi=editval
+}
+if(field==36)
+{
+ov=editval
+}
+if(field==37)
+{
+uv=editval
+}
+if(field==38)
+{
+oc=editval
+}
+if(field==39)
+{
+ot1=editval
+}
+if(field==40)
+{
+ot2=editval
+}
+if(field==41)
+{
+ot3=editval
+}
+printh A5 5A 02
+prints backpg,1
+prints field,1
+prints editval,4
+printh FF FF FF
+page backpg
+}else
+{
+tRange.txt="数值超出范围，请重新输入"
+tRange.pco=55881
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
 }
 
 ## bInput  触摸弹起
 
-if(runId!=seenRun)
-{
-seenRun=runId
-clearPlot=1
-}
-if(clearPlot==1)
-{
-clearPlot=0
-frozen=0
-follow=1
-dirty=1
-tfrom=0
-tto=600
-pfrom=0
-pto=600
-ffrom=0
-fto=60
-afrom=0
-ato=60
-if(curvePage!=255)
-{
-click bView,0
-}
-}
-if(alarmPush==1)
-{
-alarmPush=0
-if(alarmIn>=1&&alarmIn<=8)
-{
-if(alarmOn==1)
-{
-if(alarmCode!=alarmIn)
-{
-ac5=ac4
-at5=at4
-as5=as4
-ac4=ac3
-at4=at3
-as4=as3
-ac3=ac2
-at3=at2
-as3=as2
-ac2=ac1
-at2=at1
-as2=as1
-ac1=ac0
-at1=at0
-as1=as0
-ac0=alarmIn
-at0=alarmSec
-as0=1
-}
-alarmCode=alarmIn
-}else
-{
-if(alarmCode==alarmIn)
-{
-alarmCode=0
-}
-if(ac0==alarmIn)
-{
-as0=3
-}
-if(ac1==alarmIn)
-{
-as1=3
-}
-if(ac2==alarmIn)
-{
-as2=3
-}
-if(ac3==alarmIn)
-{
-as3=3
-}
-if(ac4==alarmIn)
-{
-as4=3
-}
-if(ac5==alarmIn)
-{
-as5=3
-}
-}
-dirty=1
-}
-}
-if(dirty==1)
-{
-dirty=0
+if(runId!=seenRun)
+{
+seenRun=runId
+clearPlot=1
+}
+if(clearPlot==1)
+{
+clearPlot=0
+frozen=0
+follow=1
+dirty=1
+tfrom=0
+tto=600
+pfrom=0
+pto=600
+ffrom=0
+fto=60
+afrom=0
+ato=60
+if(curvePage!=255)
+{
+click bView,0
+}
+}
+if(alarmPush==1)
+{
+alarmPush=0
+if(alarmIn>=1&&alarmIn<=8)
+{
+if(alarmOn==1)
+{
+if(alarmCode!=alarmIn)
+{
+ac5=ac4
+at5=at4
+as5=as4
+ac4=ac3
+at4=at3
+as4=as3
+ac3=ac2
+at3=at2
+as3=as2
+ac2=ac1
+at2=at1
+as2=as1
+ac1=ac0
+at1=at0
+as1=as0
+ac0=alarmIn
+at0=alarmSec
+as0=1
+}
+alarmCode=alarmIn
+}else
+{
+if(alarmCode==alarmIn)
+{
+alarmCode=0
+}
+if(ac0==alarmIn)
+{
+as0=3
+}
+if(ac1==alarmIn)
+{
+as1=3
+}
+if(ac2==alarmIn)
+{
+as2=3
+}
+if(ac3==alarmIn)
+{
+as3=3
+}
+if(ac4==alarmIn)
+{
+as4=3
+}
+if(ac5==alarmIn)
+{
+as5=3
+}
+}
+dirty=1
+}
+}
+if(dirty==1)
+{
+dirty=0
 }

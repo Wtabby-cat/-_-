@@ -18,7 +18,8 @@ def render():
     lines = ['if(msgPush==1)', '{', 'msgPush=0']
     for code, m in enumerate(MESSAGES, 1):
         lines += [f'if(msgCode=={code})', '{']
-        if m.get('format') in ('uv', 'uv_history'):
+        if m.get('format') in ('uv', 'uv_history', 'oc'):
+            unit='A' if m.get('format')=='oc' else 'V'
             # Only append to the existing destination. A prefix followed by
             # that same destination on the RHS can reorder text on the HMI.
             lines += [f'tFoot.txt="{m["text"]}："',
@@ -27,10 +28,10 @@ def render():
                       'tFoot.txt=tFoot.txt+"."',
                       'tmp=msgA%10', 'covx tmp,tFmt.txt,0,0',
                       'tFoot.txt=tFoot.txt+tFmt.txt',
-                      'tFoot.txt=tFoot.txt+"V，门限"',
+                      f'tFoot.txt=tFoot.txt+"{unit}，门限"',
                       'covx msgB,tFmt.txt,0,0',
                       'tFoot.txt=tFoot.txt+tFmt.txt',
-                      'tFoot.txt=tFoot.txt+"V，请复位"']
+                      f'tFoot.txt=tFoot.txt+"{unit}，请复位"']
         else:
             lines += [f'tFoot.txt="{m["text"]}"']
         lines += ['}']

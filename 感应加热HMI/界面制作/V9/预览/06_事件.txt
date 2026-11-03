@@ -2,341 +2,95 @@
 
 ## 200ms 输入刷新定时器
 
-if(runId!=seenRun)
-{
-seenRun=runId
-clearPlot=1
-}
-if(clearPlot==1)
-{
-clearPlot=0
-frozen=0
-follow=1
-dirty=1
-tfrom=0
-tto=600
-pfrom=0
-pto=600
-ffrom=0
-fto=60
-afrom=0
-ato=60
-if(curvePage!=255)
-{
-click bView,0
-}
-}
-if(alarmPush==1)
-{
-alarmPush=0
-if(alarmIn>=1&&alarmIn<=8)
-{
-if(alarmOn==1)
-{
-if(alarmCode!=alarmIn)
-{
-ac5=ac4
-at5=at4
-as5=as4
-ac4=ac3
-at4=at3
-as4=as3
-ac3=ac2
-at3=at2
-as3=as2
-ac2=ac1
-at2=at1
-as2=as1
-ac1=ac0
-at1=at0
-as1=as0
-ac0=alarmIn
-at0=alarmSec
-as0=1
-}
-alarmCode=alarmIn
-}else
-{
-if(alarmCode==alarmIn)
-{
-alarmCode=0
-}
-if(ac0==alarmIn)
-{
-as0=3
-}
-if(ac1==alarmIn)
-{
-as1=3
-}
-if(ac2==alarmIn)
-{
-as2=3
-}
-if(ac3==alarmIn)
-{
-as3=3
-}
-if(ac4==alarmIn)
-{
-as4=3
-}
-if(ac5==alarmIn)
-{
-as5=3
-}
-}
-dirty=1
-}
-}
-if(dirty==1)
-{
-tState.txt="待机"
-if(run==1)
-{
-tState.txt="运行中"
-}
-fieldOK=dataFlags&64
-if(fieldOK>0)
-{
-fmtval=phase10
-tNum.txt=""
-if(fmtval<0)
-{
-tNum.txt="-"
-fmtval=0-fmtval
-}
-tmp=fmtval/10
-covx tmp,tFmt.txt,0,0
-tNum.txt=tNum.txt+tFmt.txt
-tNum.txt=tNum.txt+"."
-fmtfrac=fmtval%10
-covx fmtfrac,tFmt.txt,0,0
-tNum.txt=tNum.txt+tFmt.txt
-tAngle.txt=tNum.txt
-}else
-{
-tAngle.txt="--"
-}
-tLocked.txt="未锁定"
-if(locked==1)
-{
-tLocked.txt="已锁定"
-}
-tInfo.txt="启动后显示相位"
-if(run==1)
-{
-tInfo.txt="等待有效相位"
-fieldOK=dataFlags&64
-if(fieldOK>0)
-{
-tInfo.txt="电压超前电流为正"
-tmp=0-300
-if(phase10<tmp||phase10>300)
-{
-tInfo.txt="超出±30°曲线范围"
-}
-}
-}
-if(frozen==0)
-{
-if(follow==1&&frozen==0&&lastSec>ato)
-{
-afrom=0
-ato=lastSec/60
-ato=ato+1
-ato=ato*60
-click bView,0
-}
-}
-dirty=0
-}
-if(msgPush==1)
-{
-msgPush=0
-if(msgCode==1)
-{
-tFoot.txt="已停止加热，旁路继电器保持"
-}
-if(msgCode==2)
-{
-tFoot.txt="禁止启动：请先保存保护参数"
-}
-if(msgCode==3)
-{
-tFoot.txt="禁止启动：谐振采样无效"
-}
-if(msgCode==4)
-{
-tFoot.txt="禁止启动：母线采样无效"
-}
-if(msgCode==5)
-{
-tFoot.txt="禁止启动：母线低于欠压门限"
-}
-if(msgCode==6)
-{
-tFoot.txt="禁止启动：母线达到过压门限"
-}
-if(msgCode==7)
-{
-tFoot.txt="禁止启动：电流达到保护门限"
-}
-if(msgCode==8)
-{
-tFoot.txt="硬件保护已锁存，请先复位"
-}
-if(msgCode==9)
-{
-tFoot.txt="故障已锁存，请到保护页复位"
-}
-if(msgCode==10)
-{
-tFoot.txt="本次欠压："
-tmp=msgA/10
-covx tmp,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"."
-tmp=msgA%10
-covx tmp,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"V，门限"
-covx msgB,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"V，请复位"
-}
-if(msgCode==11)
-{
-tFoot.txt="禁止启动：屏幕通信未恢复"
-}
-if(msgCode==12)
-{
-tFoot.txt="正在启动或加热中"
-}
-if(msgCode==13)
-{
-tFoot.txt="正在同步屏幕，请稍候"
-}
-if(msgCode==14)
-{
-tFoot.txt="正在软启动，温控暂未启用"
-}
-if(msgCode==15)
-{
-tFoot.txt="温控方案保存功能尚未接入"
-}
-if(msgCode==16)
-{
-tFoot.txt="请先停止加热，等待保存完成"
-}
-if(msgCode==17)
-{
-tFoot.txt="正在读取保护参数"
-}
-if(msgCode==18)
-{
-tFoot.txt="故障已复位，请重新点击启动"
-}
-if(msgCode==19)
-{
-tFoot.txt="无法复位：母线仍低于欠压门限"
-}
-if(msgCode==20)
-{
-tFoot.txt="无法复位：检查故障与采样通信"
-}
-if(msgCode==21)
-{
-tFoot.txt="报警已确认，故障锁存仍保留"
-}
-if(msgCode==22)
-{
-tFoot.txt="功率与温度闭环功能尚未接入"
-}
-if(msgCode==23)
-{
-tFoot.txt="搜频未接入，当前为设定频率"
-}
-if(msgCode==24)
-{
-tFoot.txt="参数已修改，本次读取取消"
-}
-if(msgCode==25)
-{
-tFoot.txt="屏幕通信正常，主控已连接"
-}
-if(msgCode==26)
-{
-tFoot.txt="通信正常，请先保存保护参数"
-}
-if(msgCode==27)
-{
-tFoot.txt="保护参数已保存，温度保护未启用"
-}
-if(msgCode==28)
-{
-tFoot.txt="保存失败，请检查参数与状态"
-}
-if(msgCode==29)
-{
-tFoot.txt="屏幕无应答，请检查通信接线"
-}
-if(msgCode==30)
-{
-tFoot.txt="采样或通信故障，请到保护页查看"
-}
-if(msgCode==31)
-{
-tFoot.txt="读取超时，参数未修改"
-}
-if(msgCode==32)
-{
-tFoot.txt="上次欠压："
-tmp=msgA/10
-covx tmp,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"."
-tmp=msgA%10
-covx tmp,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"V，门限"
-covx msgB,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"V，请复位"
-}
-if(msgCode==33)
-{
-tFoot.txt="正在读取温控或功率设置"
-}
-if(msgCode==34)
-{
-tFoot.txt="目标已应用；温控及限功率尚未启用"
-}
-if(msgCode==35)
-{
-tFoot.txt="应用失败，请检查参数与运行状态"
-}
+if(runId!=seenRun)
+{
+seenRun=runId
+clearPlot=1
 }
-
-## 页面后初始化
-
-vis bInput,0
-vis tFmt,0
-vis tNum,0
-vis bCurve,0
-curvePage=6
-if(run==1)
-{
-tState.txt="运行中"
-}
-covx afrom,bafrom.txt,0,0
-covx ato,bato.txt,0,0
-if(frozen==1)
-{
-tFoot.txt="已冻结显示"
-}
-vis bView,0
+if(clearPlot==1)
+{
+clearPlot=0
+frozen=0
+follow=1
+dirty=1
+tfrom=0
+tto=600
+pfrom=0
+pto=600
+ffrom=0
+fto=60
+afrom=0
+ato=60
+if(curvePage!=255)
+{
 click bView,0
+}
+}
+if(alarmPush==1)
+{
+alarmPush=0
+if(alarmIn>=1&&alarmIn<=8)
+{
+if(alarmOn==1)
+{
+if(alarmCode!=alarmIn)
+{
+ac5=ac4
+at5=at4
+as5=as4
+ac4=ac3
+at4=at3
+as4=as3
+ac3=ac2
+at3=at2
+as3=as2
+ac2=ac1
+at2=at1
+as2=as1
+ac1=ac0
+at1=at0
+as1=as0
+ac0=alarmIn
+at0=alarmSec
+as0=1
+}
+alarmCode=alarmIn
+}else
+{
+if(alarmCode==alarmIn)
+{
+alarmCode=0
+}
+if(ac0==alarmIn)
+{
+as0=3
+}
+if(ac1==alarmIn)
+{
+as1=3
+}
+if(ac2==alarmIn)
+{
+as2=3
+}
+if(ac3==alarmIn)
+{
+as3=3
+}
+if(ac4==alarmIn)
+{
+as4=3
+}
+if(ac5==alarmIn)
+{
+as5=3
+}
+}
+dirty=1
+}
+}
+if(dirty==1)
+{
 tState.txt="待机"
 if(run==1)
 {
@@ -369,6 +123,18 @@ if(locked==1)
 {
 tLocked.txt="已锁定"
 }
+if(run==1&&trackState==1)
+{
+tLocked.txt="启动中"
+}
+if(run==1&&trackState==2)
+{
+tLocked.txt="搜频中"
+}
+if(run==1&&trackState==3)
+{
+tLocked.txt="锁相捕获"
+}
 tInfo.txt="启动后显示相位"
 if(run==1)
 {
@@ -384,6 +150,8 @@ tInfo.txt="超出±30°曲线范围"
 }
 }
 }
+if(frozen==0)
+{
 if(follow==1&&frozen==0&&lastSec>ato)
 {
 afrom=0
@@ -391,6 +159,9 @@ ato=lastSec/60
 ato=ato+1
 ato=ato*60
 click bView,0
+}
+}
+dirty=0
 }
 if(msgPush==1)
 {
@@ -460,7 +231,7 @@ tFoot.txt="正在同步屏幕，请稍候"
 }
 if(msgCode==14)
 {
-tFoot.txt="正在软启动，温控暂未启用"
+tFoot.txt="正在搜频锁相，温控尚未启用"
 }
 if(msgCode==15)
 {
@@ -557,1099 +328,1517 @@ if(msgCode==35)
 {
 tFoot.txt="应用失败，请检查参数与运行状态"
 }
+if(msgCode==36)
+{
+tFoot.txt="正在读取搜频上下限"
+}
+if(msgCode==37)
+{
+tFoot.txt="搜频范围须在11至40kHz内"
+}
+if(msgCode==38)
+{
+tFoot.txt="相位采样失效，已停止加热"
+}
+if(msgCode==39)
+{
+tFoot.txt="范围内无法锁定，请检查负载"
+}
+if(msgCode==40)
+{
+tFoot.txt="搜频锁相超时，已停止加热"
+}
+if(msgCode==41)
+{
+tFoot.txt="相位裕量不足，已停止加热"
+}
+if(msgCode==42)
+{
+tFoot.txt="调频更新失败，已停止加热"
+}
+if(msgCode==43)
+{
+tFoot.txt="本次峰值过流："
+tmp=msgA/10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"."
+tmp=msgA%10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"A，门限"
+covx msgB,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"A，请复位"
+}
+if(msgCode==44)
+{
+tFoot.txt="硬件过流已锁存，请核对PB11"
+}
+if(msgCode==45)
+{
+tFoot.txt="过流已锁存，请检查采样与保护"
+}
+}
+
+## 页面后初始化
+
+vis bInput,0
+vis tFmt,0
+vis tNum,0
+vis bCurve,0
+curvePage=6
+if(run==1)
+{
+tState.txt="运行中"
+}
+covx afrom,bafrom.txt,0,0
+covx ato,bato.txt,0,0
+if(frozen==1)
+{
+tFoot.txt="已冻结显示"
+}
+vis bView,0
+click bView,0
+tState.txt="待机"
+if(run==1)
+{
+tState.txt="运行中"
+}
+fieldOK=dataFlags&64
+if(fieldOK>0)
+{
+fmtval=phase10
+tNum.txt=""
+if(fmtval<0)
+{
+tNum.txt="-"
+fmtval=0-fmtval
+}
+tmp=fmtval/10
+covx tmp,tFmt.txt,0,0
+tNum.txt=tNum.txt+tFmt.txt
+tNum.txt=tNum.txt+"."
+fmtfrac=fmtval%10
+covx fmtfrac,tFmt.txt,0,0
+tNum.txt=tNum.txt+tFmt.txt
+tAngle.txt=tNum.txt
+}else
+{
+tAngle.txt="--"
+}
+tLocked.txt="未锁定"
+if(locked==1)
+{
+tLocked.txt="已锁定"
+}
+if(run==1&&trackState==1)
+{
+tLocked.txt="启动中"
+}
+if(run==1&&trackState==2)
+{
+tLocked.txt="搜频中"
+}
+if(run==1&&trackState==3)
+{
+tLocked.txt="锁相捕获"
+}
+tInfo.txt="启动后显示相位"
+if(run==1)
+{
+tInfo.txt="等待有效相位"
+fieldOK=dataFlags&64
+if(fieldOK>0)
+{
+tInfo.txt="电压超前电流为正"
+tmp=0-300
+if(phase10<tmp||phase10>300)
+{
+tInfo.txt="超出±30°曲线范围"
+}
+}
+}
+if(follow==1&&frozen==0&&lastSec>ato)
+{
+afrom=0
+ato=lastSec/60
+ato=ato+1
+ato=ato*60
+click bView,0
+}
+if(msgPush==1)
+{
+msgPush=0
+if(msgCode==1)
+{
+tFoot.txt="已停止加热，旁路继电器保持"
+}
+if(msgCode==2)
+{
+tFoot.txt="禁止启动：请先保存保护参数"
+}
+if(msgCode==3)
+{
+tFoot.txt="禁止启动：谐振采样无效"
+}
+if(msgCode==4)
+{
+tFoot.txt="禁止启动：母线采样无效"
+}
+if(msgCode==5)
+{
+tFoot.txt="禁止启动：母线低于欠压门限"
+}
+if(msgCode==6)
+{
+tFoot.txt="禁止启动：母线达到过压门限"
+}
+if(msgCode==7)
+{
+tFoot.txt="禁止启动：电流达到保护门限"
+}
+if(msgCode==8)
+{
+tFoot.txt="硬件保护已锁存，请先复位"
+}
+if(msgCode==9)
+{
+tFoot.txt="故障已锁存，请到保护页复位"
+}
+if(msgCode==10)
+{
+tFoot.txt="本次欠压："
+tmp=msgA/10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"."
+tmp=msgA%10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"V，门限"
+covx msgB,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"V，请复位"
+}
+if(msgCode==11)
+{
+tFoot.txt="禁止启动：屏幕通信未恢复"
+}
+if(msgCode==12)
+{
+tFoot.txt="正在启动或加热中"
+}
+if(msgCode==13)
+{
+tFoot.txt="正在同步屏幕，请稍候"
+}
+if(msgCode==14)
+{
+tFoot.txt="正在搜频锁相，温控尚未启用"
+}
+if(msgCode==15)
+{
+tFoot.txt="温控方案保存功能尚未接入"
+}
+if(msgCode==16)
+{
+tFoot.txt="请先停止加热，等待保存完成"
+}
+if(msgCode==17)
+{
+tFoot.txt="正在读取保护参数"
+}
+if(msgCode==18)
+{
+tFoot.txt="故障已复位，请重新点击启动"
+}
+if(msgCode==19)
+{
+tFoot.txt="无法复位：母线仍低于欠压门限"
+}
+if(msgCode==20)
+{
+tFoot.txt="无法复位：检查故障与采样通信"
+}
+if(msgCode==21)
+{
+tFoot.txt="报警已确认，故障锁存仍保留"
+}
+if(msgCode==22)
+{
+tFoot.txt="功率与温度闭环功能尚未接入"
+}
+if(msgCode==23)
+{
+tFoot.txt="搜频未接入，当前为设定频率"
+}
+if(msgCode==24)
+{
+tFoot.txt="参数已修改，本次读取取消"
+}
+if(msgCode==25)
+{
+tFoot.txt="屏幕通信正常，主控已连接"
+}
+if(msgCode==26)
+{
+tFoot.txt="通信正常，请先保存保护参数"
+}
+if(msgCode==27)
+{
+tFoot.txt="保护参数已保存，温度保护未启用"
+}
+if(msgCode==28)
+{
+tFoot.txt="保存失败，请检查参数与状态"
+}
+if(msgCode==29)
+{
+tFoot.txt="屏幕无应答，请检查通信接线"
+}
+if(msgCode==30)
+{
+tFoot.txt="采样或通信故障，请到保护页查看"
+}
+if(msgCode==31)
+{
+tFoot.txt="读取超时，参数未修改"
+}
+if(msgCode==32)
+{
+tFoot.txt="上次欠压："
+tmp=msgA/10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"."
+tmp=msgA%10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"V，门限"
+covx msgB,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"V，请复位"
+}
+if(msgCode==33)
+{
+tFoot.txt="正在读取温控或功率设置"
+}
+if(msgCode==34)
+{
+tFoot.txt="目标已应用；温控及限功率尚未启用"
+}
+if(msgCode==35)
+{
+tFoot.txt="应用失败，请检查参数与运行状态"
+}
+if(msgCode==36)
+{
+tFoot.txt="正在读取搜频上下限"
+}
+if(msgCode==37)
+{
+tFoot.txt="搜频范围须在11至40kHz内"
+}
+if(msgCode==38)
+{
+tFoot.txt="相位采样失效，已停止加热"
+}
+if(msgCode==39)
+{
+tFoot.txt="范围内无法锁定，请检查负载"
+}
+if(msgCode==40)
+{
+tFoot.txt="搜频锁相超时，已停止加热"
+}
+if(msgCode==41)
+{
+tFoot.txt="相位裕量不足，已停止加热"
+}
+if(msgCode==42)
+{
+tFoot.txt="调频更新失败，已停止加热"
+}
+if(msgCode==43)
+{
+tFoot.txt="本次峰值过流："
+tmp=msgA/10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"."
+tmp=msgA%10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"A，门限"
+covx msgB,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"A，请复位"
+}
+if(msgCode==44)
+{
+tFoot.txt="硬件过流已锁存，请核对PB11"
+}
+if(msgCode==45)
+{
+tFoot.txt="过流已锁存，请检查采样与保护"
+}
 }
 
 ## bStop 停止加热 触摸弹起
 
-printh 65 06 04 00 FF FF FF
-cmd=2
-printh A5 5A 01 06 02 FF FF FF
+printh 65 06 04 00 FF FF FF
+cmd=2
+printh A5 5A 01 06 02 FF FF FF
 tFoot.txt="停止请求已发送；等待主控"
 
 ## bNav0 运行总览 触摸弹起
 
-printh 65 06 06 00 FF FF FF
+printh 65 06 06 00 FF FF FF
 page 0
 
 ## bNav1 分段温控 触摸弹起
 
-printh 65 06 07 00 FF FF FF
+printh 65 06 07 00 FF FF FF
 page 1
 
 ## bNav2 曲线调试 触摸弹起
 
-printh 65 06 08 00 FF FF FF
+printh 65 06 08 00 FF FF FF
 page 2
 
 ## bNav3 保护报警 触摸弹起
 
-printh 65 06 09 00 FF FF FF
+printh 65 06 09 00 FF FF FF
 page 5
 
 ## bTab0 温度 触摸弹起
 
-printh 65 06 0A 00 FF FF FF
+printh 65 06 0A 00 FF FF FF
 page 2
 
 ## bTab1 功率 触摸弹起
 
-printh 65 06 0B 00 FF FF FF
+printh 65 06 0B 00 FF FF FF
 page 3
 
 ## bTab2 频率 触摸弹起
 
-printh 65 06 0C 00 FF FF FF
+printh 65 06 0C 00 FF FF FF
 page 4
 
 ## bTab3 相位差 触摸弹起
 
-printh 65 06 0D 00 FF FF FF
+printh 65 06 0D 00 FF FF FF
 page 6
 
 ## bafrom 0 触摸弹起
 
-printh 65 06 10 00 FF FF FF
-if(1==1)
-{
-field=32
-backpg=6
-editval=afrom
-editmin=0
-editmax=86399
-page 7
+printh 65 06 10 00 FF FF FF
+if(1==1)
+{
+field=32
+backpg=6
+editval=afrom
+editmin=0
+editmax=86399
+page 7
 }
 
 ## bato 60 触摸弹起
 
-printh 65 06 13 00 FF FF FF
-if(1==1)
-{
-field=33
-backpg=6
-editval=ato
-editmin=1
-editmax=86400
-page 7
+printh 65 06 13 00 FF FF FF
+if(1==1)
+{
+field=33
+backpg=6
+editval=ato
+editmin=1
+editmax=86400
+page 7
 }
 
 ## bFreeze 冻结显示 触摸弹起
 
-printh 65 06 15 00 FF FF FF
-frozen=1
-freezeSec=lastSec
-click bView,0
+printh 65 06 15 00 FF FF FF
+frozen=1
+freezeSec=lastSec
+click bView,0
 tFoot.txt="已冻结显示"
 
 ## bLive 恢复实时 触摸弹起
 
-printh 65 06 16 00 FF FF FF
-frozen=0
-follow=1
-afrom=0
-ato=lastSec/60
-ato=ato+1
-ato=ato*60
-click bView,0
+printh 65 06 16 00 FF FF FF
+frozen=0
+follow=1
+afrom=0
+ato=lastSec/60
+ato=ato+1
+ato=ato*60
+click bView,0
 tFoot.txt="已恢复实时"
 
 ## bView  触摸弹起
 
-axisLo=0-300
-axisHi=300
-curveEpoch=curveEpoch+1
-if(curveEpoch>65535)
-{
-curveEpoch=1
-}
-plotCut=-1
-if(frozen==1)
-{
-plotCut=freezeSec
-}
-covx afrom,bafrom.txt,0,0
-covx ato,bato.txt,0,0
-fill 60,140,461,177,65535
-line 60,316,520,316,61342
-line 60,228,520,228,61342
-line 60,140,520,140,61342
-line 60,140,60,316,61342
-line 290,140,290,316,61342
-line 520,140,520,316,61342
-line 60,140,60,316,55004
-line 60,316,520,316,55004
-plotTick=axisHi-axisLo
-plotTick=plotTick*0/2
-plotTick=plotTick+axisLo
-tNum.txt=""
-if(plotTick<0)
-{
-tNum.txt="-"
-plotTick=0-plotTick
-}
-tmp=plotTick/10
-covx tmp,tFmt.txt,0,0
-tNum.txt=tNum.txt+tFmt.txt
-plotTick=plotTick%10
-if(plotTick>0)
-{
-tNum.txt=tNum.txt+"."
-covx plotTick,tFmt.txt,0,0
-tNum.txt=tNum.txt+tFmt.txt
-}
-ty23.txt=tNum.txt
-plotTick=axisHi-axisLo
-plotTick=plotTick*1/2
-plotTick=plotTick+axisLo
-tNum.txt=""
-if(plotTick<0)
-{
-tNum.txt="-"
-plotTick=0-plotTick
-}
-tmp=plotTick/10
-covx tmp,tFmt.txt,0,0
-tNum.txt=tNum.txt+tFmt.txt
-plotTick=plotTick%10
-if(plotTick>0)
-{
-tNum.txt=tNum.txt+"."
-covx plotTick,tFmt.txt,0,0
-tNum.txt=tNum.txt+tFmt.txt
-}
-ty24.txt=tNum.txt
-plotTick=axisHi-axisLo
-plotTick=plotTick*2/2
-plotTick=plotTick+axisLo
-tNum.txt=""
-if(plotTick<0)
-{
-tNum.txt="-"
-plotTick=0-plotTick
-}
-tmp=plotTick/10
-covx tmp,tFmt.txt,0,0
-tNum.txt=tNum.txt+tFmt.txt
-plotTick=plotTick%10
-if(plotTick>0)
-{
-tNum.txt=tNum.txt+"."
-covx plotTick,tFmt.txt,0,0
-tNum.txt=tNum.txt+tFmt.txt
-}
-ty25.txt=tNum.txt
-printh A5 5A 02 06 2A
-prints afrom,4
-printh FF FF FF
-printh A5 5A 02 06 2B
-prints ato,4
-printh FF FF FF
-printh A5 5A 02 06 2C
-prints plotCut,4
-printh FF FF FF
-printh A5 5A 02 06 2E
-prints axisLo,4
-printh FF FF FF
-printh A5 5A 02 06 2F
-prints axisHi,4
-printh FF FF FF
-printh A5 5A 02 06 30
-prints runId,4
-printh FF FF FF
-printh A5 5A 02 06 2D
-prints curveEpoch,4
+axisLo=0-300
+axisHi=300
+curveEpoch=curveEpoch+1
+if(curveEpoch>65535)
+{
+curveEpoch=1
+}
+plotCut=-1
+if(frozen==1)
+{
+plotCut=freezeSec
+}
+covx afrom,bafrom.txt,0,0
+covx ato,bato.txt,0,0
+fill 60,140,461,177,65535
+line 60,316,520,316,61342
+line 60,228,520,228,61342
+line 60,140,520,140,61342
+line 60,140,60,316,61342
+line 290,140,290,316,61342
+line 520,140,520,316,61342
+line 60,140,60,316,55004
+line 60,316,520,316,55004
+plotTick=axisHi-axisLo
+plotTick=plotTick*0/2
+plotTick=plotTick+axisLo
+tNum.txt=""
+if(plotTick<0)
+{
+tNum.txt="-"
+plotTick=0-plotTick
+}
+tmp=plotTick/10
+covx tmp,tFmt.txt,0,0
+tNum.txt=tNum.txt+tFmt.txt
+plotTick=plotTick%10
+if(plotTick>0)
+{
+tNum.txt=tNum.txt+"."
+covx plotTick,tFmt.txt,0,0
+tNum.txt=tNum.txt+tFmt.txt
+}
+ty23.txt=tNum.txt
+plotTick=axisHi-axisLo
+plotTick=plotTick*1/2
+plotTick=plotTick+axisLo
+tNum.txt=""
+if(plotTick<0)
+{
+tNum.txt="-"
+plotTick=0-plotTick
+}
+tmp=plotTick/10
+covx tmp,tFmt.txt,0,0
+tNum.txt=tNum.txt+tFmt.txt
+plotTick=plotTick%10
+if(plotTick>0)
+{
+tNum.txt=tNum.txt+"."
+covx plotTick,tFmt.txt,0,0
+tNum.txt=tNum.txt+tFmt.txt
+}
+ty24.txt=tNum.txt
+plotTick=axisHi-axisLo
+plotTick=plotTick*2/2
+plotTick=plotTick+axisLo
+tNum.txt=""
+if(plotTick<0)
+{
+tNum.txt="-"
+plotTick=0-plotTick
+}
+tmp=plotTick/10
+covx tmp,tFmt.txt,0,0
+tNum.txt=tNum.txt+tFmt.txt
+plotTick=plotTick%10
+if(plotTick>0)
+{
+tNum.txt=tNum.txt+"."
+covx plotTick,tFmt.txt,0,0
+tNum.txt=tNum.txt+tFmt.txt
+}
+ty25.txt=tNum.txt
+printh A5 5A 02 06 2A
+prints afrom,4
+printh FF FF FF
+printh A5 5A 02 06 2B
+prints ato,4
+printh FF FF FF
+printh A5 5A 02 06 2C
+prints plotCut,4
+printh FF FF FF
+printh A5 5A 02 06 2E
+prints axisLo,4
+printh FF FF FF
+printh A5 5A 02 06 2F
+prints axisHi,4
+printh FF FF FF
+printh A5 5A 02 06 30
+prints runId,4
+printh FF FF FF
+printh A5 5A 02 06 2D
+prints curveEpoch,4
 printh FF FF FF
 
 ## bCurve  触摸弹起
 
-if(plotPage==6&&curvePage==6&&plotEpoch==curveEpoch&&plotRun==runId&&plotCount>=0&&plotCount<=16)
-{
-if(afrom>=0&&ato<=86400&&ato>afrom)
-{
-span=ato-afrom
-if(plotReset==1)
-{
-plotY0=255
-plotY1=255
-plotY2=255
-fill 60,140,461,177,65535
-line 60,316,520,316,61342
-line 60,228,520,228,61342
-line 60,140,520,140,61342
-line 60,140,60,316,61342
-line 290,140,290,316,61342
-line 520,140,520,316,61342
-line 60,140,60,316,55004
-line 60,316,520,316,55004
-plotTick=plotYHi-plotYLo
-plotTick=plotTick*0/2
-plotTick=plotTick+plotYLo
-tNum.txt=""
-if(plotTick<0)
-{
-tNum.txt="-"
-plotTick=0-plotTick
-}
-tmp=plotTick/10
-covx tmp,tFmt.txt,0,0
-tNum.txt=tNum.txt+tFmt.txt
-plotTick=plotTick%10
-if(plotTick>0)
-{
-tNum.txt=tNum.txt+"."
-covx plotTick,tFmt.txt,0,0
-tNum.txt=tNum.txt+tFmt.txt
-}
-ty23.txt=tNum.txt
-plotTick=plotYHi-plotYLo
-plotTick=plotTick*1/2
-plotTick=plotTick+plotYLo
-tNum.txt=""
-if(plotTick<0)
-{
-tNum.txt="-"
-plotTick=0-plotTick
-}
-tmp=plotTick/10
-covx tmp,tFmt.txt,0,0
-tNum.txt=tNum.txt+tFmt.txt
-plotTick=plotTick%10
-if(plotTick>0)
-{
-tNum.txt=tNum.txt+"."
-covx plotTick,tFmt.txt,0,0
-tNum.txt=tNum.txt+tFmt.txt
-}
-ty24.txt=tNum.txt
-plotTick=plotYHi-plotYLo
-plotTick=plotTick*2/2
-plotTick=plotTick+plotYLo
-tNum.txt=""
-if(plotTick<0)
-{
-tNum.txt="-"
-plotTick=0-plotTick
-}
-tmp=plotTick/10
-covx tmp,tFmt.txt,0,0
-tNum.txt=tNum.txt+tFmt.txt
-plotTick=plotTick%10
-if(plotTick>0)
-{
-tNum.txt=tNum.txt+"."
-covx plotTick,tFmt.txt,0,0
-tNum.txt=tNum.txt+tFmt.txt
-}
-ty25.txt=tNum.txt
-covx afrom,tx26.txt,0,0
-covx ato,tx28.txt,0,0
-tmp=afrom+ato
-tmp=tmp/2
-covx tmp,tx27.txt,0,0
-tmp=afrom+ato
-tmp=tmp%2
-if(tmp==1)
-{
-tx27.txt=tx27.txt+".5"
-}
-}
-plotSec=plotStart
-if(plotCount>0)
-{
-tmp=cv0/16777216
-plotSec=plotSec+tmp
-if(plotSec>=afrom&&plotSec<=ato)
-{
-nx=plotSec-afrom
-nx=nx*460/span+60
-py=cv0/1
-py=py%256
-if(py<=176)
-{
-ny=316-py
-if(plotY0<=176)
-{
-px=plotPrevX
-tmp=316-plotY0
-line px,tmp,nx,ny,748
-}else
-{
-line nx,ny,nx,ny,748
-}
-plotY0=py
-}else
-{
-plotY0=255
-}
-plotPrevX=nx
-}
-}
-if(plotCount>1)
-{
-tmp=cv1/16777216
-plotSec=plotSec+tmp
-if(plotSec>=afrom&&plotSec<=ato)
-{
-nx=plotSec-afrom
-nx=nx*460/span+60
-py=cv1/1
-py=py%256
-if(py<=176)
-{
-ny=316-py
-if(plotY0<=176)
-{
-px=plotPrevX
-tmp=316-plotY0
-line px,tmp,nx,ny,748
-}else
-{
-line nx,ny,nx,ny,748
-}
-plotY0=py
-}else
-{
-plotY0=255
-}
-plotPrevX=nx
-}
-}
-if(plotCount>2)
-{
-tmp=cv2/16777216
-plotSec=plotSec+tmp
-if(plotSec>=afrom&&plotSec<=ato)
-{
-nx=plotSec-afrom
-nx=nx*460/span+60
-py=cv2/1
-py=py%256
-if(py<=176)
-{
-ny=316-py
-if(plotY0<=176)
-{
-px=plotPrevX
-tmp=316-plotY0
-line px,tmp,nx,ny,748
-}else
-{
-line nx,ny,nx,ny,748
-}
-plotY0=py
-}else
-{
-plotY0=255
-}
-plotPrevX=nx
-}
-}
-if(plotCount>3)
-{
-tmp=cv3/16777216
-plotSec=plotSec+tmp
-if(plotSec>=afrom&&plotSec<=ato)
-{
-nx=plotSec-afrom
-nx=nx*460/span+60
-py=cv3/1
-py=py%256
-if(py<=176)
-{
-ny=316-py
-if(plotY0<=176)
-{
-px=plotPrevX
-tmp=316-plotY0
-line px,tmp,nx,ny,748
-}else
-{
-line nx,ny,nx,ny,748
-}
-plotY0=py
-}else
-{
-plotY0=255
-}
-plotPrevX=nx
-}
-}
-if(plotCount>4)
-{
-tmp=cv4/16777216
-plotSec=plotSec+tmp
-if(plotSec>=afrom&&plotSec<=ato)
-{
-nx=plotSec-afrom
-nx=nx*460/span+60
-py=cv4/1
-py=py%256
-if(py<=176)
-{
-ny=316-py
-if(plotY0<=176)
-{
-px=plotPrevX
-tmp=316-plotY0
-line px,tmp,nx,ny,748
-}else
-{
-line nx,ny,nx,ny,748
-}
-plotY0=py
-}else
-{
-plotY0=255
-}
-plotPrevX=nx
-}
-}
-if(plotCount>5)
-{
-tmp=cv5/16777216
-plotSec=plotSec+tmp
-if(plotSec>=afrom&&plotSec<=ato)
-{
-nx=plotSec-afrom
-nx=nx*460/span+60
-py=cv5/1
-py=py%256
-if(py<=176)
-{
-ny=316-py
-if(plotY0<=176)
-{
-px=plotPrevX
-tmp=316-plotY0
-line px,tmp,nx,ny,748
-}else
-{
-line nx,ny,nx,ny,748
-}
-plotY0=py
-}else
-{
-plotY0=255
-}
-plotPrevX=nx
-}
-}
-if(plotCount>6)
-{
-tmp=cv6/16777216
-plotSec=plotSec+tmp
-if(plotSec>=afrom&&plotSec<=ato)
-{
-nx=plotSec-afrom
-nx=nx*460/span+60
-py=cv6/1
-py=py%256
-if(py<=176)
-{
-ny=316-py
-if(plotY0<=176)
-{
-px=plotPrevX
-tmp=316-plotY0
-line px,tmp,nx,ny,748
-}else
-{
-line nx,ny,nx,ny,748
-}
-plotY0=py
-}else
-{
-plotY0=255
-}
-plotPrevX=nx
-}
-}
-if(plotCount>7)
-{
-tmp=cv7/16777216
-plotSec=plotSec+tmp
-if(plotSec>=afrom&&plotSec<=ato)
-{
-nx=plotSec-afrom
-nx=nx*460/span+60
-py=cv7/1
-py=py%256
-if(py<=176)
-{
-ny=316-py
-if(plotY0<=176)
-{
-px=plotPrevX
-tmp=316-plotY0
-line px,tmp,nx,ny,748
-}else
-{
-line nx,ny,nx,ny,748
-}
-plotY0=py
-}else
-{
-plotY0=255
-}
-plotPrevX=nx
-}
-}
-if(plotCount>8)
-{
-tmp=cv8/16777216
-plotSec=plotSec+tmp
-if(plotSec>=afrom&&plotSec<=ato)
-{
-nx=plotSec-afrom
-nx=nx*460/span+60
-py=cv8/1
-py=py%256
-if(py<=176)
-{
-ny=316-py
-if(plotY0<=176)
-{
-px=plotPrevX
-tmp=316-plotY0
-line px,tmp,nx,ny,748
-}else
-{
-line nx,ny,nx,ny,748
-}
-plotY0=py
-}else
-{
-plotY0=255
-}
-plotPrevX=nx
-}
-}
-if(plotCount>9)
-{
-tmp=cv9/16777216
-plotSec=plotSec+tmp
-if(plotSec>=afrom&&plotSec<=ato)
-{
-nx=plotSec-afrom
-nx=nx*460/span+60
-py=cv9/1
-py=py%256
-if(py<=176)
-{
-ny=316-py
-if(plotY0<=176)
-{
-px=plotPrevX
-tmp=316-plotY0
-line px,tmp,nx,ny,748
-}else
-{
-line nx,ny,nx,ny,748
-}
-plotY0=py
-}else
-{
-plotY0=255
-}
-plotPrevX=nx
-}
-}
-if(plotCount>10)
-{
-tmp=cv10/16777216
-plotSec=plotSec+tmp
-if(plotSec>=afrom&&plotSec<=ato)
-{
-nx=plotSec-afrom
-nx=nx*460/span+60
-py=cv10/1
-py=py%256
-if(py<=176)
-{
-ny=316-py
-if(plotY0<=176)
-{
-px=plotPrevX
-tmp=316-plotY0
-line px,tmp,nx,ny,748
-}else
-{
-line nx,ny,nx,ny,748
-}
-plotY0=py
-}else
-{
-plotY0=255
-}
-plotPrevX=nx
-}
-}
-if(plotCount>11)
-{
-tmp=cv11/16777216
-plotSec=plotSec+tmp
-if(plotSec>=afrom&&plotSec<=ato)
-{
-nx=plotSec-afrom
-nx=nx*460/span+60
-py=cv11/1
-py=py%256
-if(py<=176)
-{
-ny=316-py
-if(plotY0<=176)
-{
-px=plotPrevX
-tmp=316-plotY0
-line px,tmp,nx,ny,748
-}else
-{
-line nx,ny,nx,ny,748
-}
-plotY0=py
-}else
-{
-plotY0=255
-}
-plotPrevX=nx
-}
-}
-if(plotCount>12)
-{
-tmp=cv12/16777216
-plotSec=plotSec+tmp
-if(plotSec>=afrom&&plotSec<=ato)
-{
-nx=plotSec-afrom
-nx=nx*460/span+60
-py=cv12/1
-py=py%256
-if(py<=176)
-{
-ny=316-py
-if(plotY0<=176)
-{
-px=plotPrevX
-tmp=316-plotY0
-line px,tmp,nx,ny,748
-}else
-{
-line nx,ny,nx,ny,748
-}
-plotY0=py
-}else
-{
-plotY0=255
-}
-plotPrevX=nx
-}
-}
-if(plotCount>13)
-{
-tmp=cv13/16777216
-plotSec=plotSec+tmp
-if(plotSec>=afrom&&plotSec<=ato)
-{
-nx=plotSec-afrom
-nx=nx*460/span+60
-py=cv13/1
-py=py%256
-if(py<=176)
-{
-ny=316-py
-if(plotY0<=176)
-{
-px=plotPrevX
-tmp=316-plotY0
-line px,tmp,nx,ny,748
-}else
-{
-line nx,ny,nx,ny,748
-}
-plotY0=py
-}else
-{
-plotY0=255
-}
-plotPrevX=nx
-}
-}
-if(plotCount>14)
-{
-tmp=cv14/16777216
-plotSec=plotSec+tmp
-if(plotSec>=afrom&&plotSec<=ato)
-{
-nx=plotSec-afrom
-nx=nx*460/span+60
-py=cv14/1
-py=py%256
-if(py<=176)
-{
-ny=316-py
-if(plotY0<=176)
-{
-px=plotPrevX
-tmp=316-plotY0
-line px,tmp,nx,ny,748
-}else
-{
-line nx,ny,nx,ny,748
-}
-plotY0=py
-}else
-{
-plotY0=255
-}
-plotPrevX=nx
-}
-}
-if(plotCount>15)
-{
-tmp=cv15/16777216
-plotSec=plotSec+tmp
-if(plotSec>=afrom&&plotSec<=ato)
-{
-nx=plotSec-afrom
-nx=nx*460/span+60
-py=cv15/1
-py=py%256
-if(py<=176)
-{
-ny=316-py
-if(plotY0<=176)
-{
-px=plotPrevX
-tmp=316-plotY0
-line px,tmp,nx,ny,748
-}else
-{
-line nx,ny,nx,ny,748
-}
-plotY0=py
-}else
-{
-plotY0=255
-}
-plotPrevX=nx
-}
-}
-}
+if(plotPage==6&&curvePage==6&&plotEpoch==curveEpoch&&plotRun==runId&&plotCount>=0&&plotCount<=16)
+{
+if(afrom>=0&&ato<=86400&&ato>afrom)
+{
+span=ato-afrom
+if(plotReset==1)
+{
+plotY0=255
+plotY1=255
+plotY2=255
+fill 60,140,461,177,65535
+line 60,316,520,316,61342
+line 60,228,520,228,61342
+line 60,140,520,140,61342
+line 60,140,60,316,61342
+line 290,140,290,316,61342
+line 520,140,520,316,61342
+line 60,140,60,316,55004
+line 60,316,520,316,55004
+plotTick=plotYHi-plotYLo
+plotTick=plotTick*0/2
+plotTick=plotTick+plotYLo
+tNum.txt=""
+if(plotTick<0)
+{
+tNum.txt="-"
+plotTick=0-plotTick
+}
+tmp=plotTick/10
+covx tmp,tFmt.txt,0,0
+tNum.txt=tNum.txt+tFmt.txt
+plotTick=plotTick%10
+if(plotTick>0)
+{
+tNum.txt=tNum.txt+"."
+covx plotTick,tFmt.txt,0,0
+tNum.txt=tNum.txt+tFmt.txt
+}
+ty23.txt=tNum.txt
+plotTick=plotYHi-plotYLo
+plotTick=plotTick*1/2
+plotTick=plotTick+plotYLo
+tNum.txt=""
+if(plotTick<0)
+{
+tNum.txt="-"
+plotTick=0-plotTick
+}
+tmp=plotTick/10
+covx tmp,tFmt.txt,0,0
+tNum.txt=tNum.txt+tFmt.txt
+plotTick=plotTick%10
+if(plotTick>0)
+{
+tNum.txt=tNum.txt+"."
+covx plotTick,tFmt.txt,0,0
+tNum.txt=tNum.txt+tFmt.txt
+}
+ty24.txt=tNum.txt
+plotTick=plotYHi-plotYLo
+plotTick=plotTick*2/2
+plotTick=plotTick+plotYLo
+tNum.txt=""
+if(plotTick<0)
+{
+tNum.txt="-"
+plotTick=0-plotTick
+}
+tmp=plotTick/10
+covx tmp,tFmt.txt,0,0
+tNum.txt=tNum.txt+tFmt.txt
+plotTick=plotTick%10
+if(plotTick>0)
+{
+tNum.txt=tNum.txt+"."
+covx plotTick,tFmt.txt,0,0
+tNum.txt=tNum.txt+tFmt.txt
+}
+ty25.txt=tNum.txt
+covx afrom,tx26.txt,0,0
+covx ato,tx28.txt,0,0
+tmp=afrom+ato
+tmp=tmp/2
+covx tmp,tx27.txt,0,0
+tmp=afrom+ato
+tmp=tmp%2
+if(tmp==1)
+{
+tx27.txt=tx27.txt+".5"
+}
+}
+plotSec=plotStart
+if(plotCount>0)
+{
+tmp=cv0/16777216
+plotSec=plotSec+tmp
+if(plotSec>=afrom&&plotSec<=ato)
+{
+nx=plotSec-afrom
+nx=nx*460/span+60
+py=cv0/1
+py=py%256
+if(py<=176)
+{
+ny=316-py
+if(plotY0<=176)
+{
+px=plotPrevX
+tmp=316-plotY0
+line px,tmp,nx,ny,748
+}else
+{
+line nx,ny,nx,ny,748
+}
+plotY0=py
+}else
+{
+plotY0=255
+}
+plotPrevX=nx
+}
+}
+if(plotCount>1)
+{
+tmp=cv1/16777216
+plotSec=plotSec+tmp
+if(plotSec>=afrom&&plotSec<=ato)
+{
+nx=plotSec-afrom
+nx=nx*460/span+60
+py=cv1/1
+py=py%256
+if(py<=176)
+{
+ny=316-py
+if(plotY0<=176)
+{
+px=plotPrevX
+tmp=316-plotY0
+line px,tmp,nx,ny,748
+}else
+{
+line nx,ny,nx,ny,748
+}
+plotY0=py
+}else
+{
+plotY0=255
+}
+plotPrevX=nx
+}
+}
+if(plotCount>2)
+{
+tmp=cv2/16777216
+plotSec=plotSec+tmp
+if(plotSec>=afrom&&plotSec<=ato)
+{
+nx=plotSec-afrom
+nx=nx*460/span+60
+py=cv2/1
+py=py%256
+if(py<=176)
+{
+ny=316-py
+if(plotY0<=176)
+{
+px=plotPrevX
+tmp=316-plotY0
+line px,tmp,nx,ny,748
+}else
+{
+line nx,ny,nx,ny,748
+}
+plotY0=py
+}else
+{
+plotY0=255
+}
+plotPrevX=nx
+}
+}
+if(plotCount>3)
+{
+tmp=cv3/16777216
+plotSec=plotSec+tmp
+if(plotSec>=afrom&&plotSec<=ato)
+{
+nx=plotSec-afrom
+nx=nx*460/span+60
+py=cv3/1
+py=py%256
+if(py<=176)
+{
+ny=316-py
+if(plotY0<=176)
+{
+px=plotPrevX
+tmp=316-plotY0
+line px,tmp,nx,ny,748
+}else
+{
+line nx,ny,nx,ny,748
+}
+plotY0=py
+}else
+{
+plotY0=255
+}
+plotPrevX=nx
+}
+}
+if(plotCount>4)
+{
+tmp=cv4/16777216
+plotSec=plotSec+tmp
+if(plotSec>=afrom&&plotSec<=ato)
+{
+nx=plotSec-afrom
+nx=nx*460/span+60
+py=cv4/1
+py=py%256
+if(py<=176)
+{
+ny=316-py
+if(plotY0<=176)
+{
+px=plotPrevX
+tmp=316-plotY0
+line px,tmp,nx,ny,748
+}else
+{
+line nx,ny,nx,ny,748
+}
+plotY0=py
+}else
+{
+plotY0=255
+}
+plotPrevX=nx
+}
+}
+if(plotCount>5)
+{
+tmp=cv5/16777216
+plotSec=plotSec+tmp
+if(plotSec>=afrom&&plotSec<=ato)
+{
+nx=plotSec-afrom
+nx=nx*460/span+60
+py=cv5/1
+py=py%256
+if(py<=176)
+{
+ny=316-py
+if(plotY0<=176)
+{
+px=plotPrevX
+tmp=316-plotY0
+line px,tmp,nx,ny,748
+}else
+{
+line nx,ny,nx,ny,748
+}
+plotY0=py
+}else
+{
+plotY0=255
+}
+plotPrevX=nx
+}
+}
+if(plotCount>6)
+{
+tmp=cv6/16777216
+plotSec=plotSec+tmp
+if(plotSec>=afrom&&plotSec<=ato)
+{
+nx=plotSec-afrom
+nx=nx*460/span+60
+py=cv6/1
+py=py%256
+if(py<=176)
+{
+ny=316-py
+if(plotY0<=176)
+{
+px=plotPrevX
+tmp=316-plotY0
+line px,tmp,nx,ny,748
+}else
+{
+line nx,ny,nx,ny,748
+}
+plotY0=py
+}else
+{
+plotY0=255
+}
+plotPrevX=nx
+}
+}
+if(plotCount>7)
+{
+tmp=cv7/16777216
+plotSec=plotSec+tmp
+if(plotSec>=afrom&&plotSec<=ato)
+{
+nx=plotSec-afrom
+nx=nx*460/span+60
+py=cv7/1
+py=py%256
+if(py<=176)
+{
+ny=316-py
+if(plotY0<=176)
+{
+px=plotPrevX
+tmp=316-plotY0
+line px,tmp,nx,ny,748
+}else
+{
+line nx,ny,nx,ny,748
+}
+plotY0=py
+}else
+{
+plotY0=255
+}
+plotPrevX=nx
+}
+}
+if(plotCount>8)
+{
+tmp=cv8/16777216
+plotSec=plotSec+tmp
+if(plotSec>=afrom&&plotSec<=ato)
+{
+nx=plotSec-afrom
+nx=nx*460/span+60
+py=cv8/1
+py=py%256
+if(py<=176)
+{
+ny=316-py
+if(plotY0<=176)
+{
+px=plotPrevX
+tmp=316-plotY0
+line px,tmp,nx,ny,748
+}else
+{
+line nx,ny,nx,ny,748
+}
+plotY0=py
+}else
+{
+plotY0=255
+}
+plotPrevX=nx
+}
+}
+if(plotCount>9)
+{
+tmp=cv9/16777216
+plotSec=plotSec+tmp
+if(plotSec>=afrom&&plotSec<=ato)
+{
+nx=plotSec-afrom
+nx=nx*460/span+60
+py=cv9/1
+py=py%256
+if(py<=176)
+{
+ny=316-py
+if(plotY0<=176)
+{
+px=plotPrevX
+tmp=316-plotY0
+line px,tmp,nx,ny,748
+}else
+{
+line nx,ny,nx,ny,748
+}
+plotY0=py
+}else
+{
+plotY0=255
+}
+plotPrevX=nx
+}
+}
+if(plotCount>10)
+{
+tmp=cv10/16777216
+plotSec=plotSec+tmp
+if(plotSec>=afrom&&plotSec<=ato)
+{
+nx=plotSec-afrom
+nx=nx*460/span+60
+py=cv10/1
+py=py%256
+if(py<=176)
+{
+ny=316-py
+if(plotY0<=176)
+{
+px=plotPrevX
+tmp=316-plotY0
+line px,tmp,nx,ny,748
+}else
+{
+line nx,ny,nx,ny,748
+}
+plotY0=py
+}else
+{
+plotY0=255
+}
+plotPrevX=nx
+}
+}
+if(plotCount>11)
+{
+tmp=cv11/16777216
+plotSec=plotSec+tmp
+if(plotSec>=afrom&&plotSec<=ato)
+{
+nx=plotSec-afrom
+nx=nx*460/span+60
+py=cv11/1
+py=py%256
+if(py<=176)
+{
+ny=316-py
+if(plotY0<=176)
+{
+px=plotPrevX
+tmp=316-plotY0
+line px,tmp,nx,ny,748
+}else
+{
+line nx,ny,nx,ny,748
+}
+plotY0=py
+}else
+{
+plotY0=255
+}
+plotPrevX=nx
+}
+}
+if(plotCount>12)
+{
+tmp=cv12/16777216
+plotSec=plotSec+tmp
+if(plotSec>=afrom&&plotSec<=ato)
+{
+nx=plotSec-afrom
+nx=nx*460/span+60
+py=cv12/1
+py=py%256
+if(py<=176)
+{
+ny=316-py
+if(plotY0<=176)
+{
+px=plotPrevX
+tmp=316-plotY0
+line px,tmp,nx,ny,748
+}else
+{
+line nx,ny,nx,ny,748
+}
+plotY0=py
+}else
+{
+plotY0=255
+}
+plotPrevX=nx
+}
+}
+if(plotCount>13)
+{
+tmp=cv13/16777216
+plotSec=plotSec+tmp
+if(plotSec>=afrom&&plotSec<=ato)
+{
+nx=plotSec-afrom
+nx=nx*460/span+60
+py=cv13/1
+py=py%256
+if(py<=176)
+{
+ny=316-py
+if(plotY0<=176)
+{
+px=plotPrevX
+tmp=316-plotY0
+line px,tmp,nx,ny,748
+}else
+{
+line nx,ny,nx,ny,748
+}
+plotY0=py
+}else
+{
+plotY0=255
+}
+plotPrevX=nx
+}
+}
+if(plotCount>14)
+{
+tmp=cv14/16777216
+plotSec=plotSec+tmp
+if(plotSec>=afrom&&plotSec<=ato)
+{
+nx=plotSec-afrom
+nx=nx*460/span+60
+py=cv14/1
+py=py%256
+if(py<=176)
+{
+ny=316-py
+if(plotY0<=176)
+{
+px=plotPrevX
+tmp=316-plotY0
+line px,tmp,nx,ny,748
+}else
+{
+line nx,ny,nx,ny,748
+}
+plotY0=py
+}else
+{
+plotY0=255
+}
+plotPrevX=nx
+}
+}
+if(plotCount>15)
+{
+tmp=cv15/16777216
+plotSec=plotSec+tmp
+if(plotSec>=afrom&&plotSec<=ato)
+{
+nx=plotSec-afrom
+nx=nx*460/span+60
+py=cv15/1
+py=py%256
+if(py<=176)
+{
+ny=316-py
+if(plotY0<=176)
+{
+px=plotPrevX
+tmp=316-plotY0
+line px,tmp,nx,ny,748
+}else
+{
+line nx,ny,nx,ny,748
+}
+plotY0=py
+}else
+{
+plotY0=255
+}
+plotPrevX=nx
+}
+}
+}
 }
 
 ## bInput  触摸弹起
 
-if(runId!=seenRun)
-{
-seenRun=runId
-clearPlot=1
-}
-if(clearPlot==1)
-{
-clearPlot=0
-frozen=0
-follow=1
-dirty=1
-tfrom=0
-tto=600
-pfrom=0
-pto=600
-ffrom=0
-fto=60
-afrom=0
-ato=60
-if(curvePage!=255)
-{
-click bView,0
-}
-}
-if(alarmPush==1)
-{
-alarmPush=0
-if(alarmIn>=1&&alarmIn<=8)
-{
-if(alarmOn==1)
-{
-if(alarmCode!=alarmIn)
-{
-ac5=ac4
-at5=at4
-as5=as4
-ac4=ac3
-at4=at3
-as4=as3
-ac3=ac2
-at3=at2
-as3=as2
-ac2=ac1
-at2=at1
-as2=as1
-ac1=ac0
-at1=at0
-as1=as0
-ac0=alarmIn
-at0=alarmSec
-as0=1
-}
-alarmCode=alarmIn
-}else
-{
-if(alarmCode==alarmIn)
-{
-alarmCode=0
-}
-if(ac0==alarmIn)
-{
-as0=3
-}
-if(ac1==alarmIn)
-{
-as1=3
-}
-if(ac2==alarmIn)
-{
-as2=3
-}
-if(ac3==alarmIn)
-{
-as3=3
-}
-if(ac4==alarmIn)
-{
-as4=3
-}
-if(ac5==alarmIn)
-{
-as5=3
-}
-}
-dirty=1
-}
-}
-if(dirty==1)
-{
-tState.txt="待机"
-if(run==1)
-{
-tState.txt="运行中"
-}
-fieldOK=dataFlags&64
-if(fieldOK>0)
-{
-fmtval=phase10
-tNum.txt=""
-if(fmtval<0)
-{
-tNum.txt="-"
-fmtval=0-fmtval
-}
-tmp=fmtval/10
-covx tmp,tFmt.txt,0,0
-tNum.txt=tNum.txt+tFmt.txt
-tNum.txt=tNum.txt+"."
-fmtfrac=fmtval%10
-covx fmtfrac,tFmt.txt,0,0
-tNum.txt=tNum.txt+tFmt.txt
-tAngle.txt=tNum.txt
-}else
-{
-tAngle.txt="--"
-}
-tLocked.txt="未锁定"
-if(locked==1)
-{
-tLocked.txt="已锁定"
-}
-tInfo.txt="启动后显示相位"
-if(run==1)
-{
-tInfo.txt="等待有效相位"
-fieldOK=dataFlags&64
-if(fieldOK>0)
-{
-tInfo.txt="电压超前电流为正"
-tmp=0-300
-if(phase10<tmp||phase10>300)
-{
-tInfo.txt="超出±30°曲线范围"
-}
-}
-}
-if(frozen==0)
-{
-if(follow==1&&frozen==0&&lastSec>ato)
-{
-afrom=0
-ato=lastSec/60
-ato=ato+1
-ato=ato*60
-click bView,0
-}
-}
-dirty=0
-}
-if(msgPush==1)
-{
-msgPush=0
-if(msgCode==1)
-{
-tFoot.txt="已停止加热，旁路继电器保持"
-}
-if(msgCode==2)
-{
-tFoot.txt="禁止启动：请先保存保护参数"
-}
-if(msgCode==3)
-{
-tFoot.txt="禁止启动：谐振采样无效"
-}
-if(msgCode==4)
-{
-tFoot.txt="禁止启动：母线采样无效"
-}
-if(msgCode==5)
-{
-tFoot.txt="禁止启动：母线低于欠压门限"
-}
-if(msgCode==6)
-{
-tFoot.txt="禁止启动：母线达到过压门限"
-}
-if(msgCode==7)
-{
-tFoot.txt="禁止启动：电流达到保护门限"
-}
-if(msgCode==8)
-{
-tFoot.txt="硬件保护已锁存，请先复位"
-}
-if(msgCode==9)
-{
-tFoot.txt="故障已锁存，请到保护页复位"
-}
-if(msgCode==10)
-{
-tFoot.txt="本次欠压："
-tmp=msgA/10
-covx tmp,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"."
-tmp=msgA%10
-covx tmp,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"V，门限"
-covx msgB,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"V，请复位"
-}
-if(msgCode==11)
-{
-tFoot.txt="禁止启动：屏幕通信未恢复"
-}
-if(msgCode==12)
-{
-tFoot.txt="正在启动或加热中"
-}
-if(msgCode==13)
-{
-tFoot.txt="正在同步屏幕，请稍候"
-}
-if(msgCode==14)
-{
-tFoot.txt="正在软启动，温控暂未启用"
-}
-if(msgCode==15)
-{
-tFoot.txt="温控方案保存功能尚未接入"
-}
-if(msgCode==16)
-{
-tFoot.txt="请先停止加热，等待保存完成"
-}
-if(msgCode==17)
-{
-tFoot.txt="正在读取保护参数"
-}
-if(msgCode==18)
-{
-tFoot.txt="故障已复位，请重新点击启动"
-}
-if(msgCode==19)
-{
-tFoot.txt="无法复位：母线仍低于欠压门限"
-}
-if(msgCode==20)
-{
-tFoot.txt="无法复位：检查故障与采样通信"
-}
-if(msgCode==21)
-{
-tFoot.txt="报警已确认，故障锁存仍保留"
-}
-if(msgCode==22)
-{
-tFoot.txt="功率与温度闭环功能尚未接入"
-}
-if(msgCode==23)
-{
-tFoot.txt="搜频未接入，当前为设定频率"
-}
-if(msgCode==24)
-{
-tFoot.txt="参数已修改，本次读取取消"
-}
-if(msgCode==25)
-{
-tFoot.txt="屏幕通信正常，主控已连接"
-}
-if(msgCode==26)
-{
-tFoot.txt="通信正常，请先保存保护参数"
-}
-if(msgCode==27)
-{
-tFoot.txt="保护参数已保存，温度保护未启用"
-}
-if(msgCode==28)
-{
-tFoot.txt="保存失败，请检查参数与状态"
-}
-if(msgCode==29)
-{
-tFoot.txt="屏幕无应答，请检查通信接线"
-}
-if(msgCode==30)
-{
-tFoot.txt="采样或通信故障，请到保护页查看"
-}
-if(msgCode==31)
-{
-tFoot.txt="读取超时，参数未修改"
-}
-if(msgCode==32)
-{
-tFoot.txt="上次欠压："
-tmp=msgA/10
-covx tmp,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"."
-tmp=msgA%10
-covx tmp,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"V，门限"
-covx msgB,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"V，请复位"
-}
-if(msgCode==33)
-{
-tFoot.txt="正在读取温控或功率设置"
-}
-if(msgCode==34)
-{
-tFoot.txt="目标已应用；温控及限功率尚未启用"
-}
-if(msgCode==35)
-{
-tFoot.txt="应用失败，请检查参数与运行状态"
-}
+if(runId!=seenRun)
+{
+seenRun=runId
+clearPlot=1
+}
+if(clearPlot==1)
+{
+clearPlot=0
+frozen=0
+follow=1
+dirty=1
+tfrom=0
+tto=600
+pfrom=0
+pto=600
+ffrom=0
+fto=60
+afrom=0
+ato=60
+if(curvePage!=255)
+{
+click bView,0
+}
+}
+if(alarmPush==1)
+{
+alarmPush=0
+if(alarmIn>=1&&alarmIn<=8)
+{
+if(alarmOn==1)
+{
+if(alarmCode!=alarmIn)
+{
+ac5=ac4
+at5=at4
+as5=as4
+ac4=ac3
+at4=at3
+as4=as3
+ac3=ac2
+at3=at2
+as3=as2
+ac2=ac1
+at2=at1
+as2=as1
+ac1=ac0
+at1=at0
+as1=as0
+ac0=alarmIn
+at0=alarmSec
+as0=1
+}
+alarmCode=alarmIn
+}else
+{
+if(alarmCode==alarmIn)
+{
+alarmCode=0
+}
+if(ac0==alarmIn)
+{
+as0=3
+}
+if(ac1==alarmIn)
+{
+as1=3
+}
+if(ac2==alarmIn)
+{
+as2=3
+}
+if(ac3==alarmIn)
+{
+as3=3
+}
+if(ac4==alarmIn)
+{
+as4=3
+}
+if(ac5==alarmIn)
+{
+as5=3
+}
+}
+dirty=1
+}
+}
+if(dirty==1)
+{
+tState.txt="待机"
+if(run==1)
+{
+tState.txt="运行中"
+}
+fieldOK=dataFlags&64
+if(fieldOK>0)
+{
+fmtval=phase10
+tNum.txt=""
+if(fmtval<0)
+{
+tNum.txt="-"
+fmtval=0-fmtval
+}
+tmp=fmtval/10
+covx tmp,tFmt.txt,0,0
+tNum.txt=tNum.txt+tFmt.txt
+tNum.txt=tNum.txt+"."
+fmtfrac=fmtval%10
+covx fmtfrac,tFmt.txt,0,0
+tNum.txt=tNum.txt+tFmt.txt
+tAngle.txt=tNum.txt
+}else
+{
+tAngle.txt="--"
+}
+tLocked.txt="未锁定"
+if(locked==1)
+{
+tLocked.txt="已锁定"
+}
+if(run==1&&trackState==1)
+{
+tLocked.txt="启动中"
+}
+if(run==1&&trackState==2)
+{
+tLocked.txt="搜频中"
+}
+if(run==1&&trackState==3)
+{
+tLocked.txt="锁相捕获"
+}
+tInfo.txt="启动后显示相位"
+if(run==1)
+{
+tInfo.txt="等待有效相位"
+fieldOK=dataFlags&64
+if(fieldOK>0)
+{
+tInfo.txt="电压超前电流为正"
+tmp=0-300
+if(phase10<tmp||phase10>300)
+{
+tInfo.txt="超出±30°曲线范围"
+}
+}
+}
+if(frozen==0)
+{
+if(follow==1&&frozen==0&&lastSec>ato)
+{
+afrom=0
+ato=lastSec/60
+ato=ato+1
+ato=ato*60
+click bView,0
+}
+}
+dirty=0
+}
+if(msgPush==1)
+{
+msgPush=0
+if(msgCode==1)
+{
+tFoot.txt="已停止加热，旁路继电器保持"
+}
+if(msgCode==2)
+{
+tFoot.txt="禁止启动：请先保存保护参数"
+}
+if(msgCode==3)
+{
+tFoot.txt="禁止启动：谐振采样无效"
+}
+if(msgCode==4)
+{
+tFoot.txt="禁止启动：母线采样无效"
+}
+if(msgCode==5)
+{
+tFoot.txt="禁止启动：母线低于欠压门限"
+}
+if(msgCode==6)
+{
+tFoot.txt="禁止启动：母线达到过压门限"
+}
+if(msgCode==7)
+{
+tFoot.txt="禁止启动：电流达到保护门限"
+}
+if(msgCode==8)
+{
+tFoot.txt="硬件保护已锁存，请先复位"
+}
+if(msgCode==9)
+{
+tFoot.txt="故障已锁存，请到保护页复位"
+}
+if(msgCode==10)
+{
+tFoot.txt="本次欠压："
+tmp=msgA/10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"."
+tmp=msgA%10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"V，门限"
+covx msgB,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"V，请复位"
+}
+if(msgCode==11)
+{
+tFoot.txt="禁止启动：屏幕通信未恢复"
+}
+if(msgCode==12)
+{
+tFoot.txt="正在启动或加热中"
+}
+if(msgCode==13)
+{
+tFoot.txt="正在同步屏幕，请稍候"
+}
+if(msgCode==14)
+{
+tFoot.txt="正在搜频锁相，温控尚未启用"
+}
+if(msgCode==15)
+{
+tFoot.txt="温控方案保存功能尚未接入"
+}
+if(msgCode==16)
+{
+tFoot.txt="请先停止加热，等待保存完成"
+}
+if(msgCode==17)
+{
+tFoot.txt="正在读取保护参数"
+}
+if(msgCode==18)
+{
+tFoot.txt="故障已复位，请重新点击启动"
+}
+if(msgCode==19)
+{
+tFoot.txt="无法复位：母线仍低于欠压门限"
+}
+if(msgCode==20)
+{
+tFoot.txt="无法复位：检查故障与采样通信"
+}
+if(msgCode==21)
+{
+tFoot.txt="报警已确认，故障锁存仍保留"
+}
+if(msgCode==22)
+{
+tFoot.txt="功率与温度闭环功能尚未接入"
+}
+if(msgCode==23)
+{
+tFoot.txt="搜频未接入，当前为设定频率"
+}
+if(msgCode==24)
+{
+tFoot.txt="参数已修改，本次读取取消"
+}
+if(msgCode==25)
+{
+tFoot.txt="屏幕通信正常，主控已连接"
+}
+if(msgCode==26)
+{
+tFoot.txt="通信正常，请先保存保护参数"
+}
+if(msgCode==27)
+{
+tFoot.txt="保护参数已保存，温度保护未启用"
+}
+if(msgCode==28)
+{
+tFoot.txt="保存失败，请检查参数与状态"
+}
+if(msgCode==29)
+{
+tFoot.txt="屏幕无应答，请检查通信接线"
+}
+if(msgCode==30)
+{
+tFoot.txt="采样或通信故障，请到保护页查看"
+}
+if(msgCode==31)
+{
+tFoot.txt="读取超时，参数未修改"
+}
+if(msgCode==32)
+{
+tFoot.txt="上次欠压："
+tmp=msgA/10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"."
+tmp=msgA%10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"V，门限"
+covx msgB,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"V，请复位"
+}
+if(msgCode==33)
+{
+tFoot.txt="正在读取温控或功率设置"
+}
+if(msgCode==34)
+{
+tFoot.txt="目标已应用；温控及限功率尚未启用"
+}
+if(msgCode==35)
+{
+tFoot.txt="应用失败，请检查参数与运行状态"
+}
+if(msgCode==36)
+{
+tFoot.txt="正在读取搜频上下限"
+}
+if(msgCode==37)
+{
+tFoot.txt="搜频范围须在11至40kHz内"
+}
+if(msgCode==38)
+{
+tFoot.txt="相位采样失效，已停止加热"
+}
+if(msgCode==39)
+{
+tFoot.txt="范围内无法锁定，请检查负载"
+}
+if(msgCode==40)
+{
+tFoot.txt="搜频锁相超时，已停止加热"
+}
+if(msgCode==41)
+{
+tFoot.txt="相位裕量不足，已停止加热"
+}
+if(msgCode==42)
+{
+tFoot.txt="调频更新失败，已停止加热"
+}
+if(msgCode==43)
+{
+tFoot.txt="本次峰值过流："
+tmp=msgA/10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"."
+tmp=msgA%10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"A，门限"
+covx msgB,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"A，请复位"
+}
+if(msgCode==44)
+{
+tFoot.txt="硬件过流已锁存，请核对PB11"
+}
+if(msgCode==45)
+{
+tFoot.txt="过流已锁存，请检查采样与保护"
+}
 }

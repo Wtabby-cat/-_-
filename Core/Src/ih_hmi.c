@@ -6,6 +6,7 @@
 #include "ih_program.h"
 #include "ih_pwm.h"
 #include "ih_history.h"
+#include "ih_tracking.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -40,6 +41,7 @@ static uint8_t plot_meta_page, plot_meta_mask;
 static ProtectionParams candidate;
 static HeatProgram program_candidate;
 static uint8_t query_kind, query_count;
+static int32_t search_candidate[2];
 static const char *const names[6] = {"ov", "uv", "oc", "ot1", "ot2", "ot3"};
 static const char *const program_names[27] = {"nseg", "mode", "plim",
   "tg1", "hd1", "tg2", "hd2", "tg3", "hd3", "tg4", "hd4",
@@ -124,6 +126,7 @@ static void StartBlocked(void)
 }
 static void SetCandidate(uint8_t index, int32_t value)
 {
+  if (query_kind==3U) { search_candidate[index]=value; return; }
   if (query_kind != 0U) {
     if (query_kind == 2U) program_candidate.power_limit_w = value;
     else if (index == 0U) program_candidate.count = value;
@@ -162,19 +165,16 @@ static void Request(const HmiEvent *e)
   switch (e->id) {
   case 2:
     App_Stop();
-    Footer(HMI_MSG_STOPPED);
+    if (save_active) AbortSave(HMI_MSG_STOPPED);
+    else Footer(HMI_MSG_STOPPED);
     break;
   case 1:
     if (e->page != 0U) break;
     ++dbg_hmi_start_requests;
     if (save_active || quarantine)
       Footer(HMI_MSG_WAIT_SYNC);
-    else if (!App_Start()) StartBlocked();
-    else {
-      plot.enabled = 0U;
-      Begin(); Command("clearPlot=1"); Commit();
-      Footer(HMI_MSG_STARTED);
-    }
+    else if (Active()) Footer(HMI_MSG_START_STATE);
+    else { query_kind=3U; query_count=2U; query_index=0U; save_active=1U; Footer(HMI_MSG_SEARCH_READING); }
     break;
   case 4:
     if (e->page != 5U) { Footer(HMI_MSG_PROGRAM_UNAVAILABLE); break; }
@@ -210,7 +210,9 @@ static void Request(const HmiEvent *e)
     Footer(HMI_MSG_READING_PROGRAM);
     break;
   case 5:
-    if (e->page == 4U) Footer(HMI_MSG_PLL_UNAVAILABLE);
+    if (e->page != 4U) break;
+    if (Active() || save_active || quarantine) Footer(HMI_MSG_SAVE_BUSY);
+    else { query_kind=3U; query_count=2U; query_index=0U; save_active=1U; Footer(HMI_MSG_SEARCH_READING); }
     break;
   default: break;
   }
@@ -265,8 +267,10 @@ static void Event(const HmiEvent *e)
     if (e->page == 5U && e->id >= 36U && e->id <= 41U) {
       if (save_active) AbortSave(HMI_MSG_SAVE_CHANGED);
     }
-    if (save_active && query_kind != 0U &&
+    if (save_active && (query_kind==1U || query_kind==2U) &&
         ((e->page == 1U && e->id <= 25U) || (e->page == 3U && e->id == 1U)))
+      AbortSave(HMI_MSG_SAVE_CHANGED);
+    if (save_active && query_kind==3U && e->page==4U && (e->id==34U || e->id==35U))
       AbortSave(HMI_MSG_SAVE_CHANGED);
   } else if (e->type == 0x66U && e->page <= 7U) {
     uint8_t was_unknown = page == 0xFFU;
@@ -280,7 +284,15 @@ static void Event(const HmiEvent *e)
     SetCandidate(query_index, e->value); query_waiting = 0U; ++query_index;
     if (query_index == query_count) {
       save_active = 0U;
-      if (query_kind != 0U) {
+      if (query_kind==3U) {
+        if (search_candidate[0]<11 || search_candidate[1]>40 || search_candidate[0]>=search_candidate[1])
+          Footer(HMI_MSG_SEARCH_INVALID);
+        else if (!App_StartSearch((uint32_t)search_candidate[0]*100U,(uint32_t)search_candidate[1]*100U)) StartBlocked();
+        else {
+          plot.enabled=0U;
+          Begin(); Command("clearPlot=1"); Commit(); Footer(HMI_MSG_STARTED);
+        }
+      } else if (query_kind != 0U) {
         Footer(!Active() && Program_Apply(&program_candidate) ? HMI_MSG_PROGRAM_APPLIED : HMI_MSG_PROGRAM_INVALID);
       } else if (App_SaveProtection(&candidate)) {
         Begin(); Command("saved=1"); Commit();
@@ -312,7 +324,11 @@ static void Telemetry(void)
   Measurement_Get(&m);
   Begin();
   Command("dirty=0");
-  Command("run=%d", Active() ? 1 : 0); Command("locked=0"); Command("phaseState=%d", Active() ? 4 : 0);
+  Command("run=%d", Active() ? 1 : 0);
+  Command("locked=%d", Active() && Tracking_Locked() ? 1 : 0);
+  Command("trackState=%u",(unsigned)Tracking_State());
+  Command("phaseState=%d", !Active() ? 0 : Tracking_State()==TRACK_SEARCH ? 5 :
+          Tracking_State()==TRACK_RAMP ? 6 : Tracking_Locked() ? 8 : 7);
   if (page == 0U) {
     Command("totalSec=%lu", (unsigned long)App_ElapsedSeconds());
     Command("bus10=%ld", (long)Scaled(m.bus_v, 10.0f));
@@ -348,7 +364,7 @@ static void Telemetry(void)
     Command("tripRaw1=%lu", (unsigned long)dbg_trip_bus_rank1_raw);
     Command("tripRaw2=%lu", (unsigned long)dbg_trip_bus_rank2_raw);
   }
-  Command("internalFault=%lu", (unsigned long)(App_Faults() & (IH_FAULT_ADC | IH_FAULT_BUS | IH_FAULT_COM)));
+  Command("internalFault=%lu", (unsigned long)(App_Faults() & (IH_FAULT_ADC | IH_FAULT_BUS | IH_FAULT_COM | IH_FAULT_TRACK)));
   /* The HMI owns all field labels and feedback text. */
   Command("dataFlags=%u", (Active() ? 32U : 0U) | 2U | 256U | (m.bus_valid ? 8U : 0U) | (m.current_valid ? 16U : 0U) |
           (m.power_valid ? 4U : 0U) | (m.workpiece.valid ? 1U : 0U) |
@@ -424,6 +440,17 @@ static void Alarms(void)
     Message(HMI_MSG_UV_LATCHED, (int32_t)(dbg_trip_bus_v * 10.0f + 0.5f), (int32_t)dbg_trip_uv_v);
   if (delta & faults & (IH_FAULT_ADC | IH_FAULT_BUS | IH_FAULT_COM))
     Message(HMI_MSG_INTERNAL_FAULT, 0, 0);
+  if (delta & faults & IH_FAULT_TRACK) {
+    HmiMessage message=HMI_MSG_TRACK_SIGNAL;
+    switch (Tracking_Error()) {
+    case TRACK_RANGE: message=HMI_MSG_TRACK_RANGE; break;
+    case TRACK_TIMEOUT: message=HMI_MSG_TRACK_TIMEOUT; break;
+    case TRACK_PHASE: message=HMI_MSG_TRACK_PHASE; break;
+    case TRACK_PWM: message=HMI_MSG_TRACK_PWM; break;
+    default: break;
+    }
+    Message(message,0,0);
+  }
   if (Commit()) sent_faults = faults;
 }
 int Hmi_LinkHealthy(void)
@@ -493,7 +520,7 @@ void Hmi_Task(void)
     ++dbg_hmi_query_timeouts; AbortSave(HMI_MSG_SAVE_TIMEOUT);
   }
   if (save_active && !query_waiting && !quarantine && tx_head == tx_tail && tx_inflight == 0U) {
-    Begin(); Command("get %s", query_kind == 0U ? names[query_index] :
+    Begin(); Command("get %s", query_kind==3U ? (query_index==0U ? "flo" : "fhi") : query_kind == 0U ? names[query_index] :
                    query_kind == 2U ? "plim" : program_names[query_index]);
     if (Commit()) { query_waiting = 1U; query_tick = now; }
   }

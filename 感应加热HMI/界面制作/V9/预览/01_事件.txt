@@ -2,267 +2,318 @@
 
 ## 200ms 输入刷新定时器
 
-if(runId!=seenRun)
-{
-seenRun=runId
-clearPlot=1
-}
-if(clearPlot==1)
-{
-clearPlot=0
-frozen=0
-follow=1
-dirty=1
-tfrom=0
-tto=600
-pfrom=0
-pto=600
-ffrom=0
-fto=60
-afrom=0
-ato=60
-if(curvePage!=255)
-{
-click bView,0
-}
-}
-if(alarmPush==1)
-{
-alarmPush=0
-if(alarmIn>=1&&alarmIn<=8)
-{
-if(alarmOn==1)
-{
-if(alarmCode!=alarmIn)
-{
-ac5=ac4
-at5=at4
-as5=as4
-ac4=ac3
-at4=at3
-as4=as3
-ac3=ac2
-at3=at2
-as3=as2
-ac2=ac1
-at2=at1
-as2=as1
-ac1=ac0
-at1=at0
-as1=as0
-ac0=alarmIn
-at0=alarmSec
-as0=1
-}
-alarmCode=alarmIn
-}else
-{
-if(alarmCode==alarmIn)
-{
-alarmCode=0
-}
-if(ac0==alarmIn)
-{
-as0=3
-}
-if(ac1==alarmIn)
-{
-as1=3
-}
-if(ac2==alarmIn)
-{
-as2=3
-}
-if(ac3==alarmIn)
-{
-as3=3
-}
-if(ac4==alarmIn)
-{
-as4=3
-}
-if(ac5==alarmIn)
-{
-as5=3
-}
-}
-dirty=1
-}
-}
-if(dirty==1)
-{
-tState.txt="待机"
-if(run==1)
-{
-tState.txt="运行中"
-}
-dirty=0
-}
-if(msgPush==1)
-{
-msgPush=0
-if(msgCode==1)
-{
-tFoot.txt="已停止加热，旁路继电器保持"
-}
-if(msgCode==2)
-{
-tFoot.txt="禁止启动：请先保存保护参数"
-}
-if(msgCode==3)
-{
-tFoot.txt="禁止启动：谐振采样无效"
-}
-if(msgCode==4)
-{
-tFoot.txt="禁止启动：母线采样无效"
-}
-if(msgCode==5)
-{
-tFoot.txt="禁止启动：母线低于欠压门限"
-}
-if(msgCode==6)
-{
-tFoot.txt="禁止启动：母线达到过压门限"
-}
-if(msgCode==7)
-{
-tFoot.txt="禁止启动：电流达到保护门限"
-}
-if(msgCode==8)
-{
-tFoot.txt="硬件保护已锁存，请先复位"
-}
-if(msgCode==9)
-{
-tFoot.txt="故障已锁存，请到保护页复位"
-}
-if(msgCode==10)
-{
-tFoot.txt="本次欠压："
-tmp=msgA/10
-covx tmp,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"."
-tmp=msgA%10
-covx tmp,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"V，门限"
-covx msgB,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"V，请复位"
-}
-if(msgCode==11)
-{
-tFoot.txt="禁止启动：屏幕通信未恢复"
-}
-if(msgCode==12)
-{
-tFoot.txt="正在启动或加热中"
-}
-if(msgCode==13)
-{
-tFoot.txt="正在同步屏幕，请稍候"
-}
-if(msgCode==14)
-{
-tFoot.txt="正在软启动，温控暂未启用"
-}
-if(msgCode==15)
-{
-tFoot.txt="温控方案保存功能尚未接入"
-}
-if(msgCode==16)
-{
-tFoot.txt="请先停止加热，等待保存完成"
-}
-if(msgCode==17)
-{
-tFoot.txt="正在读取保护参数"
-}
-if(msgCode==18)
-{
-tFoot.txt="故障已复位，请重新点击启动"
-}
-if(msgCode==19)
-{
-tFoot.txt="无法复位：母线仍低于欠压门限"
-}
-if(msgCode==20)
-{
-tFoot.txt="无法复位：检查故障与采样通信"
-}
-if(msgCode==21)
-{
-tFoot.txt="报警已确认，故障锁存仍保留"
-}
-if(msgCode==22)
-{
-tFoot.txt="功率与温度闭环功能尚未接入"
-}
-if(msgCode==23)
-{
-tFoot.txt="搜频未接入，当前为设定频率"
-}
-if(msgCode==24)
-{
-tFoot.txt="参数已修改，本次读取取消"
-}
-if(msgCode==25)
-{
-tFoot.txt="屏幕通信正常，主控已连接"
-}
-if(msgCode==26)
-{
-tFoot.txt="通信正常，请先保存保护参数"
-}
-if(msgCode==27)
-{
-tFoot.txt="保护参数已保存，温度保护未启用"
-}
-if(msgCode==28)
-{
-tFoot.txt="保存失败，请检查参数与状态"
-}
-if(msgCode==29)
-{
-tFoot.txt="屏幕无应答，请检查通信接线"
-}
-if(msgCode==30)
-{
-tFoot.txt="采样或通信故障，请到保护页查看"
-}
-if(msgCode==31)
-{
-tFoot.txt="读取超时，参数未修改"
-}
-if(msgCode==32)
-{
-tFoot.txt="上次欠压："
-tmp=msgA/10
-covx tmp,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"."
-tmp=msgA%10
-covx tmp,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"V，门限"
-covx msgB,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"V，请复位"
-}
-if(msgCode==33)
-{
-tFoot.txt="正在读取温控或功率设置"
-}
-if(msgCode==34)
-{
-tFoot.txt="目标已应用；温控及限功率尚未启用"
-}
-if(msgCode==35)
-{
-tFoot.txt="应用失败，请检查参数与运行状态"
-}
+if(runId!=seenRun)
+{
+seenRun=runId
+clearPlot=1
+}
+if(clearPlot==1)
+{
+clearPlot=0
+frozen=0
+follow=1
+dirty=1
+tfrom=0
+tto=600
+pfrom=0
+pto=600
+ffrom=0
+fto=60
+afrom=0
+ato=60
+if(curvePage!=255)
+{
+click bView,0
+}
+}
+if(alarmPush==1)
+{
+alarmPush=0
+if(alarmIn>=1&&alarmIn<=8)
+{
+if(alarmOn==1)
+{
+if(alarmCode!=alarmIn)
+{
+ac5=ac4
+at5=at4
+as5=as4
+ac4=ac3
+at4=at3
+as4=as3
+ac3=ac2
+at3=at2
+as3=as2
+ac2=ac1
+at2=at1
+as2=as1
+ac1=ac0
+at1=at0
+as1=as0
+ac0=alarmIn
+at0=alarmSec
+as0=1
+}
+alarmCode=alarmIn
+}else
+{
+if(alarmCode==alarmIn)
+{
+alarmCode=0
+}
+if(ac0==alarmIn)
+{
+as0=3
+}
+if(ac1==alarmIn)
+{
+as1=3
+}
+if(ac2==alarmIn)
+{
+as2=3
+}
+if(ac3==alarmIn)
+{
+as3=3
+}
+if(ac4==alarmIn)
+{
+as4=3
+}
+if(ac5==alarmIn)
+{
+as5=3
+}
+}
+dirty=1
+}
+}
+if(dirty==1)
+{
+tState.txt="待机"
+if(run==1)
+{
+tState.txt="运行中"
+}
+dirty=0
+}
+if(msgPush==1)
+{
+msgPush=0
+if(msgCode==1)
+{
+tFoot.txt="已停止加热，旁路继电器保持"
+}
+if(msgCode==2)
+{
+tFoot.txt="禁止启动：请先保存保护参数"
+}
+if(msgCode==3)
+{
+tFoot.txt="禁止启动：谐振采样无效"
+}
+if(msgCode==4)
+{
+tFoot.txt="禁止启动：母线采样无效"
+}
+if(msgCode==5)
+{
+tFoot.txt="禁止启动：母线低于欠压门限"
+}
+if(msgCode==6)
+{
+tFoot.txt="禁止启动：母线达到过压门限"
+}
+if(msgCode==7)
+{
+tFoot.txt="禁止启动：电流达到保护门限"
+}
+if(msgCode==8)
+{
+tFoot.txt="硬件保护已锁存，请先复位"
+}
+if(msgCode==9)
+{
+tFoot.txt="故障已锁存，请到保护页复位"
+}
+if(msgCode==10)
+{
+tFoot.txt="本次欠压："
+tmp=msgA/10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"."
+tmp=msgA%10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"V，门限"
+covx msgB,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"V，请复位"
+}
+if(msgCode==11)
+{
+tFoot.txt="禁止启动：屏幕通信未恢复"
+}
+if(msgCode==12)
+{
+tFoot.txt="正在启动或加热中"
+}
+if(msgCode==13)
+{
+tFoot.txt="正在同步屏幕，请稍候"
+}
+if(msgCode==14)
+{
+tFoot.txt="正在搜频锁相，温控尚未启用"
+}
+if(msgCode==15)
+{
+tFoot.txt="温控方案保存功能尚未接入"
+}
+if(msgCode==16)
+{
+tFoot.txt="请先停止加热，等待保存完成"
+}
+if(msgCode==17)
+{
+tFoot.txt="正在读取保护参数"
+}
+if(msgCode==18)
+{
+tFoot.txt="故障已复位，请重新点击启动"
+}
+if(msgCode==19)
+{
+tFoot.txt="无法复位：母线仍低于欠压门限"
+}
+if(msgCode==20)
+{
+tFoot.txt="无法复位：检查故障与采样通信"
+}
+if(msgCode==21)
+{
+tFoot.txt="报警已确认，故障锁存仍保留"
+}
+if(msgCode==22)
+{
+tFoot.txt="功率与温度闭环功能尚未接入"
+}
+if(msgCode==23)
+{
+tFoot.txt="搜频未接入，当前为设定频率"
+}
+if(msgCode==24)
+{
+tFoot.txt="参数已修改，本次读取取消"
+}
+if(msgCode==25)
+{
+tFoot.txt="屏幕通信正常，主控已连接"
+}
+if(msgCode==26)
+{
+tFoot.txt="通信正常，请先保存保护参数"
+}
+if(msgCode==27)
+{
+tFoot.txt="保护参数已保存，温度保护未启用"
+}
+if(msgCode==28)
+{
+tFoot.txt="保存失败，请检查参数与状态"
+}
+if(msgCode==29)
+{
+tFoot.txt="屏幕无应答，请检查通信接线"
+}
+if(msgCode==30)
+{
+tFoot.txt="采样或通信故障，请到保护页查看"
+}
+if(msgCode==31)
+{
+tFoot.txt="读取超时，参数未修改"
+}
+if(msgCode==32)
+{
+tFoot.txt="上次欠压："
+tmp=msgA/10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"."
+tmp=msgA%10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"V，门限"
+covx msgB,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"V，请复位"
+}
+if(msgCode==33)
+{
+tFoot.txt="正在读取温控或功率设置"
+}
+if(msgCode==34)
+{
+tFoot.txt="目标已应用；温控及限功率尚未启用"
+}
+if(msgCode==35)
+{
+tFoot.txt="应用失败，请检查参数与运行状态"
+}
+if(msgCode==36)
+{
+tFoot.txt="正在读取搜频上下限"
+}
+if(msgCode==37)
+{
+tFoot.txt="搜频范围须在11至40kHz内"
+}
+if(msgCode==38)
+{
+tFoot.txt="相位采样失效，已停止加热"
+}
+if(msgCode==39)
+{
+tFoot.txt="范围内无法锁定，请检查负载"
+}
+if(msgCode==40)
+{
+tFoot.txt="搜频锁相超时，已停止加热"
+}
+if(msgCode==41)
+{
+tFoot.txt="相位裕量不足，已停止加热"
+}
+if(msgCode==42)
+{
+tFoot.txt="调频更新失败，已停止加热"
+}
+if(msgCode==43)
+{
+tFoot.txt="本次峰值过流："
+tmp=msgA/10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"."
+tmp=msgA%10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"A，门限"
+covx msgB,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"A，请复位"
+}
+if(msgCode==44)
+{
+tFoot.txt="硬件过流已锁存，请核对PB11"
+}
+if(msgCode==45)
+{
+tFoot.txt="过流已锁存，请检查采样与保护"
+}
 }
 
 ## 页面后初始化
@@ -272,1733 +323,1835 @@ click bTable,0
 
 ## bStop 停止加热 触摸弹起
 
-printh 65 01 04 00 FF FF FF
-cmd=2
-printh A5 5A 01 01 02 FF FF FF
+printh 65 01 04 00 FF FF FF
+cmd=2
+printh A5 5A 01 01 02 FF FF FF
 tFoot.txt="停止请求已发送；等待主控"
 
 ## bNav0 运行总览 触摸弹起
 
-printh 65 01 06 00 FF FF FF
+printh 65 01 06 00 FF FF FF
 page 0
 
 ## bNav1 分段温控 触摸弹起
 
-printh 65 01 07 00 FF FF FF
+printh 65 01 07 00 FF FF FF
 page 1
 
 ## bNav2 曲线调试 触摸弹起
 
-printh 65 01 08 00 FF FF FF
+printh 65 01 08 00 FF FF FF
 page 2
 
 ## bNav3 保护报警 触摸弹起
 
-printh 65 01 09 00 FF FF FF
+printh 65 01 09 00 FF FF FF
 page 5
 
 ## bplim 1500 触摸弹起
 
-printh 65 01 0C 00 FF FF FF
-if(run==0)
-{
-field=1
-backpg=1
-editval=plim
-editmin=1
-editmax=9999
-page 7
+printh 65 01 0C 00 FF FF FF
+if(run==0)
+{
+field=1
+backpg=1
+editval=plim
+editmin=1
+editmax=9999
+page 7
 }
 
 ## bMode LADRC 触摸弹起
 
-printh 65 01 10 00 FF FF FF
-if(run==0)
-{
-ddopen=1-ddopen
-if(ddopen==1)
-{
-vis bOpt0,1
-vis bOpt1,1
-vis bOpt2,1
-}else
-{
-click bTable,0
-}
+printh 65 01 10 00 FF FF FF
+if(run==0)
+{
+ddopen=1-ddopen
+if(ddopen==1)
+{
+vis bOpt0,1
+vis bOpt1,1
+vis bOpt2,1
+}else
+{
+click bTable,0
+}
 }
 
 ## bRow0 1 触摸弹起
 
-printh 65 01 15 00 FF FF FF
-sel=1
+printh 65 01 15 00 FF FF FF
+sel=1
 click bTable,0
 
 ## btg1 60 触摸弹起
 
-printh 65 01 17 00 FF FF FF
-if(run==0)
-{
-field=2
-backpg=1
-editval=tg1
-editmin=1
-editmax=999
-page 7
+printh 65 01 17 00 FF FF FF
+if(run==0)
+{
+field=2
+backpg=1
+editval=tg1
+editmin=1
+editmax=999
+page 7
 }
 
 ## bhd1 600 触摸弹起
 
-printh 65 01 19 00 FF FF FF
-if(run==0)
-{
-field=3
-backpg=1
-editval=hd1
-editmin=1
-editmax=9999
-page 7
+printh 65 01 19 00 FF FF FF
+if(run==0)
+{
+field=3
+backpg=1
+editval=hd1
+editmin=1
+editmax=9999
+page 7
 }
 
 ## bRow1 2 触摸弹起
 
-printh 65 01 1B 00 FF FF FF
-sel=2
+printh 65 01 1B 00 FF FF FF
+sel=2
 click bTable,0
 
 ## btg2 90 触摸弹起
 
-printh 65 01 1D 00 FF FF FF
-if(run==0)
-{
-field=4
-backpg=1
-editval=tg2
-editmin=1
-editmax=999
-page 7
+printh 65 01 1D 00 FF FF FF
+if(run==0)
+{
+field=4
+backpg=1
+editval=tg2
+editmin=1
+editmax=999
+page 7
 }
 
 ## bhd2 1800 触摸弹起
 
-printh 65 01 1F 00 FF FF FF
-if(run==0)
-{
-field=5
-backpg=1
-editval=hd2
-editmin=1
-editmax=9999
-page 7
+printh 65 01 1F 00 FF FF FF
+if(run==0)
+{
+field=5
+backpg=1
+editval=hd2
+editmin=1
+editmax=9999
+page 7
 }
 
 ## bRow2 3 触摸弹起
 
-printh 65 01 21 00 FF FF FF
-sel=3
+printh 65 01 21 00 FF FF FF
+sel=3
 click bTable,0
 
 ## btg3 120 触摸弹起
 
-printh 65 01 23 00 FF FF FF
-if(run==0)
-{
-field=6
-backpg=1
-editval=tg3
-editmin=1
-editmax=999
-page 7
+printh 65 01 23 00 FF FF FF
+if(run==0)
+{
+field=6
+backpg=1
+editval=tg3
+editmin=1
+editmax=999
+page 7
 }
 
 ## bhd3 3600 触摸弹起
 
-printh 65 01 25 00 FF FF FF
-if(run==0)
-{
-field=7
-backpg=1
-editval=hd3
-editmin=1
-editmax=9999
-page 7
+printh 65 01 25 00 FF FF FF
+if(run==0)
+{
+field=7
+backpg=1
+editval=hd3
+editmin=1
+editmax=9999
+page 7
 }
 
 ## bRow3 4 触摸弹起
 
-printh 65 01 27 00 FF FF FF
-sel=4
+printh 65 01 27 00 FF FF FF
+sel=4
 click bTable,0
 
 ## btg4 120 触摸弹起
 
-printh 65 01 29 00 FF FF FF
-if(run==0)
-{
-field=8
-backpg=1
-editval=tg4
-editmin=1
-editmax=999
-page 7
+printh 65 01 29 00 FF FF FF
+if(run==0)
+{
+field=8
+backpg=1
+editval=tg4
+editmin=1
+editmax=999
+page 7
 }
 
 ## bhd4 300 触摸弹起
 
-printh 65 01 2B 00 FF FF FF
-if(run==0)
-{
-field=9
-backpg=1
-editval=hd4
-editmin=1
-editmax=9999
-page 7
+printh 65 01 2B 00 FF FF FF
+if(run==0)
+{
+field=9
+backpg=1
+editval=hd4
+editmin=1
+editmax=9999
+page 7
 }
 
 ## bRow4 5 触摸弹起
 
-printh 65 01 2D 00 FF FF FF
-sel=5
+printh 65 01 2D 00 FF FF FF
+sel=5
 click bTable,0
 
 ## btg5 120 触摸弹起
 
-printh 65 01 2F 00 FF FF FF
-if(run==0)
-{
-field=10
-backpg=1
-editval=tg5
-editmin=1
-editmax=999
-page 7
+printh 65 01 2F 00 FF FF FF
+if(run==0)
+{
+field=10
+backpg=1
+editval=tg5
+editmin=1
+editmax=999
+page 7
 }
 
 ## bhd5 300 触摸弹起
 
-printh 65 01 31 00 FF FF FF
-if(run==0)
-{
-field=11
-backpg=1
-editval=hd5
-editmin=1
-editmax=9999
-page 7
+printh 65 01 31 00 FF FF FF
+if(run==0)
+{
+field=11
+backpg=1
+editval=hd5
+editmin=1
+editmax=9999
+page 7
 }
 
 ## bRow5 6 触摸弹起
 
-printh 65 01 33 00 FF FF FF
-sel=6
+printh 65 01 33 00 FF FF FF
+sel=6
 click bTable,0
 
 ## btg6 120 触摸弹起
 
-printh 65 01 35 00 FF FF FF
-if(run==0)
-{
-field=12
-backpg=1
-editval=tg6
-editmin=1
-editmax=999
-page 7
+printh 65 01 35 00 FF FF FF
+if(run==0)
+{
+field=12
+backpg=1
+editval=tg6
+editmin=1
+editmax=999
+page 7
 }
 
 ## bhd6 300 触摸弹起
 
-printh 65 01 37 00 FF FF FF
-if(run==0)
-{
-field=13
-backpg=1
-editval=hd6
-editmin=1
-editmax=9999
-page 7
+printh 65 01 37 00 FF FF FF
+if(run==0)
+{
+field=13
+backpg=1
+editval=hd6
+editmin=1
+editmax=9999
+page 7
 }
 
 ## bRow6 7 触摸弹起
 
-printh 65 01 39 00 FF FF FF
-sel=7
+printh 65 01 39 00 FF FF FF
+sel=7
 click bTable,0
 
 ## btg7 120 触摸弹起
 
-printh 65 01 3B 00 FF FF FF
-if(run==0)
-{
-field=14
-backpg=1
-editval=tg7
-editmin=1
-editmax=999
-page 7
+printh 65 01 3B 00 FF FF FF
+if(run==0)
+{
+field=14
+backpg=1
+editval=tg7
+editmin=1
+editmax=999
+page 7
 }
 
 ## bhd7 300 触摸弹起
 
-printh 65 01 3D 00 FF FF FF
-if(run==0)
-{
-field=15
-backpg=1
-editval=hd7
-editmin=1
-editmax=9999
-page 7
+printh 65 01 3D 00 FF FF FF
+if(run==0)
+{
+field=15
+backpg=1
+editval=hd7
+editmin=1
+editmax=9999
+page 7
 }
 
 ## bRow7 8 触摸弹起
 
-printh 65 01 3F 00 FF FF FF
-sel=8
+printh 65 01 3F 00 FF FF FF
+sel=8
 click bTable,0
 
 ## btg8 120 触摸弹起
 
-printh 65 01 41 00 FF FF FF
-if(run==0)
-{
-field=16
-backpg=1
-editval=tg8
-editmin=1
-editmax=999
-page 7
+printh 65 01 41 00 FF FF FF
+if(run==0)
+{
+field=16
+backpg=1
+editval=tg8
+editmin=1
+editmax=999
+page 7
 }
 
 ## bhd8 300 触摸弹起
 
-printh 65 01 43 00 FF FF FF
-if(run==0)
-{
-field=17
-backpg=1
-editval=hd8
-editmin=1
-editmax=9999
-page 7
+printh 65 01 43 00 FF FF FF
+if(run==0)
+{
+field=17
+backpg=1
+editval=hd8
+editmin=1
+editmax=9999
+page 7
 }
 
 ## bRow8 9 触摸弹起
 
-printh 65 01 45 00 FF FF FF
-sel=9
+printh 65 01 45 00 FF FF FF
+sel=9
 click bTable,0
 
 ## btg9 120 触摸弹起
 
-printh 65 01 47 00 FF FF FF
-if(run==0)
-{
-field=18
-backpg=1
-editval=tg9
-editmin=1
-editmax=999
-page 7
+printh 65 01 47 00 FF FF FF
+if(run==0)
+{
+field=18
+backpg=1
+editval=tg9
+editmin=1
+editmax=999
+page 7
 }
 
 ## bhd9 300 触摸弹起
 
-printh 65 01 49 00 FF FF FF
-if(run==0)
-{
-field=19
-backpg=1
-editval=hd9
-editmin=1
-editmax=9999
-page 7
+printh 65 01 49 00 FF FF FF
+if(run==0)
+{
+field=19
+backpg=1
+editval=hd9
+editmin=1
+editmax=9999
+page 7
 }
 
 ## bRow9 10 触摸弹起
 
-printh 65 01 4B 00 FF FF FF
-sel=10
+printh 65 01 4B 00 FF FF FF
+sel=10
 click bTable,0
 
 ## btg10 120 触摸弹起
 
-printh 65 01 4D 00 FF FF FF
-if(run==0)
-{
-field=20
-backpg=1
-editval=tg10
-editmin=1
-editmax=999
-page 7
+printh 65 01 4D 00 FF FF FF
+if(run==0)
+{
+field=20
+backpg=1
+editval=tg10
+editmin=1
+editmax=999
+page 7
 }
 
 ## bhd10 300 触摸弹起
 
-printh 65 01 4F 00 FF FF FF
-if(run==0)
-{
-field=21
-backpg=1
-editval=hd10
-editmin=1
-editmax=9999
-page 7
+printh 65 01 4F 00 FF FF FF
+if(run==0)
+{
+field=21
+backpg=1
+editval=hd10
+editmin=1
+editmax=9999
+page 7
 }
 
 ## bRow10 11 触摸弹起
 
-printh 65 01 51 00 FF FF FF
-sel=11
+printh 65 01 51 00 FF FF FF
+sel=11
 click bTable,0
 
 ## btg11 120 触摸弹起
 
-printh 65 01 53 00 FF FF FF
-if(run==0)
-{
-field=22
-backpg=1
-editval=tg11
-editmin=1
-editmax=999
-page 7
+printh 65 01 53 00 FF FF FF
+if(run==0)
+{
+field=22
+backpg=1
+editval=tg11
+editmin=1
+editmax=999
+page 7
 }
 
 ## bhd11 300 触摸弹起
 
-printh 65 01 55 00 FF FF FF
-if(run==0)
-{
-field=23
-backpg=1
-editval=hd11
-editmin=1
-editmax=9999
-page 7
+printh 65 01 55 00 FF FF FF
+if(run==0)
+{
+field=23
+backpg=1
+editval=hd11
+editmin=1
+editmax=9999
+page 7
 }
 
 ## bRow11 12 触摸弹起
 
-printh 65 01 57 00 FF FF FF
-sel=12
+printh 65 01 57 00 FF FF FF
+sel=12
 click bTable,0
 
 ## btg12 120 触摸弹起
 
-printh 65 01 59 00 FF FF FF
-if(run==0)
-{
-field=24
-backpg=1
-editval=tg12
-editmin=1
-editmax=999
-page 7
+printh 65 01 59 00 FF FF FF
+if(run==0)
+{
+field=24
+backpg=1
+editval=tg12
+editmin=1
+editmax=999
+page 7
 }
 
 ## bhd12 300 触摸弹起
 
-printh 65 01 5B 00 FF FF FF
-if(run==0)
-{
-field=25
-backpg=1
-editval=hd12
-editmin=1
-editmax=9999
-page 7
+printh 65 01 5B 00 FF FF FF
+if(run==0)
+{
+field=25
+backpg=1
+editval=hd12
+editmin=1
+editmax=9999
+page 7
 }
 
 ## bAdd 插入温段 触摸弹起
 
-printh 65 01 5C 00 FF FF FF
-if(run==0&&nseg<12)
-{
-if(sel<=11&&nseg>=11)
-{
-tg12=tg11
-hd12=hd11
-}
-if(sel<=10&&nseg>=10)
-{
-tg11=tg10
-hd11=hd10
-}
-if(sel<=9&&nseg>=9)
-{
-tg10=tg9
-hd10=hd9
-}
-if(sel<=8&&nseg>=8)
-{
-tg9=tg8
-hd9=hd8
-}
-if(sel<=7&&nseg>=7)
-{
-tg8=tg7
-hd8=hd7
-}
-if(sel<=6&&nseg>=6)
-{
-tg7=tg6
-hd7=hd6
-}
-if(sel<=5&&nseg>=5)
-{
-tg6=tg5
-hd6=hd5
-}
-if(sel<=4&&nseg>=4)
-{
-tg5=tg4
-hd5=hd4
-}
-if(sel<=3&&nseg>=3)
-{
-tg4=tg3
-hd4=hd3
-}
-if(sel<=2&&nseg>=2)
-{
-tg3=tg2
-hd3=hd2
-}
-if(sel<=1&&nseg>=1)
-{
-tg2=tg1
-hd2=hd1
-}
-sel=sel+1
-nseg=nseg+1
-if(sel==1)
-{
-tg1=120
-hd1=300
-}
-if(sel==2)
-{
-tg2=120
-hd2=300
-}
-if(sel==3)
-{
-tg3=120
-hd3=300
-}
-if(sel==4)
-{
-tg4=120
-hd4=300
-}
-if(sel==5)
-{
-tg5=120
-hd5=300
-}
-if(sel==6)
-{
-tg6=120
-hd6=300
-}
-if(sel==7)
-{
-tg7=120
-hd7=300
-}
-if(sel==8)
-{
-tg8=120
-hd8=300
-}
-if(sel==9)
-{
-tg9=120
-hd9=300
-}
-if(sel==10)
-{
-tg10=120
-hd10=300
-}
-if(sel==11)
-{
-tg11=120
-hd11=300
-}
-if(sel==12)
-{
-tg12=120
-hd12=300
-}
-stagepage=sel-1
-stagepage=stagepage/6
-click bTable,0
-printh A5 5A 02 01 00
-prints nseg,4
-printh FF FF FF
-tFoot.txt="已插入温段"
-}else
-{
-tFoot.txt="运行中或已达12段，不能插入"
+printh 65 01 5C 00 FF FF FF
+if(run==0&&nseg<12)
+{
+if(sel<=11&&nseg>=11)
+{
+tg12=tg11
+hd12=hd11
+}
+if(sel<=10&&nseg>=10)
+{
+tg11=tg10
+hd11=hd10
+}
+if(sel<=9&&nseg>=9)
+{
+tg10=tg9
+hd10=hd9
+}
+if(sel<=8&&nseg>=8)
+{
+tg9=tg8
+hd9=hd8
+}
+if(sel<=7&&nseg>=7)
+{
+tg8=tg7
+hd8=hd7
+}
+if(sel<=6&&nseg>=6)
+{
+tg7=tg6
+hd7=hd6
+}
+if(sel<=5&&nseg>=5)
+{
+tg6=tg5
+hd6=hd5
+}
+if(sel<=4&&nseg>=4)
+{
+tg5=tg4
+hd5=hd4
+}
+if(sel<=3&&nseg>=3)
+{
+tg4=tg3
+hd4=hd3
+}
+if(sel<=2&&nseg>=2)
+{
+tg3=tg2
+hd3=hd2
+}
+if(sel<=1&&nseg>=1)
+{
+tg2=tg1
+hd2=hd1
+}
+sel=sel+1
+nseg=nseg+1
+if(sel==1)
+{
+tg1=120
+hd1=300
+}
+if(sel==2)
+{
+tg2=120
+hd2=300
+}
+if(sel==3)
+{
+tg3=120
+hd3=300
+}
+if(sel==4)
+{
+tg4=120
+hd4=300
+}
+if(sel==5)
+{
+tg5=120
+hd5=300
+}
+if(sel==6)
+{
+tg6=120
+hd6=300
+}
+if(sel==7)
+{
+tg7=120
+hd7=300
+}
+if(sel==8)
+{
+tg8=120
+hd8=300
+}
+if(sel==9)
+{
+tg9=120
+hd9=300
+}
+if(sel==10)
+{
+tg10=120
+hd10=300
+}
+if(sel==11)
+{
+tg11=120
+hd11=300
+}
+if(sel==12)
+{
+tg12=120
+hd12=300
+}
+stagepage=sel-1
+stagepage=stagepage/6
+click bTable,0
+printh A5 5A 02 01 00
+prints nseg,4
+printh FF FF FF
+tFoot.txt="已插入温段"
+}else
+{
+tFoot.txt="运行中或已达12段，不能插入"
 }
 
 ## bRemove 删除选中 触摸弹起
 
-printh 65 01 5D 00 FF FF FF
-if(run==0&&nseg>1)
-{
-if(sel<=1&&nseg>1)
-{
-tg1=tg2
-hd1=hd2
-}
-if(sel<=2&&nseg>2)
-{
-tg2=tg3
-hd2=hd3
-}
-if(sel<=3&&nseg>3)
-{
-tg3=tg4
-hd3=hd4
-}
-if(sel<=4&&nseg>4)
-{
-tg4=tg5
-hd4=hd5
-}
-if(sel<=5&&nseg>5)
-{
-tg5=tg6
-hd5=hd6
-}
-if(sel<=6&&nseg>6)
-{
-tg6=tg7
-hd6=hd7
-}
-if(sel<=7&&nseg>7)
-{
-tg7=tg8
-hd7=hd8
-}
-if(sel<=8&&nseg>8)
-{
-tg8=tg9
-hd8=hd9
-}
-if(sel<=9&&nseg>9)
-{
-tg9=tg10
-hd9=hd10
-}
-if(sel<=10&&nseg>10)
-{
-tg10=tg11
-hd10=hd11
-}
-if(sel<=11&&nseg>11)
-{
-tg11=tg12
-hd11=hd12
-}
-nseg=nseg-1
-if(sel>nseg)
-{
-sel=nseg
-}
-stagepage=sel-1
-stagepage=stagepage/6
-click bTable,0
-printh A5 5A 02 01 00
-prints nseg,4
-printh FF FF FF
-tFoot.txt="已删除温段"
-}else
-{
-tFoot.txt="运行中或仅剩1段，不能删除"
+printh 65 01 5D 00 FF FF FF
+if(run==0&&nseg>1)
+{
+if(sel<=1&&nseg>1)
+{
+tg1=tg2
+hd1=hd2
+}
+if(sel<=2&&nseg>2)
+{
+tg2=tg3
+hd2=hd3
+}
+if(sel<=3&&nseg>3)
+{
+tg3=tg4
+hd3=hd4
+}
+if(sel<=4&&nseg>4)
+{
+tg4=tg5
+hd4=hd5
+}
+if(sel<=5&&nseg>5)
+{
+tg5=tg6
+hd5=hd6
+}
+if(sel<=6&&nseg>6)
+{
+tg6=tg7
+hd6=hd7
+}
+if(sel<=7&&nseg>7)
+{
+tg7=tg8
+hd7=hd8
+}
+if(sel<=8&&nseg>8)
+{
+tg8=tg9
+hd8=hd9
+}
+if(sel<=9&&nseg>9)
+{
+tg9=tg10
+hd9=hd10
+}
+if(sel<=10&&nseg>10)
+{
+tg10=tg11
+hd10=hd11
+}
+if(sel<=11&&nseg>11)
+{
+tg11=tg12
+hd11=hd12
+}
+nseg=nseg-1
+if(sel>nseg)
+{
+sel=nseg
+}
+stagepage=sel-1
+stagepage=stagepage/6
+click bTable,0
+printh A5 5A 02 01 00
+prints nseg,4
+printh FF FF FF
+tFoot.txt="已删除温段"
+}else
+{
+tFoot.txt="运行中或仅剩1段，不能删除"
 }
 
 ## bPrev 上一页 触摸弹起
 
-printh 65 01 5E 00 FF FF FF
-stagepage=0
-sel=1
+printh 65 01 5E 00 FF FF FF
+stagepage=0
+sel=1
 click bTable,0
 
 ## bNext 下一页 触摸弹起
 
-printh 65 01 5F 00 FF FF FF
-if(nseg>6)
-{
-stagepage=1
-sel=7
-click bTable,0
+printh 65 01 5F 00 FF FF FF
+if(nseg>6)
+{
+stagepage=1
+sel=7
+click bTable,0
 }
 
 ## bSave 保存方案 触摸弹起
 
-printh 65 01 6A 00 FF FF FF
-saved=1
-cmd=4
-printh A5 5A 01 01 04 FF FF FF
+printh 65 01 6A 00 FF FF FF
+saved=1
+cmd=4
+printh A5 5A 01 01 04 FF FF FF
 tFoot.txt="保存请求已发送；等待主控"
 
 ## bApply 应用参数 触摸弹起
 
-printh 65 01 6B 00 FF FF FF
-if(run==0)
-{
-cmd=3
-printh A5 5A 01 01 03 FF FF FF
-tFoot.txt="应用请求已发送；等待主控"
-}else
-{
-tFoot.txt="请停止加热后操作"
+printh 65 01 6B 00 FF FF FF
+if(run==0)
+{
+cmd=3
+printh A5 5A 01 01 03 FF FF FF
+tFoot.txt="应用请求已发送；等待主控"
+}else
+{
+tFoot.txt="请停止加热后操作"
 }
 
 ## bOpt0 LADRC 触摸弹起
 
-printh 65 01 6C 00 FF FF FF
-mode=0
-click bTable,0
-printh A5 5A 02 01 00
-prints mode,4
-printh FF FF FF
+printh 65 01 6C 00 FF FF FF
+mode=0
+click bTable,0
+printh A5 5A 02 01 00
+prints mode,4
+printh FF FF FF
 tFoot.txt="算法已暂选；闭环尚未启用"
 
 ## bOpt1 PID 触摸弹起
 
-printh 65 01 6D 00 FF FF FF
-mode=1
-click bTable,0
-printh A5 5A 02 01 00
-prints mode,4
-printh FF FF FF
+printh 65 01 6D 00 FF FF FF
+mode=1
+click bTable,0
+printh A5 5A 02 01 00
+prints mode,4
+printh FF FF FF
 tFoot.txt="算法已暂选；闭环尚未启用"
 
 ## bOpt2 模糊自抗扰 触摸弹起
 
-printh 65 01 6E 00 FF FF FF
-mode=2
-click bTable,0
-printh A5 5A 02 01 00
-prints mode,4
-printh FF FF FF
+printh 65 01 6E 00 FF FF FF
+mode=2
+click bTable,0
+printh A5 5A 02 01 00
+prints mode,4
+printh FF FF FF
 tFoot.txt="算法已暂选；闭环尚未启用"
 
 ## bInput  触摸弹起
 
-if(runId!=seenRun)
-{
-seenRun=runId
-clearPlot=1
-}
-if(clearPlot==1)
-{
-clearPlot=0
-frozen=0
-follow=1
-dirty=1
-tfrom=0
-tto=600
-pfrom=0
-pto=600
-ffrom=0
-fto=60
-afrom=0
-ato=60
-if(curvePage!=255)
-{
-click bView,0
-}
-}
-if(alarmPush==1)
-{
-alarmPush=0
-if(alarmIn>=1&&alarmIn<=8)
-{
-if(alarmOn==1)
-{
-if(alarmCode!=alarmIn)
-{
-ac5=ac4
-at5=at4
-as5=as4
-ac4=ac3
-at4=at3
-as4=as3
-ac3=ac2
-at3=at2
-as3=as2
-ac2=ac1
-at2=at1
-as2=as1
-ac1=ac0
-at1=at0
-as1=as0
-ac0=alarmIn
-at0=alarmSec
-as0=1
-}
-alarmCode=alarmIn
-}else
-{
-if(alarmCode==alarmIn)
-{
-alarmCode=0
-}
-if(ac0==alarmIn)
-{
-as0=3
-}
-if(ac1==alarmIn)
-{
-as1=3
-}
-if(ac2==alarmIn)
-{
-as2=3
-}
-if(ac3==alarmIn)
-{
-as3=3
-}
-if(ac4==alarmIn)
-{
-as4=3
-}
-if(ac5==alarmIn)
-{
-as5=3
-}
-}
-dirty=1
-}
-}
-if(dirty==1)
-{
-tState.txt="待机"
-if(run==1)
-{
-tState.txt="运行中"
-}
-dirty=0
-}
-if(msgPush==1)
-{
-msgPush=0
-if(msgCode==1)
-{
-tFoot.txt="已停止加热，旁路继电器保持"
-}
-if(msgCode==2)
-{
-tFoot.txt="禁止启动：请先保存保护参数"
-}
-if(msgCode==3)
-{
-tFoot.txt="禁止启动：谐振采样无效"
-}
-if(msgCode==4)
-{
-tFoot.txt="禁止启动：母线采样无效"
-}
-if(msgCode==5)
-{
-tFoot.txt="禁止启动：母线低于欠压门限"
-}
-if(msgCode==6)
-{
-tFoot.txt="禁止启动：母线达到过压门限"
-}
-if(msgCode==7)
-{
-tFoot.txt="禁止启动：电流达到保护门限"
-}
-if(msgCode==8)
-{
-tFoot.txt="硬件保护已锁存，请先复位"
-}
-if(msgCode==9)
-{
-tFoot.txt="故障已锁存，请到保护页复位"
-}
-if(msgCode==10)
-{
-tFoot.txt="本次欠压："
-tmp=msgA/10
-covx tmp,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"."
-tmp=msgA%10
-covx tmp,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"V，门限"
-covx msgB,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"V，请复位"
-}
-if(msgCode==11)
-{
-tFoot.txt="禁止启动：屏幕通信未恢复"
-}
-if(msgCode==12)
-{
-tFoot.txt="正在启动或加热中"
-}
-if(msgCode==13)
-{
-tFoot.txt="正在同步屏幕，请稍候"
-}
-if(msgCode==14)
-{
-tFoot.txt="正在软启动，温控暂未启用"
-}
-if(msgCode==15)
-{
-tFoot.txt="温控方案保存功能尚未接入"
-}
-if(msgCode==16)
-{
-tFoot.txt="请先停止加热，等待保存完成"
-}
-if(msgCode==17)
-{
-tFoot.txt="正在读取保护参数"
-}
-if(msgCode==18)
-{
-tFoot.txt="故障已复位，请重新点击启动"
-}
-if(msgCode==19)
-{
-tFoot.txt="无法复位：母线仍低于欠压门限"
-}
-if(msgCode==20)
-{
-tFoot.txt="无法复位：检查故障与采样通信"
-}
-if(msgCode==21)
-{
-tFoot.txt="报警已确认，故障锁存仍保留"
-}
-if(msgCode==22)
-{
-tFoot.txt="功率与温度闭环功能尚未接入"
-}
-if(msgCode==23)
-{
-tFoot.txt="搜频未接入，当前为设定频率"
-}
-if(msgCode==24)
-{
-tFoot.txt="参数已修改，本次读取取消"
-}
-if(msgCode==25)
-{
-tFoot.txt="屏幕通信正常，主控已连接"
-}
-if(msgCode==26)
-{
-tFoot.txt="通信正常，请先保存保护参数"
-}
-if(msgCode==27)
-{
-tFoot.txt="保护参数已保存，温度保护未启用"
-}
-if(msgCode==28)
-{
-tFoot.txt="保存失败，请检查参数与状态"
-}
-if(msgCode==29)
-{
-tFoot.txt="屏幕无应答，请检查通信接线"
-}
-if(msgCode==30)
-{
-tFoot.txt="采样或通信故障，请到保护页查看"
-}
-if(msgCode==31)
-{
-tFoot.txt="读取超时，参数未修改"
-}
-if(msgCode==32)
-{
-tFoot.txt="上次欠压："
-tmp=msgA/10
-covx tmp,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"."
-tmp=msgA%10
-covx tmp,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"V，门限"
-covx msgB,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"V，请复位"
-}
-if(msgCode==33)
-{
-tFoot.txt="正在读取温控或功率设置"
-}
-if(msgCode==34)
-{
-tFoot.txt="目标已应用；温控及限功率尚未启用"
-}
-if(msgCode==35)
-{
-tFoot.txt="应用失败，请检查参数与运行状态"
-}
+if(runId!=seenRun)
+{
+seenRun=runId
+clearPlot=1
+}
+if(clearPlot==1)
+{
+clearPlot=0
+frozen=0
+follow=1
+dirty=1
+tfrom=0
+tto=600
+pfrom=0
+pto=600
+ffrom=0
+fto=60
+afrom=0
+ato=60
+if(curvePage!=255)
+{
+click bView,0
+}
+}
+if(alarmPush==1)
+{
+alarmPush=0
+if(alarmIn>=1&&alarmIn<=8)
+{
+if(alarmOn==1)
+{
+if(alarmCode!=alarmIn)
+{
+ac5=ac4
+at5=at4
+as5=as4
+ac4=ac3
+at4=at3
+as4=as3
+ac3=ac2
+at3=at2
+as3=as2
+ac2=ac1
+at2=at1
+as2=as1
+ac1=ac0
+at1=at0
+as1=as0
+ac0=alarmIn
+at0=alarmSec
+as0=1
+}
+alarmCode=alarmIn
+}else
+{
+if(alarmCode==alarmIn)
+{
+alarmCode=0
+}
+if(ac0==alarmIn)
+{
+as0=3
+}
+if(ac1==alarmIn)
+{
+as1=3
+}
+if(ac2==alarmIn)
+{
+as2=3
+}
+if(ac3==alarmIn)
+{
+as3=3
+}
+if(ac4==alarmIn)
+{
+as4=3
+}
+if(ac5==alarmIn)
+{
+as5=3
+}
+}
+dirty=1
+}
+}
+if(dirty==1)
+{
+tState.txt="待机"
+if(run==1)
+{
+tState.txt="运行中"
+}
+dirty=0
+}
+if(msgPush==1)
+{
+msgPush=0
+if(msgCode==1)
+{
+tFoot.txt="已停止加热，旁路继电器保持"
+}
+if(msgCode==2)
+{
+tFoot.txt="禁止启动：请先保存保护参数"
+}
+if(msgCode==3)
+{
+tFoot.txt="禁止启动：谐振采样无效"
+}
+if(msgCode==4)
+{
+tFoot.txt="禁止启动：母线采样无效"
+}
+if(msgCode==5)
+{
+tFoot.txt="禁止启动：母线低于欠压门限"
+}
+if(msgCode==6)
+{
+tFoot.txt="禁止启动：母线达到过压门限"
+}
+if(msgCode==7)
+{
+tFoot.txt="禁止启动：电流达到保护门限"
+}
+if(msgCode==8)
+{
+tFoot.txt="硬件保护已锁存，请先复位"
+}
+if(msgCode==9)
+{
+tFoot.txt="故障已锁存，请到保护页复位"
+}
+if(msgCode==10)
+{
+tFoot.txt="本次欠压："
+tmp=msgA/10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"."
+tmp=msgA%10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"V，门限"
+covx msgB,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"V，请复位"
+}
+if(msgCode==11)
+{
+tFoot.txt="禁止启动：屏幕通信未恢复"
+}
+if(msgCode==12)
+{
+tFoot.txt="正在启动或加热中"
+}
+if(msgCode==13)
+{
+tFoot.txt="正在同步屏幕，请稍候"
+}
+if(msgCode==14)
+{
+tFoot.txt="正在搜频锁相，温控尚未启用"
+}
+if(msgCode==15)
+{
+tFoot.txt="温控方案保存功能尚未接入"
+}
+if(msgCode==16)
+{
+tFoot.txt="请先停止加热，等待保存完成"
+}
+if(msgCode==17)
+{
+tFoot.txt="正在读取保护参数"
+}
+if(msgCode==18)
+{
+tFoot.txt="故障已复位，请重新点击启动"
+}
+if(msgCode==19)
+{
+tFoot.txt="无法复位：母线仍低于欠压门限"
+}
+if(msgCode==20)
+{
+tFoot.txt="无法复位：检查故障与采样通信"
+}
+if(msgCode==21)
+{
+tFoot.txt="报警已确认，故障锁存仍保留"
+}
+if(msgCode==22)
+{
+tFoot.txt="功率与温度闭环功能尚未接入"
+}
+if(msgCode==23)
+{
+tFoot.txt="搜频未接入，当前为设定频率"
+}
+if(msgCode==24)
+{
+tFoot.txt="参数已修改，本次读取取消"
+}
+if(msgCode==25)
+{
+tFoot.txt="屏幕通信正常，主控已连接"
+}
+if(msgCode==26)
+{
+tFoot.txt="通信正常，请先保存保护参数"
+}
+if(msgCode==27)
+{
+tFoot.txt="保护参数已保存，温度保护未启用"
+}
+if(msgCode==28)
+{
+tFoot.txt="保存失败，请检查参数与状态"
+}
+if(msgCode==29)
+{
+tFoot.txt="屏幕无应答，请检查通信接线"
+}
+if(msgCode==30)
+{
+tFoot.txt="采样或通信故障，请到保护页查看"
+}
+if(msgCode==31)
+{
+tFoot.txt="读取超时，参数未修改"
+}
+if(msgCode==32)
+{
+tFoot.txt="上次欠压："
+tmp=msgA/10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"."
+tmp=msgA%10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"V，门限"
+covx msgB,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"V，请复位"
+}
+if(msgCode==33)
+{
+tFoot.txt="正在读取温控或功率设置"
+}
+if(msgCode==34)
+{
+tFoot.txt="目标已应用；温控及限功率尚未启用"
+}
+if(msgCode==35)
+{
+tFoot.txt="应用失败，请检查参数与运行状态"
+}
+if(msgCode==36)
+{
+tFoot.txt="正在读取搜频上下限"
+}
+if(msgCode==37)
+{
+tFoot.txt="搜频范围须在11至40kHz内"
+}
+if(msgCode==38)
+{
+tFoot.txt="相位采样失效，已停止加热"
+}
+if(msgCode==39)
+{
+tFoot.txt="范围内无法锁定，请检查负载"
+}
+if(msgCode==40)
+{
+tFoot.txt="搜频锁相超时，已停止加热"
+}
+if(msgCode==41)
+{
+tFoot.txt="相位裕量不足，已停止加热"
+}
+if(msgCode==42)
+{
+tFoot.txt="调频更新失败，已停止加热"
+}
+if(msgCode==43)
+{
+tFoot.txt="本次峰值过流："
+tmp=msgA/10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"."
+tmp=msgA%10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"A，门限"
+covx msgB,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"A，请复位"
+}
+if(msgCode==44)
+{
+tFoot.txt="硬件过流已锁存，请核对PB11"
+}
+if(msgCode==45)
+{
+tFoot.txt="过流已锁存，请检查采样与保护"
+}
 }
 
 ## bTable  触摸弹起
 
-ref_stop
-vis bInput,0
-vis tFmt,0
-vis tNum,0
-vis bView,0
-vis bCurve,0
-curvePage=255
-if(run==1)
-{
-tState.txt="运行中"
-}
-covx plim,bplim.txt,0,0
-ddopen=0
-vis bOpt0,0
-vis bOpt1,0
-vis bOpt2,0
-ref tPreview
-vis fr0,0
-vis bRow0,0
-vis ftg1,0
-vis btg1,0
-vis fhd1,0
-vis bhd1,0
-bRow0.bco=65535
-bRow0.pco=10631
-vis fr1,0
-vis bRow1,0
-vis ftg2,0
-vis btg2,0
-vis fhd2,0
-vis bhd2,0
-bRow1.bco=65535
-bRow1.pco=10631
-vis fr2,0
-vis bRow2,0
-vis ftg3,0
-vis btg3,0
-vis fhd3,0
-vis bhd3,0
-bRow2.bco=65535
-bRow2.pco=10631
-vis fr3,0
-vis bRow3,0
-vis ftg4,0
-vis btg4,0
-vis fhd4,0
-vis bhd4,0
-bRow3.bco=65535
-bRow3.pco=10631
-vis fr4,0
-vis bRow4,0
-vis ftg5,0
-vis btg5,0
-vis fhd5,0
-vis bhd5,0
-bRow4.bco=65535
-bRow4.pco=10631
-vis fr5,0
-vis bRow5,0
-vis ftg6,0
-vis btg6,0
-vis fhd6,0
-vis bhd6,0
-bRow5.bco=65535
-bRow5.pco=10631
-vis fr6,0
-vis bRow6,0
-vis ftg7,0
-vis btg7,0
-vis fhd7,0
-vis bhd7,0
-bRow6.bco=65535
-bRow6.pco=10631
-vis fr7,0
-vis bRow7,0
-vis ftg8,0
-vis btg8,0
-vis fhd8,0
-vis bhd8,0
-bRow7.bco=65535
-bRow7.pco=10631
-vis fr8,0
-vis bRow8,0
-vis ftg9,0
-vis btg9,0
-vis fhd9,0
-vis bhd9,0
-bRow8.bco=65535
-bRow8.pco=10631
-vis fr9,0
-vis bRow9,0
-vis ftg10,0
-vis btg10,0
-vis fhd10,0
-vis bhd10,0
-bRow9.bco=65535
-bRow9.pco=10631
-vis fr10,0
-vis bRow10,0
-vis ftg11,0
-vis btg11,0
-vis fhd11,0
-vis bhd11,0
-bRow10.bco=65535
-bRow10.pco=10631
-vis fr11,0
-vis bRow11,0
-vis ftg12,0
-vis btg12,0
-vis fhd12,0
-vis bhd12,0
-bRow11.bco=65535
-bRow11.pco=10631
-if(mode==0)
-{
-bMode.txt="LADRC"
-}
-if(mode==1)
-{
-bMode.txt="PID"
-}
-if(mode==2)
-{
-bMode.txt="模糊自抗扰"
-}
-covx tg1,btg1.txt,0,0
-covx hd1,bhd1.txt,0,0
-if(stagepage==0&&nseg>=1)
-{
-vis fr0,1
-vis bRow0,1
-vis ftg1,1
-vis btg1,1
-vis fhd1,1
-vis bhd1,1
-if(sel==1)
-{
-bRow0.bco=5116
-bRow0.pco=65535
-}
-}
-covx tg2,btg2.txt,0,0
-covx hd2,bhd2.txt,0,0
-if(stagepage==0&&nseg>=2)
-{
-vis fr1,1
-vis bRow1,1
-vis ftg2,1
-vis btg2,1
-vis fhd2,1
-vis bhd2,1
-if(sel==2)
-{
-bRow1.bco=5116
-bRow1.pco=65535
-}
-}
-covx tg3,btg3.txt,0,0
-covx hd3,bhd3.txt,0,0
-if(stagepage==0&&nseg>=3)
-{
-vis fr2,1
-vis bRow2,1
-vis ftg3,1
-vis btg3,1
-vis fhd3,1
-vis bhd3,1
-if(sel==3)
-{
-bRow2.bco=5116
-bRow2.pco=65535
-}
-}
-covx tg4,btg4.txt,0,0
-covx hd4,bhd4.txt,0,0
-if(stagepage==0&&nseg>=4)
-{
-vis fr3,1
-vis bRow3,1
-vis ftg4,1
-vis btg4,1
-vis fhd4,1
-vis bhd4,1
-if(sel==4)
-{
-bRow3.bco=5116
-bRow3.pco=65535
-}
-}
-covx tg5,btg5.txt,0,0
-covx hd5,bhd5.txt,0,0
-if(stagepage==0&&nseg>=5)
-{
-vis fr4,1
-vis bRow4,1
-vis ftg5,1
-vis btg5,1
-vis fhd5,1
-vis bhd5,1
-if(sel==5)
-{
-bRow4.bco=5116
-bRow4.pco=65535
-}
-}
-covx tg6,btg6.txt,0,0
-covx hd6,bhd6.txt,0,0
-if(stagepage==0&&nseg>=6)
-{
-vis fr5,1
-vis bRow5,1
-vis ftg6,1
-vis btg6,1
-vis fhd6,1
-vis bhd6,1
-if(sel==6)
-{
-bRow5.bco=5116
-bRow5.pco=65535
-}
-}
-covx tg7,btg7.txt,0,0
-covx hd7,bhd7.txt,0,0
-if(stagepage==1&&nseg>=7)
-{
-vis fr6,1
-vis bRow6,1
-vis ftg7,1
-vis btg7,1
-vis fhd7,1
-vis bhd7,1
-if(sel==7)
-{
-bRow6.bco=5116
-bRow6.pco=65535
-}
-}
-covx tg8,btg8.txt,0,0
-covx hd8,bhd8.txt,0,0
-if(stagepage==1&&nseg>=8)
-{
-vis fr7,1
-vis bRow7,1
-vis ftg8,1
-vis btg8,1
-vis fhd8,1
-vis bhd8,1
-if(sel==8)
-{
-bRow7.bco=5116
-bRow7.pco=65535
-}
-}
-covx tg9,btg9.txt,0,0
-covx hd9,bhd9.txt,0,0
-if(stagepage==1&&nseg>=9)
-{
-vis fr8,1
-vis bRow8,1
-vis ftg9,1
-vis btg9,1
-vis fhd9,1
-vis bhd9,1
-if(sel==9)
-{
-bRow8.bco=5116
-bRow8.pco=65535
-}
-}
-covx tg10,btg10.txt,0,0
-covx hd10,bhd10.txt,0,0
-if(stagepage==1&&nseg>=10)
-{
-vis fr9,1
-vis bRow9,1
-vis ftg10,1
-vis btg10,1
-vis fhd10,1
-vis bhd10,1
-if(sel==10)
-{
-bRow9.bco=5116
-bRow9.pco=65535
-}
-}
-covx tg11,btg11.txt,0,0
-covx hd11,bhd11.txt,0,0
-if(stagepage==1&&nseg>=11)
-{
-vis fr10,1
-vis bRow10,1
-vis ftg11,1
-vis btg11,1
-vis fhd11,1
-vis bhd11,1
-if(sel==11)
-{
-bRow10.bco=5116
-bRow10.pco=65535
-}
-}
-covx tg12,btg12.txt,0,0
-covx hd12,bhd12.txt,0,0
-if(stagepage==1&&nseg>=12)
-{
-vis fr11,1
-vis bRow11,1
-vis ftg12,1
-vis btg12,1
-vis fhd12,1
-vis bhd12,1
-if(sel==12)
-{
-bRow11.bco=5116
-bRow11.pco=65535
-}
-}
-sumt=0
-ymax=1
-if(nseg>=1)
-{
-sumt=sumt+hd1
-if(tg1>ymax)
-{
-ymax=tg1
-}
-}
-if(nseg>=2)
-{
-sumt=sumt+hd2
-if(tg2>ymax)
-{
-ymax=tg2
-}
-}
-if(nseg>=3)
-{
-sumt=sumt+hd3
-if(tg3>ymax)
-{
-ymax=tg3
-}
-}
-if(nseg>=4)
-{
-sumt=sumt+hd4
-if(tg4>ymax)
-{
-ymax=tg4
-}
-}
-if(nseg>=5)
-{
-sumt=sumt+hd5
-if(tg5>ymax)
-{
-ymax=tg5
-}
-}
-if(nseg>=6)
-{
-sumt=sumt+hd6
-if(tg6>ymax)
-{
-ymax=tg6
-}
-}
-if(nseg>=7)
-{
-sumt=sumt+hd7
-if(tg7>ymax)
-{
-ymax=tg7
-}
-}
-if(nseg>=8)
-{
-sumt=sumt+hd8
-if(tg8>ymax)
-{
-ymax=tg8
-}
-}
-if(nseg>=9)
-{
-sumt=sumt+hd9
-if(tg9>ymax)
-{
-ymax=tg9
-}
-}
-if(nseg>=10)
-{
-sumt=sumt+hd10
-if(tg10>ymax)
-{
-ymax=tg10
-}
-}
-if(nseg>=11)
-{
-sumt=sumt+hd11
-if(tg11>ymax)
-{
-ymax=tg11
-}
-}
-if(nseg>=12)
-{
-sumt=sumt+hd12
-if(tg12>ymax)
-{
-ymax=tg12
-}
-}
-ymax=ymax+30
-covx ymax,ty99.txt,0,0
-tmp=ymax/2
-covx tmp,ty98.txt,0,0
-covx sumt,tx102.txt,0,0
-tmp=sumt/2
-covx tmp,tx101.txt,0,0
-tState.txt="待机"
-if(run==1)
-{
-tState.txt="运行中"
-}
-if(msgPush==1)
-{
-msgPush=0
-if(msgCode==1)
-{
-tFoot.txt="已停止加热，旁路继电器保持"
-}
-if(msgCode==2)
-{
-tFoot.txt="禁止启动：请先保存保护参数"
-}
-if(msgCode==3)
-{
-tFoot.txt="禁止启动：谐振采样无效"
-}
-if(msgCode==4)
-{
-tFoot.txt="禁止启动：母线采样无效"
-}
-if(msgCode==5)
-{
-tFoot.txt="禁止启动：母线低于欠压门限"
-}
-if(msgCode==6)
-{
-tFoot.txt="禁止启动：母线达到过压门限"
-}
-if(msgCode==7)
-{
-tFoot.txt="禁止启动：电流达到保护门限"
-}
-if(msgCode==8)
-{
-tFoot.txt="硬件保护已锁存，请先复位"
-}
-if(msgCode==9)
-{
-tFoot.txt="故障已锁存，请到保护页复位"
-}
-if(msgCode==10)
-{
-tFoot.txt="本次欠压："
-tmp=msgA/10
-covx tmp,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"."
-tmp=msgA%10
-covx tmp,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"V，门限"
-covx msgB,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"V，请复位"
-}
-if(msgCode==11)
-{
-tFoot.txt="禁止启动：屏幕通信未恢复"
-}
-if(msgCode==12)
-{
-tFoot.txt="正在启动或加热中"
-}
-if(msgCode==13)
-{
-tFoot.txt="正在同步屏幕，请稍候"
-}
-if(msgCode==14)
-{
-tFoot.txt="正在软启动，温控暂未启用"
-}
-if(msgCode==15)
-{
-tFoot.txt="温控方案保存功能尚未接入"
-}
-if(msgCode==16)
-{
-tFoot.txt="请先停止加热，等待保存完成"
-}
-if(msgCode==17)
-{
-tFoot.txt="正在读取保护参数"
-}
-if(msgCode==18)
-{
-tFoot.txt="故障已复位，请重新点击启动"
-}
-if(msgCode==19)
-{
-tFoot.txt="无法复位：母线仍低于欠压门限"
-}
-if(msgCode==20)
-{
-tFoot.txt="无法复位：检查故障与采样通信"
-}
-if(msgCode==21)
-{
-tFoot.txt="报警已确认，故障锁存仍保留"
-}
-if(msgCode==22)
-{
-tFoot.txt="功率与温度闭环功能尚未接入"
-}
-if(msgCode==23)
-{
-tFoot.txt="搜频未接入，当前为设定频率"
-}
-if(msgCode==24)
-{
-tFoot.txt="参数已修改，本次读取取消"
-}
-if(msgCode==25)
-{
-tFoot.txt="屏幕通信正常，主控已连接"
-}
-if(msgCode==26)
-{
-tFoot.txt="通信正常，请先保存保护参数"
-}
-if(msgCode==27)
-{
-tFoot.txt="保护参数已保存，温度保护未启用"
-}
-if(msgCode==28)
-{
-tFoot.txt="保存失败，请检查参数与状态"
-}
-if(msgCode==29)
-{
-tFoot.txt="屏幕无应答，请检查通信接线"
-}
-if(msgCode==30)
-{
-tFoot.txt="采样或通信故障，请到保护页查看"
-}
-if(msgCode==31)
-{
-tFoot.txt="读取超时，参数未修改"
-}
-if(msgCode==32)
-{
-tFoot.txt="上次欠压："
-tmp=msgA/10
-covx tmp,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"."
-tmp=msgA%10
-covx tmp,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"V，门限"
-covx msgB,tFmt.txt,0,0
-tFoot.txt=tFoot.txt+tFmt.txt
-tFoot.txt=tFoot.txt+"V，请复位"
-}
-if(msgCode==33)
-{
-tFoot.txt="正在读取温控或功率设置"
-}
-if(msgCode==34)
-{
-tFoot.txt="目标已应用；温控及限功率尚未启用"
-}
-if(msgCode==35)
-{
-tFoot.txt="应用失败，请检查参数与运行状态"
-}
-}
-ref th16
-ref th85
-ref th266
-ref tPreview
-ref_star
-doevents
-fill 526,160,247,127,65535
-line 526,286,772,286,61342
-line 526,223,772,223,61342
-line 526,160,772,160,61342
-line 526,160,526,286,61342
-line 649,160,649,286,61342
-line 772,160,772,286,61342
-line 526,160,526,286,55004
-line 526,286,772,286,55004
-elapsed=0
-px=526
-py=286
-if(nseg>=1)
-{
-ny=tg1*126/ymax
-ny=286-ny
-line px,py,px,ny,5116
-py=ny
-elapsed=elapsed+hd1
-nx=elapsed*246/sumt+526
-line px,py,nx,py,5116
-px=nx
-}
-if(nseg>=2)
-{
-ny=tg2*126/ymax
-ny=286-ny
-line px,py,px,ny,5116
-py=ny
-elapsed=elapsed+hd2
-nx=elapsed*246/sumt+526
-line px,py,nx,py,5116
-px=nx
-}
-if(nseg>=3)
-{
-ny=tg3*126/ymax
-ny=286-ny
-line px,py,px,ny,5116
-py=ny
-elapsed=elapsed+hd3
-nx=elapsed*246/sumt+526
-line px,py,nx,py,5116
-px=nx
-}
-if(nseg>=4)
-{
-ny=tg4*126/ymax
-ny=286-ny
-line px,py,px,ny,5116
-py=ny
-elapsed=elapsed+hd4
-nx=elapsed*246/sumt+526
-line px,py,nx,py,5116
-px=nx
-}
-if(nseg>=5)
-{
-ny=tg5*126/ymax
-ny=286-ny
-line px,py,px,ny,5116
-py=ny
-elapsed=elapsed+hd5
-nx=elapsed*246/sumt+526
-line px,py,nx,py,5116
-px=nx
-}
-if(nseg>=6)
-{
-ny=tg6*126/ymax
-ny=286-ny
-line px,py,px,ny,5116
-py=ny
-elapsed=elapsed+hd6
-nx=elapsed*246/sumt+526
-line px,py,nx,py,5116
-px=nx
-}
-if(nseg>=7)
-{
-ny=tg7*126/ymax
-ny=286-ny
-line px,py,px,ny,5116
-py=ny
-elapsed=elapsed+hd7
-nx=elapsed*246/sumt+526
-line px,py,nx,py,5116
-px=nx
-}
-if(nseg>=8)
-{
-ny=tg8*126/ymax
-ny=286-ny
-line px,py,px,ny,5116
-py=ny
-elapsed=elapsed+hd8
-nx=elapsed*246/sumt+526
-line px,py,nx,py,5116
-px=nx
-}
-if(nseg>=9)
-{
-ny=tg9*126/ymax
-ny=286-ny
-line px,py,px,ny,5116
-py=ny
-elapsed=elapsed+hd9
-nx=elapsed*246/sumt+526
-line px,py,nx,py,5116
-px=nx
-}
-if(nseg>=10)
-{
-ny=tg10*126/ymax
-ny=286-ny
-line px,py,px,ny,5116
-py=ny
-elapsed=elapsed+hd10
-nx=elapsed*246/sumt+526
-line px,py,nx,py,5116
-px=nx
-}
-if(nseg>=11)
-{
-ny=tg11*126/ymax
-ny=286-ny
-line px,py,px,ny,5116
-py=ny
-elapsed=elapsed+hd11
-nx=elapsed*246/sumt+526
-line px,py,nx,py,5116
-px=nx
-}
-if(nseg>=12)
-{
-ny=tg12*126/ymax
-ny=286-ny
-line px,py,px,ny,5116
-py=ny
-elapsed=elapsed+hd12
-nx=elapsed*246/sumt+526
-line px,py,nx,py,5116
-px=nx
-}
-line 750,65,758,73,31695
+ref_stop
+vis bInput,0
+vis tFmt,0
+vis tNum,0
+vis bView,0
+vis bCurve,0
+curvePage=255
+if(run==1)
+{
+tState.txt="运行中"
+}
+covx plim,bplim.txt,0,0
+ddopen=0
+vis bOpt0,0
+vis bOpt1,0
+vis bOpt2,0
+ref tPreview
+vis fr0,0
+vis bRow0,0
+vis ftg1,0
+vis btg1,0
+vis fhd1,0
+vis bhd1,0
+bRow0.bco=65535
+bRow0.pco=10631
+vis fr1,0
+vis bRow1,0
+vis ftg2,0
+vis btg2,0
+vis fhd2,0
+vis bhd2,0
+bRow1.bco=65535
+bRow1.pco=10631
+vis fr2,0
+vis bRow2,0
+vis ftg3,0
+vis btg3,0
+vis fhd3,0
+vis bhd3,0
+bRow2.bco=65535
+bRow2.pco=10631
+vis fr3,0
+vis bRow3,0
+vis ftg4,0
+vis btg4,0
+vis fhd4,0
+vis bhd4,0
+bRow3.bco=65535
+bRow3.pco=10631
+vis fr4,0
+vis bRow4,0
+vis ftg5,0
+vis btg5,0
+vis fhd5,0
+vis bhd5,0
+bRow4.bco=65535
+bRow4.pco=10631
+vis fr5,0
+vis bRow5,0
+vis ftg6,0
+vis btg6,0
+vis fhd6,0
+vis bhd6,0
+bRow5.bco=65535
+bRow5.pco=10631
+vis fr6,0
+vis bRow6,0
+vis ftg7,0
+vis btg7,0
+vis fhd7,0
+vis bhd7,0
+bRow6.bco=65535
+bRow6.pco=10631
+vis fr7,0
+vis bRow7,0
+vis ftg8,0
+vis btg8,0
+vis fhd8,0
+vis bhd8,0
+bRow7.bco=65535
+bRow7.pco=10631
+vis fr8,0
+vis bRow8,0
+vis ftg9,0
+vis btg9,0
+vis fhd9,0
+vis bhd9,0
+bRow8.bco=65535
+bRow8.pco=10631
+vis fr9,0
+vis bRow9,0
+vis ftg10,0
+vis btg10,0
+vis fhd10,0
+vis bhd10,0
+bRow9.bco=65535
+bRow9.pco=10631
+vis fr10,0
+vis bRow10,0
+vis ftg11,0
+vis btg11,0
+vis fhd11,0
+vis bhd11,0
+bRow10.bco=65535
+bRow10.pco=10631
+vis fr11,0
+vis bRow11,0
+vis ftg12,0
+vis btg12,0
+vis fhd12,0
+vis bhd12,0
+bRow11.bco=65535
+bRow11.pco=10631
+if(mode==0)
+{
+bMode.txt="LADRC"
+}
+if(mode==1)
+{
+bMode.txt="PID"
+}
+if(mode==2)
+{
+bMode.txt="模糊自抗扰"
+}
+covx tg1,btg1.txt,0,0
+covx hd1,bhd1.txt,0,0
+if(stagepage==0&&nseg>=1)
+{
+vis fr0,1
+vis bRow0,1
+vis ftg1,1
+vis btg1,1
+vis fhd1,1
+vis bhd1,1
+if(sel==1)
+{
+bRow0.bco=5116
+bRow0.pco=65535
+}
+}
+covx tg2,btg2.txt,0,0
+covx hd2,bhd2.txt,0,0
+if(stagepage==0&&nseg>=2)
+{
+vis fr1,1
+vis bRow1,1
+vis ftg2,1
+vis btg2,1
+vis fhd2,1
+vis bhd2,1
+if(sel==2)
+{
+bRow1.bco=5116
+bRow1.pco=65535
+}
+}
+covx tg3,btg3.txt,0,0
+covx hd3,bhd3.txt,0,0
+if(stagepage==0&&nseg>=3)
+{
+vis fr2,1
+vis bRow2,1
+vis ftg3,1
+vis btg3,1
+vis fhd3,1
+vis bhd3,1
+if(sel==3)
+{
+bRow2.bco=5116
+bRow2.pco=65535
+}
+}
+covx tg4,btg4.txt,0,0
+covx hd4,bhd4.txt,0,0
+if(stagepage==0&&nseg>=4)
+{
+vis fr3,1
+vis bRow3,1
+vis ftg4,1
+vis btg4,1
+vis fhd4,1
+vis bhd4,1
+if(sel==4)
+{
+bRow3.bco=5116
+bRow3.pco=65535
+}
+}
+covx tg5,btg5.txt,0,0
+covx hd5,bhd5.txt,0,0
+if(stagepage==0&&nseg>=5)
+{
+vis fr4,1
+vis bRow4,1
+vis ftg5,1
+vis btg5,1
+vis fhd5,1
+vis bhd5,1
+if(sel==5)
+{
+bRow4.bco=5116
+bRow4.pco=65535
+}
+}
+covx tg6,btg6.txt,0,0
+covx hd6,bhd6.txt,0,0
+if(stagepage==0&&nseg>=6)
+{
+vis fr5,1
+vis bRow5,1
+vis ftg6,1
+vis btg6,1
+vis fhd6,1
+vis bhd6,1
+if(sel==6)
+{
+bRow5.bco=5116
+bRow5.pco=65535
+}
+}
+covx tg7,btg7.txt,0,0
+covx hd7,bhd7.txt,0,0
+if(stagepage==1&&nseg>=7)
+{
+vis fr6,1
+vis bRow6,1
+vis ftg7,1
+vis btg7,1
+vis fhd7,1
+vis bhd7,1
+if(sel==7)
+{
+bRow6.bco=5116
+bRow6.pco=65535
+}
+}
+covx tg8,btg8.txt,0,0
+covx hd8,bhd8.txt,0,0
+if(stagepage==1&&nseg>=8)
+{
+vis fr7,1
+vis bRow7,1
+vis ftg8,1
+vis btg8,1
+vis fhd8,1
+vis bhd8,1
+if(sel==8)
+{
+bRow7.bco=5116
+bRow7.pco=65535
+}
+}
+covx tg9,btg9.txt,0,0
+covx hd9,bhd9.txt,0,0
+if(stagepage==1&&nseg>=9)
+{
+vis fr8,1
+vis bRow8,1
+vis ftg9,1
+vis btg9,1
+vis fhd9,1
+vis bhd9,1
+if(sel==9)
+{
+bRow8.bco=5116
+bRow8.pco=65535
+}
+}
+covx tg10,btg10.txt,0,0
+covx hd10,bhd10.txt,0,0
+if(stagepage==1&&nseg>=10)
+{
+vis fr9,1
+vis bRow9,1
+vis ftg10,1
+vis btg10,1
+vis fhd10,1
+vis bhd10,1
+if(sel==10)
+{
+bRow9.bco=5116
+bRow9.pco=65535
+}
+}
+covx tg11,btg11.txt,0,0
+covx hd11,bhd11.txt,0,0
+if(stagepage==1&&nseg>=11)
+{
+vis fr10,1
+vis bRow10,1
+vis ftg11,1
+vis btg11,1
+vis fhd11,1
+vis bhd11,1
+if(sel==11)
+{
+bRow10.bco=5116
+bRow10.pco=65535
+}
+}
+covx tg12,btg12.txt,0,0
+covx hd12,bhd12.txt,0,0
+if(stagepage==1&&nseg>=12)
+{
+vis fr11,1
+vis bRow11,1
+vis ftg12,1
+vis btg12,1
+vis fhd12,1
+vis bhd12,1
+if(sel==12)
+{
+bRow11.bco=5116
+bRow11.pco=65535
+}
+}
+sumt=0
+ymax=1
+if(nseg>=1)
+{
+sumt=sumt+hd1
+if(tg1>ymax)
+{
+ymax=tg1
+}
+}
+if(nseg>=2)
+{
+sumt=sumt+hd2
+if(tg2>ymax)
+{
+ymax=tg2
+}
+}
+if(nseg>=3)
+{
+sumt=sumt+hd3
+if(tg3>ymax)
+{
+ymax=tg3
+}
+}
+if(nseg>=4)
+{
+sumt=sumt+hd4
+if(tg4>ymax)
+{
+ymax=tg4
+}
+}
+if(nseg>=5)
+{
+sumt=sumt+hd5
+if(tg5>ymax)
+{
+ymax=tg5
+}
+}
+if(nseg>=6)
+{
+sumt=sumt+hd6
+if(tg6>ymax)
+{
+ymax=tg6
+}
+}
+if(nseg>=7)
+{
+sumt=sumt+hd7
+if(tg7>ymax)
+{
+ymax=tg7
+}
+}
+if(nseg>=8)
+{
+sumt=sumt+hd8
+if(tg8>ymax)
+{
+ymax=tg8
+}
+}
+if(nseg>=9)
+{
+sumt=sumt+hd9
+if(tg9>ymax)
+{
+ymax=tg9
+}
+}
+if(nseg>=10)
+{
+sumt=sumt+hd10
+if(tg10>ymax)
+{
+ymax=tg10
+}
+}
+if(nseg>=11)
+{
+sumt=sumt+hd11
+if(tg11>ymax)
+{
+ymax=tg11
+}
+}
+if(nseg>=12)
+{
+sumt=sumt+hd12
+if(tg12>ymax)
+{
+ymax=tg12
+}
+}
+ymax=ymax+30
+covx ymax,ty99.txt,0,0
+tmp=ymax/2
+covx tmp,ty98.txt,0,0
+covx sumt,tx102.txt,0,0
+tmp=sumt/2
+covx tmp,tx101.txt,0,0
+tState.txt="待机"
+if(run==1)
+{
+tState.txt="运行中"
+}
+if(msgPush==1)
+{
+msgPush=0
+if(msgCode==1)
+{
+tFoot.txt="已停止加热，旁路继电器保持"
+}
+if(msgCode==2)
+{
+tFoot.txt="禁止启动：请先保存保护参数"
+}
+if(msgCode==3)
+{
+tFoot.txt="禁止启动：谐振采样无效"
+}
+if(msgCode==4)
+{
+tFoot.txt="禁止启动：母线采样无效"
+}
+if(msgCode==5)
+{
+tFoot.txt="禁止启动：母线低于欠压门限"
+}
+if(msgCode==6)
+{
+tFoot.txt="禁止启动：母线达到过压门限"
+}
+if(msgCode==7)
+{
+tFoot.txt="禁止启动：电流达到保护门限"
+}
+if(msgCode==8)
+{
+tFoot.txt="硬件保护已锁存，请先复位"
+}
+if(msgCode==9)
+{
+tFoot.txt="故障已锁存，请到保护页复位"
+}
+if(msgCode==10)
+{
+tFoot.txt="本次欠压："
+tmp=msgA/10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"."
+tmp=msgA%10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"V，门限"
+covx msgB,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"V，请复位"
+}
+if(msgCode==11)
+{
+tFoot.txt="禁止启动：屏幕通信未恢复"
+}
+if(msgCode==12)
+{
+tFoot.txt="正在启动或加热中"
+}
+if(msgCode==13)
+{
+tFoot.txt="正在同步屏幕，请稍候"
+}
+if(msgCode==14)
+{
+tFoot.txt="正在搜频锁相，温控尚未启用"
+}
+if(msgCode==15)
+{
+tFoot.txt="温控方案保存功能尚未接入"
+}
+if(msgCode==16)
+{
+tFoot.txt="请先停止加热，等待保存完成"
+}
+if(msgCode==17)
+{
+tFoot.txt="正在读取保护参数"
+}
+if(msgCode==18)
+{
+tFoot.txt="故障已复位，请重新点击启动"
+}
+if(msgCode==19)
+{
+tFoot.txt="无法复位：母线仍低于欠压门限"
+}
+if(msgCode==20)
+{
+tFoot.txt="无法复位：检查故障与采样通信"
+}
+if(msgCode==21)
+{
+tFoot.txt="报警已确认，故障锁存仍保留"
+}
+if(msgCode==22)
+{
+tFoot.txt="功率与温度闭环功能尚未接入"
+}
+if(msgCode==23)
+{
+tFoot.txt="搜频未接入，当前为设定频率"
+}
+if(msgCode==24)
+{
+tFoot.txt="参数已修改，本次读取取消"
+}
+if(msgCode==25)
+{
+tFoot.txt="屏幕通信正常，主控已连接"
+}
+if(msgCode==26)
+{
+tFoot.txt="通信正常，请先保存保护参数"
+}
+if(msgCode==27)
+{
+tFoot.txt="保护参数已保存，温度保护未启用"
+}
+if(msgCode==28)
+{
+tFoot.txt="保存失败，请检查参数与状态"
+}
+if(msgCode==29)
+{
+tFoot.txt="屏幕无应答，请检查通信接线"
+}
+if(msgCode==30)
+{
+tFoot.txt="采样或通信故障，请到保护页查看"
+}
+if(msgCode==31)
+{
+tFoot.txt="读取超时，参数未修改"
+}
+if(msgCode==32)
+{
+tFoot.txt="上次欠压："
+tmp=msgA/10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"."
+tmp=msgA%10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"V，门限"
+covx msgB,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"V，请复位"
+}
+if(msgCode==33)
+{
+tFoot.txt="正在读取温控或功率设置"
+}
+if(msgCode==34)
+{
+tFoot.txt="目标已应用；温控及限功率尚未启用"
+}
+if(msgCode==35)
+{
+tFoot.txt="应用失败，请检查参数与运行状态"
+}
+if(msgCode==36)
+{
+tFoot.txt="正在读取搜频上下限"
+}
+if(msgCode==37)
+{
+tFoot.txt="搜频范围须在11至40kHz内"
+}
+if(msgCode==38)
+{
+tFoot.txt="相位采样失效，已停止加热"
+}
+if(msgCode==39)
+{
+tFoot.txt="范围内无法锁定，请检查负载"
+}
+if(msgCode==40)
+{
+tFoot.txt="搜频锁相超时，已停止加热"
+}
+if(msgCode==41)
+{
+tFoot.txt="相位裕量不足，已停止加热"
+}
+if(msgCode==42)
+{
+tFoot.txt="调频更新失败，已停止加热"
+}
+if(msgCode==43)
+{
+tFoot.txt="本次峰值过流："
+tmp=msgA/10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"."
+tmp=msgA%10
+covx tmp,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"A，门限"
+covx msgB,tFmt.txt,0,0
+tFoot.txt=tFoot.txt+tFmt.txt
+tFoot.txt=tFoot.txt+"A，请复位"
+}
+if(msgCode==44)
+{
+tFoot.txt="硬件过流已锁存，请核对PB11"
+}
+if(msgCode==45)
+{
+tFoot.txt="过流已锁存，请检查采样与保护"
+}
+}
+ref th16
+ref th85
+ref th266
+ref tPreview
+ref_star
+doevents
+fill 526,160,247,127,65535
+line 526,286,772,286,61342
+line 526,223,772,223,61342
+line 526,160,772,160,61342
+line 526,160,526,286,61342
+line 649,160,649,286,61342
+line 772,160,772,286,61342
+line 526,160,526,286,55004
+line 526,286,772,286,55004
+elapsed=0
+px=526
+py=286
+if(nseg>=1)
+{
+ny=tg1*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd1
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=2)
+{
+ny=tg2*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd2
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=3)
+{
+ny=tg3*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd3
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=4)
+{
+ny=tg4*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd4
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=5)
+{
+ny=tg5*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd5
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=6)
+{
+ny=tg6*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd6
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=7)
+{
+ny=tg7*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd7
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=8)
+{
+ny=tg8*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd8
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=9)
+{
+ny=tg9*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd9
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=10)
+{
+ny=tg10*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd10
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=11)
+{
+ny=tg11*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd11
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+if(nseg>=12)
+{
+ny=tg12*126/ymax
+ny=286-ny
+line px,py,px,ny,5116
+py=ny
+elapsed=elapsed+hd12
+nx=elapsed*246/sumt+526
+line px,py,nx,py,5116
+px=nx
+}
+line 750,65,758,73,31695
 line 758,73,766,65,31695

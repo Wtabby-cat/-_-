@@ -34,6 +34,22 @@ for pid, objects in pages.items():
                 if match: assert match[1] in names, (pid, obj['attr']['objname'],line)
 g = {k: int(n) for k, n in re.findall(r'^int (\w+)=(-?\d+)\r?$', files['Program.s'].decode('gbk'), re.M)}
 rt = Runtime(pages, g)
+# Exercise emitted keypad events and compare their limits with the MCU.
+limit_config=(root/'Core/Inc/ih_config.h').read_text('utf8')
+keyrt=Runtime(pages,g)
+for var,lo,define in (
+    ('ov',2,'IH_LIMIT_OV_MAX_V'),('uv',1,'IH_LIMIT_UV_MAX_V'),
+    ('oc',1,'IH_LIMIT_OC_PEAK_MAX_A'),('ot1',1,'IH_LIMIT_OT_MAX_C'),
+    ('ot2',1,'IH_LIMIT_OT_MAX_C'),('ot3',1,'IH_LIMIT_OT_MAX_C')):
+    hi=int(re.search(r'^#define\s+'+define+r'\s+(\d+)\s*$',limit_config,re.M)[1])
+    keyrt.enter(5); keyrt.click('b'+var)
+    assert keyrt.pid==7 and keyrt.g['editmin']==lo and keyrt.g['editmax']==hi
+    keyrt.g['editval']=hi+1; keyrt.click('bOK'); assert keyrt.pid==7
+    keyrt.g['editval']=lo-1; keyrt.click('bOK'); assert keyrt.pid==7
+    keyrt.g['editval']=hi; keyrt.click('bOK')
+    assert keyrt.pid==5 and keyrt.g[var]==hi
+assert keyrt.get('loc.txt')=='谐振峰值过流'
+
 overview={o['attr']['objname']:o['attr'] for o in pages[0]}
 assert overview['tPower']['font']==overview['tActual']['font']==overview['tTarget']['font']==overview['tBus']['font']
 # Fixed unit columns and solid backgrounds prevent alignment shifts/old glyphs.
@@ -61,8 +77,9 @@ for pid in range(7):
         rt.g.update(msgCode=code, msgA=170, msgB=18, msgPush=1)
         rt.execute(['click bInput,0'])
         text = rt.get('tFoot.txt')
-        if message.get('format') in ('uv', 'uv_history'):
-            assert text == message['text'] + '：17.0V，门限18V，请复位'
+        if message.get('format') in ('uv', 'uv_history', 'oc'):
+            unit='A' if message.get('format')=='oc' else 'V'
+            assert text == message['text'] + f'：17.0{unit}，门限18{unit}，请复位'
         else:
             assert text == message['text']
         width = sum(glyphs[c.encode('gbk').ljust(2, b'\0')] for c in text)
@@ -84,6 +101,9 @@ assert rt.get('tAlarm.txt') == '采样或通信异常'
 rt.g.update(internalFault=0, dirty=1)
 rt.tick()
 assert rt.get('tAlarm.txt') == '无'
+rt.g.update(internalFault=4,dirty=1); rt.tick()
+assert rt.get('tAlarm.txt')=='搜频或锁相异常'
+rt.g.update(internalFault=0,dirty=1); rt.tick()
 for pid in (0,5):
     rt.g.update(fwVersion=110201,tripCount=0,dirty=1)
     rt.enter(pid)
@@ -246,6 +266,13 @@ before=len(rt.drawing)
 rt.g.update(plotPage=4,plotEpoch=rt.g['curveEpoch'],plotRun=1,plotReset=1)
 rt.execute(['click bCurve,0']); assert len(rt.drawing)==before
 # Original business request IDs remain intact.
+for pid in (0,4,6):
+    rt.enter(pid)
+    dest='tLock' if pid==0 else 'tLocked'
+    for state,label in ((1,'启动中'),(2,'搜频中'),(3,'锁相捕获'),(4,'已锁定')):
+        rt.g.update(run=1,trackState=state,locked=int(state==4),dirty=1)
+        rt.execute(['click bInput,0']); assert text(dest)==label
+rt.g.update(run=0,trackState=0,locked=0)
 rt.g.update(run=0); rt.enter(6)
 submit(1,0,phase10=0)
 assert text('tAngle')=='--' and text('tInfo')=='启动后显示相位'
