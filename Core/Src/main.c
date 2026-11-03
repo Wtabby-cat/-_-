@@ -21,7 +21,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "ih_config.h"
+#include "ih_app.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -31,48 +32,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-/* ========================================================================
- * 信号链参数（修改硬件后只需改这里，下面计算值自动派生）
- * ======================================================================== */
-
-/* ---- 谐振电流采样 ---- */
-/* 1/1000 CT → 10Ω 采样电阻 → 5.6x 运放 → +1.65V 偏置 */
-#define I_CURR_CT_RATIO           1000.0f   /* 电流互感器变比 (1:N) */
-#define I_CURR_SENSE_R            10.0f     /* 采样电阻 (Ω) */
-#define I_CURR_OPAMP_GAIN         5.6f      /* 运放增益 (V/V) */
-#define I_CURR_BIAS_V             1.59f     /* 直流偏置电压 (V)，实测 PA0 空闲时 ADC 读数 */
-#define I_CURR_SCALE              (I_CURR_SENSE_R * I_CURR_OPAMP_GAIN / I_CURR_CT_RATIO)
-/* I_CURR_SCALE = 10 * 5.6 / 1000 = 0.056 V/A */
-
-/* ---- 谐振电压采样 ---- */
-/* 1/31 分压 → 0.4x 隔离运放 → 3.3x 运放 → +1.65V 偏置 */
-#define V_RES_DIV_RATIO           31.0f     /* 分压比 (1:N) */
-#define V_RES_ISO_GAIN            0.4f      /* 隔离运放增益 (V/V) */
-#define V_RES_OPAMP_GAIN          3.3f      /* 运放增益 (V/V) */
-#define V_RES_BIAS_V              1.59f     /* 直流偏置电压 (V)，实测 PA1 空闲时 ADC 读数（1.57~1.61V 取中值） */
-#define V_RES_SCALE               (V_RES_ISO_GAIN * V_RES_OPAMP_GAIN / V_RES_DIV_RATIO)
-/* V_RES_SCALE = 0.4 * 3.3 / 31 ≈ 0.04258 V/V */
-
-/* ---- 保护阈值（比较器 DAC 基准电压） ---- */
-#define ZC_THRESHOLD_V            1.59f     /* 过零检测阈值 (V)，跟随 ADC 偏置实测值 */
-#define RES_OCP_THRESHOLD_V       3.10f     /* 谐振过流保护阈值 (V) */
-#define BUS_OVP_THRESHOLD_V       3.20f     /* 母线过压保护阈值 (V) */
-
-/* ---- 系统常量 ---- */
-#define ADC_VREF_VOLTAGE           3.300f    /* REF3033 / VDDA 基准电压 */
-#define ADC_BUF_SIZE               256U      /* DMA 缓冲区大小 */
-#define ADC_SAMPLE_MASK            0xFFFU    /* 12-bit 掩码 */
-#define RELAY_DELAY_MS             500U      /* 软启动继电器延时 (ms) */
-
-/* ---- DAC code（由阈值电压自动计算） ---- */
-#define ZEROCROSS_CURR_DAC_CODE           ((uint32_t)(ZC_THRESHOLD_V      / ADC_VREF_VOLTAGE * 4095.0f))
-#define ZEROCROSS_VOLT_DAC_CODE           ((uint32_t)(ZC_THRESHOLD_V      / ADC_VREF_VOLTAGE * 4095.0f))
-#define BUS_OVERVOLT_DAC_CODE             ((uint32_t)(BUS_OVP_THRESHOLD_V / ADC_VREF_VOLTAGE * 4095.0f))
-#define RESONANT_OVERCURRENT_DAC_CODE     ((uint32_t)(RES_OCP_THRESHOLD_V / ADC_VREF_VOLTAGE * 4095.0f))
-
-/* ---- HRTIM 输出/定时器掩码 ---- */
-#define POWER_STAGE_HRTIM_OUTPUTS        (HRTIM_OUTPUT_TA1 | HRTIM_OUTPUT_TA2 | HRTIM_OUTPUT_TB1 | HRTIM_OUTPUT_TB2)
-#define POWER_STAGE_HRTIM_TIMERS         (HRTIM_TIMERID_TIMER_A | HRTIM_TIMERID_TIMER_B)
 
 /* USER CODE END PD */
 
@@ -100,39 +59,6 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-uint32_t pc13_blink_tick = 0U;
-
-/* ========================================================================
- * Keil Watch 调试变量（12 个，按功能分组）
- * ======================================================================== */
-
-/* 谐振电流 */
-volatile float    dbg_i_adc_v = 0.0f;       /* ADC 采样电压 (V) */
-volatile float    dbg_i_a     = 0.0f;       /* 谐振电流 (A) */
-
-/* 谐振电压 */
-volatile float    dbg_v_adc_v = 0.0f;       /* ADC 采样电压 (V) */
-volatile float    dbg_v_res_v = 0.0f;       /* 谐振电压 (V) */
-
-/* 继电器 / PWM 使能 */
-volatile uint32_t dbg_relay  = 0U;          /* 继电器 0=关 1=开 */
-volatile uint32_t dbg_pwm_en = 0U;          /* PWM 使能 0=禁止 1=使能 */
-
-/* 保护状态 */
-volatile uint32_t dbg_ovp       = 0U;       /* COMP2 过压实时 */
-volatile uint32_t dbg_ocp       = 0U;       /* COMP6 过流实时 */
-volatile uint32_t dbg_ovp_fault = 0U;       /* FAULT1 锁存 */
-volatile uint32_t dbg_ocp_fault = 0U;       /* FAULT3 锁存 */
-
-/* 过零状态 */
-volatile uint32_t dbg_zc_i = 0U;            /* COMP3 电流过零 */
-volatile uint32_t dbg_zc_v = 0U;            /* COMP5 电压过零 */
-
-static uint32_t relay_tick = 0U;
-static uint8_t  relay_on   = 0U;
-
-/* 双路 ADC DMA 缓冲区 */
-static uint32_t adc_dma_buf[ADC_BUF_SIZE] = {0};
 
 /* USER CODE END PV */
 
@@ -152,108 +78,11 @@ static void MX_COMP5_Init(void);
 static void MX_COMP6_Init(void);
 static void MX_DAC4_Init(void);
 /* USER CODE BEGIN PFP */
-static void StartPowerStagePwm(void);
-static void DebugCaptureAll(void);
-static void StartDualAdcDma(void);
-static void ProcessAdcDmaBlock(uint32_t start_index, uint32_t length);
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-/* STM32G474 comparator positive inputs are fixed to dedicated pins.
- * PA0 can feed COMP3 only, and PA1 cannot be used by COMP5/COMP6 directly.
- */
-
-static void StartPowerStagePwm(void)
-{
-  if (HAL_HRTIM_WaveformOutputStart(&hhrtim1, POWER_STAGE_HRTIM_OUTPUTS) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  if (HAL_HRTIM_WaveformCountStart(&hhrtim1, POWER_STAGE_HRTIM_TIMERS) != HAL_OK)
-  {
-    Error_Handler();
-  }
-}
-
-static void DebugCaptureAll(void)
-{
-  uint32_t isr;
-
-  /* 保护状态 */
-  dbg_ovp = HAL_COMP_GetOutputLevel(&hcomp2);
-  dbg_ocp = HAL_COMP_GetOutputLevel(&hcomp6);
-
-  isr = hhrtim1.Instance->sCommonRegs.ISR;
-  dbg_ovp_fault = ((isr & HRTIM_ISR_FLT1) != 0U) ? 1U : 0U;
-  dbg_ocp_fault = ((isr & HRTIM_ISR_FLT3) != 0U) ? 1U : 0U;
-
-  /* 过零状态 */
-  dbg_zc_i = HAL_COMP_GetOutputLevel(&hcomp3);
-  dbg_zc_v = HAL_COMP_GetOutputLevel(&hcomp5);
-
-  /* 继电器 / PWM 使能 */
-  dbg_relay = relay_on;
-  /* PWM_EN_N 低电平有效 → 取反后 1=使能 */
-  dbg_pwm_en = (HAL_GPIO_ReadPin(PWM_EN_N_GPIO_Port, PWM_EN_N_Pin) == GPIO_PIN_RESET) ? 1U : 0U;
-}
-
-static void StartDualAdcDma(void)
-{
-  if (HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  if (HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /* In dual regular simultaneous mode, ADC2 is the slave and ADC1 is the master.
-   * DMA must be started with HAL_ADCEx_MultiModeStart_DMA(), not HAL_ADC_Start_DMA().
-   */
-  if (HAL_ADC_Start(&hadc2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  if (HAL_ADCEx_MultiModeStart_DMA(&hadc1, (uint32_t *)adc_dma_buf, ADC_BUF_SIZE) != HAL_OK)
-  {
-    Error_Handler();
-  }
-}
-
-static void ProcessAdcDmaBlock(uint32_t start_index, uint32_t length)
-{
-  uint32_t raw;
-  uint16_t curr;
-  uint16_t volt;
-  float    vadc;
-
-  if ((length == 0U) || ((start_index + length) > ADC_BUF_SIZE))
-  {
-    return;
-  }
-
-  /* 取半缓冲块末尾最后一个采样点 */
-  raw = adc_dma_buf[start_index + length - 1U];
-  curr = (uint16_t)(raw & ADC_SAMPLE_MASK);
-  volt = (uint16_t)((raw >> 16) & ADC_SAMPLE_MASK);
-
-  /* 谐振电流 */
-  vadc = ((float)curr) * ADC_VREF_VOLTAGE / 4095.0f;
-  dbg_i_adc_v = vadc;
-  dbg_i_a     = (vadc - I_CURR_BIAS_V) / I_CURR_SCALE;
-
-  /* 谐振电压 */
-  vadc = ((float)volt) * ADC_VREF_VOLTAGE / 4095.0f;
-  dbg_v_adc_v = vadc;
-  dbg_v_res_v = (vadc - V_RES_BIAS_V) / V_RES_SCALE;
-}
 
 /* USER CODE END 0 */
 
@@ -299,46 +128,8 @@ int main(void)
   MX_COMP6_Init();
   MX_DAC4_Init();
   /* USER CODE BEGIN 2 */
-  HAL_GPIO_WritePin(PWM_EN_N_GPIO_Port, PWM_EN_N_Pin, GPIO_PIN_SET);
-
-  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, BUS_OVERVOLT_DAC_CODE);
-  HAL_DAC_SetValue(&hdac4, DAC_CHANNEL_2, DAC_ALIGN_12B_R, RESONANT_OVERCURRENT_DAC_CODE);
-  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, ZEROCROSS_CURR_DAC_CODE);
-  HAL_DAC_SetValue(&hdac4, DAC_CHANNEL_1, DAC_ALIGN_12B_R, ZEROCROSS_VOLT_DAC_CODE);
-
-  HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
-  HAL_DAC_Start(&hdac4, DAC_CHANNEL_2);
-  HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
-  HAL_DAC_Start(&hdac4, DAC_CHANNEL_1);
-
-  HAL_Delay(1);
-
-  HAL_COMP_Start(&hcomp2);
-  HAL_COMP_Start(&hcomp3);
-  HAL_COMP_Start(&hcomp5);
-  HAL_COMP_Start(&hcomp6);
-
-  HAL_Delay(1);
-
-  /* Clear stale fault flags once before arming protection. */
-  hhrtim1.Instance->sCommonRegs.ICR = HRTIM_ICR_FLT1C | HRTIM_ICR_FLT3C;
-
-  /* Arm both faults. After a fault trip, do not clear it in software.
-   * Recovery requires MCU reset.
-   */
-  HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_ENABLED);
-  HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_3, HRTIM_FAULTMODECTL_ENABLED);
-
-  StartPowerStagePwm();
-  /* Enable the external gate drivers after PWM and protection are ready. */
-  HAL_GPIO_WritePin(PWM_EN_N_GPIO_Port, PWM_EN_N_Pin, GPIO_PIN_RESET);
-  pc13_blink_tick = HAL_GetTick();
-  relay_tick      = HAL_GetTick();  /* soft-start timer begins now */
-
-  /* Start final ADC acquisition: ADC1(PA0) + ADC2(PA1) dual simultaneous DMA. */
-  StartDualAdcDma();
-
-  /* USER CODE END 2 */
+  App_Init();
+/* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -347,22 +138,9 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    DebugCaptureAll();
-
-    /* Soft-start relay: after RELAY_DELAY_MS, bypass thermistor */
-    if (!relay_on && (HAL_GetTick() - relay_tick) >= RELAY_DELAY_MS)
-    {
-      HAL_GPIO_WritePin(RELAY_CTRL_GPIO_Port, RELAY_CTRL_Pin, GPIO_PIN_SET);
-      relay_on = 1U;
-    }
-
-    if ((HAL_GetTick() - pc13_blink_tick) >= 500U)
-    {
-      pc13_blink_tick = HAL_GetTick();
-      HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-    }
+    App_Task();
   }
-  /* USER CODE END 3 */
+/* USER CODE END 3 */
 }
 
 /**
@@ -439,7 +217,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.GainCompensation = 0;
   hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
-  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
   hadc1.Init.LowPowerAutoWait = DISABLE;
   hadc1.Init.ContinuousConvMode = ENABLE;
   hadc1.Init.NbrOfConversion = 1;
@@ -456,7 +234,7 @@ static void MX_ADC1_Init(void)
 
   /** Configure the ADC multi-mode
   */
-  multimode.Mode = ADC_DUALMODE_REGSIMULT;
+  multimode.Mode = ADC_DUALMODE_REGSIMULT_INJECSIMULT;
   multimode.DMAAccessMode = ADC_DMAACCESSMODE_12_10_BITS;
   multimode.TwoSamplingDelay = ADC_TWOSAMPLINGDELAY_1CYCLE;
   if (HAL_ADCEx_MultiModeConfigChannel(&hadc1, &multimode) != HAL_OK)
@@ -536,8 +314,9 @@ static void MX_ADC2_Init(void)
   hadc2.Init.Resolution = ADC_RESOLUTION_12B;
   hadc2.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc2.Init.GainCompensation = 0;
-  hadc2.Init.ScanConvMode = ADC_SCAN_DISABLE;
-  hadc2.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  /* HAL also uses this flag for the two-rank injected sequence. */
+  hadc2.Init.ScanConvMode = ADC_SCAN_ENABLE;
+  hadc2.Init.EOCSelection = ADC_EOC_SEQ_CONV;
   hadc2.Init.LowPowerAutoWait = DISABLE;
   hadc2.Init.ContinuousConvMode = ENABLE;
   hadc2.Init.NbrOfConversion = 1;
@@ -1043,7 +822,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = IH_HMI_BAUD;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -1091,7 +870,7 @@ static void MX_USART2_UART_Init(void)
 
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
+  huart2.Init.BaudRate = IH_WORKPIECE_UART_BAUD;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
@@ -1185,30 +964,6 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-/**
-  * @brief  ADC half-buffer callback.
-  *         Dual simultaneous mode: each 32-bit word = ADC2[31:16] | ADC1[15:0].
-  */
-void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef *hadc)
-{
-  if (hadc == &hadc1)
-  {
-    ProcessAdcDmaBlock(0U, ADC_BUF_SIZE / 2U);
-  }
-}
-
-/**
-  * @brief  ADC full-buffer callback.
-  *         Dual simultaneous mode: each 32-bit word = ADC2[31:16] | ADC1[15:0].
-  */
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
-{
-  if (hadc == &hadc1)
-  {
-    ProcessAdcDmaBlock(ADC_BUF_SIZE / 2U, ADC_BUF_SIZE / 2U);
-  }
-}
-
 /* USER CODE END 4 */
 
 /**
@@ -1219,6 +974,7 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
+  App_EmergencyOff();
   __disable_irq();
   while (1)
   {

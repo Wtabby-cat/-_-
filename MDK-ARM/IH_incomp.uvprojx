@@ -48,7 +48,7 @@
             <NotGenerated>0</NotGenerated>
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
-          <OutputDirectory>IH_incomp\</OutputDirectory>
+          <OutputDirectory>..\Build\</OutputDirectory>
           <OutputName>IH_incomp</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
@@ -274,7 +274,7 @@
               <OCR_RVCT4>
                 <Type>1</Type>
                 <StartAddress>0x8000000</StartAddress>
-                <Size>0x80000</Size>
+                <Size>0x7e000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -363,7 +363,7 @@
             <Rwpi>0</Rwpi>
             <noStLib>0</noStLib>
             <RepFail>1</RepFail>
-            <useFile>0</useFile>
+            <useFile>1</useFile>
             <TextAddressRange></TextAddressRange>
             <DataAddressRange></DataAddressRange>
             <pXoBase></pXoBase>
@@ -390,6 +390,76 @@
         <Group>
           <GroupName>Application/User/Core</GroupName>
           <Files>
+            <File>
+              <FileName>ih_runtime.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/ih_runtime.c</FilePath>
+            </File>
+            <File>
+              <FileName>ih_pwm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/ih_pwm.c</FilePath>
+            </File>
+            <File>
+              <FileName>ih_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/ih_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>ih_temperature.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/ih_temperature.c</FilePath>
+            </File>
+            <File>
+              <FileName>ih_program.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/ih_program.c</FilePath>
+            </File>
+            <File>
+              <FileName>ih_workpiece.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/ih_workpiece.c</FilePath>
+            </File>
+            <File>
+              <FileName>ih_uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/ih_uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>ih_measurement.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/ih_measurement.c</FilePath>
+            </File>
+            <File>
+              <FileName>ih_phase.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/ih_phase.c</FilePath>
+            </File>
+            <File>
+              <FileName>ih_protection.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/ih_protection.c</FilePath>
+            </File>
+            <File>
+              <FileName>ih_hmi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/ih_hmi.c</FilePath>
+            </File>
+            <File>
+              <FileName>ih_history.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/ih_history.c</FilePath>
+            </File>
+            <File>
+              <FileName>ih_protocol.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/ih_protocol.c</FilePath>
+            </File>
+            <File>
+              <FileName>ih_settings.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Core/Src/ih_settings.c</FilePath>
+            </File>
             <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>

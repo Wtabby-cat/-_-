@@ -1,0 +1,1566 @@
+{
+  "version": 9,
+  "buttons": [
+    {
+      "page": 0,
+      "id": 4,
+      "name": "bStop",
+      "label": "停止加热",
+      "touch": "65 00 04 00 FF FF FF",
+      "requests": [
+        2
+      ]
+    },
+    {
+      "page": 0,
+      "id": 6,
+      "name": "bNav0",
+      "label": "运行总览",
+      "touch": "65 00 06 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 0,
+      "id": 7,
+      "name": "bNav1",
+      "label": "分段温控",
+      "touch": "65 00 07 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 0,
+      "id": 8,
+      "name": "bNav2",
+      "label": "曲线调试",
+      "touch": "65 00 08 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 0,
+      "id": 9,
+      "name": "bNav3",
+      "label": "保护报警",
+      "touch": "65 00 09 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 0,
+      "id": 38,
+      "name": "bStart",
+      "label": "启动加热",
+      "touch": "65 00 26 00 FF FF FF",
+      "requests": [
+        1
+      ]
+    },
+    {
+      "page": 0,
+      "id": 39,
+      "name": "bSetup",
+      "label": "温控设置",
+      "touch": "65 00 27 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 4,
+      "name": "bStop",
+      "label": "停止加热",
+      "touch": "65 01 04 00 FF FF FF",
+      "requests": [
+        2
+      ]
+    },
+    {
+      "page": 1,
+      "id": 6,
+      "name": "bNav0",
+      "label": "运行总览",
+      "touch": "65 01 06 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 7,
+      "name": "bNav1",
+      "label": "分段温控",
+      "touch": "65 01 07 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 8,
+      "name": "bNav2",
+      "label": "曲线调试",
+      "touch": "65 01 08 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 9,
+      "name": "bNav3",
+      "label": "保护报警",
+      "touch": "65 01 09 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 12,
+      "name": "bplim",
+      "label": "1500",
+      "touch": "65 01 0C 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 16,
+      "name": "bMode",
+      "label": "LADRC",
+      "touch": "65 01 10 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 21,
+      "name": "bRow0",
+      "label": "1",
+      "touch": "65 01 15 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 23,
+      "name": "btg1",
+      "label": "60",
+      "touch": "65 01 17 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 25,
+      "name": "bhd1",
+      "label": "600",
+      "touch": "65 01 19 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 27,
+      "name": "bRow1",
+      "label": "2",
+      "touch": "65 01 1B 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 29,
+      "name": "btg2",
+      "label": "90",
+      "touch": "65 01 1D 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 31,
+      "name": "bhd2",
+      "label": "1800",
+      "touch": "65 01 1F 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 33,
+      "name": "bRow2",
+      "label": "3",
+      "touch": "65 01 21 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 35,
+      "name": "btg3",
+      "label": "120",
+      "touch": "65 01 23 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 37,
+      "name": "bhd3",
+      "label": "3600",
+      "touch": "65 01 25 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 39,
+      "name": "bRow3",
+      "label": "4",
+      "touch": "65 01 27 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 41,
+      "name": "btg4",
+      "label": "120",
+      "touch": "65 01 29 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 43,
+      "name": "bhd4",
+      "label": "300",
+      "touch": "65 01 2B 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 45,
+      "name": "bRow4",
+      "label": "5",
+      "touch": "65 01 2D 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 47,
+      "name": "btg5",
+      "label": "120",
+      "touch": "65 01 2F 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 49,
+      "name": "bhd5",
+      "label": "300",
+      "touch": "65 01 31 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 51,
+      "name": "bRow5",
+      "label": "6",
+      "touch": "65 01 33 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 53,
+      "name": "btg6",
+      "label": "120",
+      "touch": "65 01 35 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 55,
+      "name": "bhd6",
+      "label": "300",
+      "touch": "65 01 37 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 57,
+      "name": "bRow6",
+      "label": "7",
+      "touch": "65 01 39 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 59,
+      "name": "btg7",
+      "label": "120",
+      "touch": "65 01 3B 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 61,
+      "name": "bhd7",
+      "label": "300",
+      "touch": "65 01 3D 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 63,
+      "name": "bRow7",
+      "label": "8",
+      "touch": "65 01 3F 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 65,
+      "name": "btg8",
+      "label": "120",
+      "touch": "65 01 41 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 67,
+      "name": "bhd8",
+      "label": "300",
+      "touch": "65 01 43 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 69,
+      "name": "bRow8",
+      "label": "9",
+      "touch": "65 01 45 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 71,
+      "name": "btg9",
+      "label": "120",
+      "touch": "65 01 47 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 73,
+      "name": "bhd9",
+      "label": "300",
+      "touch": "65 01 49 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 75,
+      "name": "bRow9",
+      "label": "10",
+      "touch": "65 01 4B 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 77,
+      "name": "btg10",
+      "label": "120",
+      "touch": "65 01 4D 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 79,
+      "name": "bhd10",
+      "label": "300",
+      "touch": "65 01 4F 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 81,
+      "name": "bRow10",
+      "label": "11",
+      "touch": "65 01 51 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 83,
+      "name": "btg11",
+      "label": "120",
+      "touch": "65 01 53 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 85,
+      "name": "bhd11",
+      "label": "300",
+      "touch": "65 01 55 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 87,
+      "name": "bRow11",
+      "label": "12",
+      "touch": "65 01 57 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 89,
+      "name": "btg12",
+      "label": "120",
+      "touch": "65 01 59 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 91,
+      "name": "bhd12",
+      "label": "300",
+      "touch": "65 01 5B 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 92,
+      "name": "bAdd",
+      "label": "插入温段",
+      "touch": "65 01 5C 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 93,
+      "name": "bRemove",
+      "label": "删除选中",
+      "touch": "65 01 5D 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 94,
+      "name": "bPrev",
+      "label": "上一页",
+      "touch": "65 01 5E 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 95,
+      "name": "bNext",
+      "label": "下一页",
+      "touch": "65 01 5F 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 106,
+      "name": "bSave",
+      "label": "保存方案",
+      "touch": "65 01 6A 00 FF FF FF",
+      "requests": [
+        4
+      ]
+    },
+    {
+      "page": 1,
+      "id": 107,
+      "name": "bApply",
+      "label": "应用参数",
+      "touch": "65 01 6B 00 FF FF FF",
+      "requests": [
+        3
+      ]
+    },
+    {
+      "page": 1,
+      "id": 108,
+      "name": "bOpt0",
+      "label": "LADRC",
+      "touch": "65 01 6C 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 109,
+      "name": "bOpt1",
+      "label": "PID",
+      "touch": "65 01 6D 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 1,
+      "id": 110,
+      "name": "bOpt2",
+      "label": "模糊自抗扰",
+      "touch": "65 01 6E 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 2,
+      "id": 4,
+      "name": "bStop",
+      "label": "停止加热",
+      "touch": "65 02 04 00 FF FF FF",
+      "requests": [
+        2
+      ]
+    },
+    {
+      "page": 2,
+      "id": 6,
+      "name": "bNav0",
+      "label": "运行总览",
+      "touch": "65 02 06 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 2,
+      "id": 7,
+      "name": "bNav1",
+      "label": "分段温控",
+      "touch": "65 02 07 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 2,
+      "id": 8,
+      "name": "bNav2",
+      "label": "曲线调试",
+      "touch": "65 02 08 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 2,
+      "id": 9,
+      "name": "bNav3",
+      "label": "保护报警",
+      "touch": "65 02 09 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 2,
+      "id": 10,
+      "name": "bTab0",
+      "label": "温度",
+      "touch": "65 02 0A 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 2,
+      "id": 11,
+      "name": "bTab1",
+      "label": "功率",
+      "touch": "65 02 0B 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 2,
+      "id": 12,
+      "name": "bTab2",
+      "label": "频率",
+      "touch": "65 02 0C 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 2,
+      "id": 13,
+      "name": "bTab3",
+      "label": "相位差",
+      "touch": "65 02 0D 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 2,
+      "id": 16,
+      "name": "btfrom",
+      "label": "0",
+      "touch": "65 02 10 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 2,
+      "id": 19,
+      "name": "btto",
+      "label": "600",
+      "touch": "65 02 13 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 2,
+      "id": 21,
+      "name": "bFreeze",
+      "label": "冻结显示",
+      "touch": "65 02 15 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 2,
+      "id": 22,
+      "name": "bLive",
+      "label": "恢复实时",
+      "touch": "65 02 16 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 3,
+      "id": 4,
+      "name": "bStop",
+      "label": "停止加热",
+      "touch": "65 03 04 00 FF FF FF",
+      "requests": [
+        2
+      ]
+    },
+    {
+      "page": 3,
+      "id": 6,
+      "name": "bNav0",
+      "label": "运行总览",
+      "touch": "65 03 06 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 3,
+      "id": 7,
+      "name": "bNav1",
+      "label": "分段温控",
+      "touch": "65 03 07 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 3,
+      "id": 8,
+      "name": "bNav2",
+      "label": "曲线调试",
+      "touch": "65 03 08 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 3,
+      "id": 9,
+      "name": "bNav3",
+      "label": "保护报警",
+      "touch": "65 03 09 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 3,
+      "id": 10,
+      "name": "bTab0",
+      "label": "温度",
+      "touch": "65 03 0A 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 3,
+      "id": 11,
+      "name": "bTab1",
+      "label": "功率",
+      "touch": "65 03 0B 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 3,
+      "id": 12,
+      "name": "bTab2",
+      "label": "频率",
+      "touch": "65 03 0C 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 3,
+      "id": 13,
+      "name": "bTab3",
+      "label": "相位差",
+      "touch": "65 03 0D 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 3,
+      "id": 16,
+      "name": "bpfrom",
+      "label": "0",
+      "touch": "65 03 10 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 3,
+      "id": 19,
+      "name": "bpto",
+      "label": "600",
+      "touch": "65 03 13 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 3,
+      "id": 21,
+      "name": "bFreeze",
+      "label": "冻结显示",
+      "touch": "65 03 15 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 3,
+      "id": 22,
+      "name": "bLive",
+      "label": "恢复实时",
+      "touch": "65 03 16 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 3,
+      "id": 37,
+      "name": "bplim",
+      "label": "1500",
+      "touch": "65 03 25 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 3,
+      "id": 41,
+      "name": "bApply",
+      "label": "应用设置",
+      "touch": "65 03 29 00 FF FF FF",
+      "requests": [
+        3
+      ]
+    },
+    {
+      "page": 4,
+      "id": 4,
+      "name": "bStop",
+      "label": "停止加热",
+      "touch": "65 04 04 00 FF FF FF",
+      "requests": [
+        2
+      ]
+    },
+    {
+      "page": 4,
+      "id": 6,
+      "name": "bNav0",
+      "label": "运行总览",
+      "touch": "65 04 06 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 4,
+      "id": 7,
+      "name": "bNav1",
+      "label": "分段温控",
+      "touch": "65 04 07 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 4,
+      "id": 8,
+      "name": "bNav2",
+      "label": "曲线调试",
+      "touch": "65 04 08 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 4,
+      "id": 9,
+      "name": "bNav3",
+      "label": "保护报警",
+      "touch": "65 04 09 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 4,
+      "id": 10,
+      "name": "bTab0",
+      "label": "温度",
+      "touch": "65 04 0A 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 4,
+      "id": 11,
+      "name": "bTab1",
+      "label": "功率",
+      "touch": "65 04 0B 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 4,
+      "id": 12,
+      "name": "bTab2",
+      "label": "频率",
+      "touch": "65 04 0C 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 4,
+      "id": 13,
+      "name": "bTab3",
+      "label": "相位差",
+      "touch": "65 04 0D 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 4,
+      "id": 16,
+      "name": "bffrom",
+      "label": "0",
+      "touch": "65 04 10 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 4,
+      "id": 19,
+      "name": "bfto",
+      "label": "60",
+      "touch": "65 04 13 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 4,
+      "id": 21,
+      "name": "bFreeze",
+      "label": "冻结显示",
+      "touch": "65 04 15 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 4,
+      "id": 22,
+      "name": "bLive",
+      "label": "恢复实时",
+      "touch": "65 04 16 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 4,
+      "id": 37,
+      "name": "bflo",
+      "label": "15",
+      "touch": "65 04 25 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 4,
+      "id": 41,
+      "name": "bfhi",
+      "label": "25",
+      "touch": "65 04 29 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 4,
+      "id": 43,
+      "name": "bLock",
+      "label": "重新搜频",
+      "touch": "65 04 2B 00 FF FF FF",
+      "requests": [
+        5
+      ]
+    },
+    {
+      "page": 5,
+      "id": 4,
+      "name": "bStop",
+      "label": "停止加热",
+      "touch": "65 05 04 00 FF FF FF",
+      "requests": [
+        2
+      ]
+    },
+    {
+      "page": 5,
+      "id": 6,
+      "name": "bNav0",
+      "label": "运行总览",
+      "touch": "65 05 06 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 5,
+      "id": 7,
+      "name": "bNav1",
+      "label": "分段温控",
+      "touch": "65 05 07 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 5,
+      "id": 8,
+      "name": "bNav2",
+      "label": "曲线调试",
+      "touch": "65 05 08 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 5,
+      "id": 9,
+      "name": "bNav3",
+      "label": "保护报警",
+      "touch": "65 05 09 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 5,
+      "id": 14,
+      "name": "bov",
+      "label": "—",
+      "touch": "65 05 0E 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 5,
+      "id": 18,
+      "name": "buv",
+      "label": "—",
+      "touch": "65 05 12 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 5,
+      "id": 22,
+      "name": "boc",
+      "label": "—",
+      "touch": "65 05 16 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 5,
+      "id": 26,
+      "name": "bot1",
+      "label": "—",
+      "touch": "65 05 1A 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 5,
+      "id": 30,
+      "name": "bot2",
+      "label": "—",
+      "touch": "65 05 1E 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 5,
+      "id": 34,
+      "name": "bot3",
+      "label": "—",
+      "touch": "65 05 22 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 5,
+      "id": 37,
+      "name": "bSave",
+      "label": "保存参数",
+      "touch": "65 05 25 00 FF FF FF",
+      "requests": [
+        4
+      ]
+    },
+    {
+      "page": 5,
+      "id": 61,
+      "name": "bAck",
+      "label": "确认报警",
+      "touch": "65 05 3D 00 FF FF FF",
+      "requests": [
+        7
+      ]
+    },
+    {
+      "page": 5,
+      "id": 62,
+      "name": "bReset",
+      "label": "故障复位",
+      "touch": "65 05 3E 00 FF FF FF",
+      "requests": [
+        6
+      ]
+    },
+    {
+      "page": 6,
+      "id": 4,
+      "name": "bStop",
+      "label": "停止加热",
+      "touch": "65 06 04 00 FF FF FF",
+      "requests": [
+        2
+      ]
+    },
+    {
+      "page": 6,
+      "id": 6,
+      "name": "bNav0",
+      "label": "运行总览",
+      "touch": "65 06 06 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 6,
+      "id": 7,
+      "name": "bNav1",
+      "label": "分段温控",
+      "touch": "65 06 07 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 6,
+      "id": 8,
+      "name": "bNav2",
+      "label": "曲线调试",
+      "touch": "65 06 08 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 6,
+      "id": 9,
+      "name": "bNav3",
+      "label": "保护报警",
+      "touch": "65 06 09 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 6,
+      "id": 10,
+      "name": "bTab0",
+      "label": "温度",
+      "touch": "65 06 0A 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 6,
+      "id": 11,
+      "name": "bTab1",
+      "label": "功率",
+      "touch": "65 06 0B 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 6,
+      "id": 12,
+      "name": "bTab2",
+      "label": "频率",
+      "touch": "65 06 0C 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 6,
+      "id": 13,
+      "name": "bTab3",
+      "label": "相位差",
+      "touch": "65 06 0D 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 6,
+      "id": 16,
+      "name": "bafrom",
+      "label": "0",
+      "touch": "65 06 10 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 6,
+      "id": 19,
+      "name": "bato",
+      "label": "60",
+      "touch": "65 06 13 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 6,
+      "id": 21,
+      "name": "bFreeze",
+      "label": "冻结显示",
+      "touch": "65 06 15 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 6,
+      "id": 22,
+      "name": "bLive",
+      "label": "恢复实时",
+      "touch": "65 06 16 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 7,
+      "id": 6,
+      "name": "k0",
+      "label": "7",
+      "touch": "65 07 06 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 7,
+      "id": 7,
+      "name": "k1",
+      "label": "8",
+      "touch": "65 07 07 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 7,
+      "id": 8,
+      "name": "k2",
+      "label": "9",
+      "touch": "65 07 08 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 7,
+      "id": 9,
+      "name": "k3",
+      "label": "4",
+      "touch": "65 07 09 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 7,
+      "id": 10,
+      "name": "k4",
+      "label": "5",
+      "touch": "65 07 0A 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 7,
+      "id": 11,
+      "name": "k5",
+      "label": "6",
+      "touch": "65 07 0B 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 7,
+      "id": 12,
+      "name": "k6",
+      "label": "1",
+      "touch": "65 07 0C 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 7,
+      "id": 13,
+      "name": "k7",
+      "label": "2",
+      "touch": "65 07 0D 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 7,
+      "id": 14,
+      "name": "k8",
+      "label": "3",
+      "touch": "65 07 0E 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 7,
+      "id": 15,
+      "name": "k9",
+      "label": "0",
+      "touch": "65 07 0F 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 7,
+      "id": 16,
+      "name": "k10",
+      "label": "清空",
+      "touch": "65 07 10 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 7,
+      "id": 17,
+      "name": "k11",
+      "label": "退格",
+      "touch": "65 07 11 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 7,
+      "id": 18,
+      "name": "bCancel",
+      "label": "取消",
+      "touch": "65 07 12 00 FF FF FF",
+      "requests": []
+    },
+    {
+      "page": 7,
+      "id": 19,
+      "name": "bOK",
+      "label": "确认",
+      "touch": "65 07 13 00 FF FF FF",
+      "requests": []
+    }
+  ],
+  "params": [
+    {
+      "id": 1,
+      "var": "plim",
+      "label": "功率上限",
+      "initial": 1500,
+      "unit": "W",
+      "low": 1,
+      "high": 9999
+    },
+    {
+      "id": 2,
+      "var": "tg1",
+      "label": "温段1目标温度",
+      "initial": 60,
+      "unit": "℃",
+      "low": 1,
+      "high": 999
+    },
+    {
+      "id": 3,
+      "var": "hd1",
+      "label": "温段1保温时间",
+      "initial": 600,
+      "unit": "s",
+      "low": 1,
+      "high": 9999
+    },
+    {
+      "id": 4,
+      "var": "tg2",
+      "label": "温段2目标温度",
+      "initial": 90,
+      "unit": "℃",
+      "low": 1,
+      "high": 999
+    },
+    {
+      "id": 5,
+      "var": "hd2",
+      "label": "温段2保温时间",
+      "initial": 1800,
+      "unit": "s",
+      "low": 1,
+      "high": 9999
+    },
+    {
+      "id": 6,
+      "var": "tg3",
+      "label": "温段3目标温度",
+      "initial": 120,
+      "unit": "℃",
+      "low": 1,
+      "high": 999
+    },
+    {
+      "id": 7,
+      "var": "hd3",
+      "label": "温段3保温时间",
+      "initial": 3600,
+      "unit": "s",
+      "low": 1,
+      "high": 9999
+    },
+    {
+      "id": 8,
+      "var": "tg4",
+      "label": "温段4目标温度",
+      "initial": 120,
+      "unit": "℃",
+      "low": 1,
+      "high": 999
+    },
+    {
+      "id": 9,
+      "var": "hd4",
+      "label": "温段4保温时间",
+      "initial": 300,
+      "unit": "s",
+      "low": 1,
+      "high": 9999
+    },
+    {
+      "id": 10,
+      "var": "tg5",
+      "label": "温段5目标温度",
+      "initial": 120,
+      "unit": "℃",
+      "low": 1,
+      "high": 999
+    },
+    {
+      "id": 11,
+      "var": "hd5",
+      "label": "温段5保温时间",
+      "initial": 300,
+      "unit": "s",
+      "low": 1,
+      "high": 9999
+    },
+    {
+      "id": 12,
+      "var": "tg6",
+      "label": "温段6目标温度",
+      "initial": 120,
+      "unit": "℃",
+      "low": 1,
+      "high": 999
+    },
+    {
+      "id": 13,
+      "var": "hd6",
+      "label": "温段6保温时间",
+      "initial": 300,
+      "unit": "s",
+      "low": 1,
+      "high": 9999
+    },
+    {
+      "id": 14,
+      "var": "tg7",
+      "label": "温段7目标温度",
+      "initial": 120,
+      "unit": "℃",
+      "low": 1,
+      "high": 999
+    },
+    {
+      "id": 15,
+      "var": "hd7",
+      "label": "温段7保温时间",
+      "initial": 300,
+      "unit": "s",
+      "low": 1,
+      "high": 9999
+    },
+    {
+      "id": 16,
+      "var": "tg8",
+      "label": "温段8目标温度",
+      "initial": 120,
+      "unit": "℃",
+      "low": 1,
+      "high": 999
+    },
+    {
+      "id": 17,
+      "var": "hd8",
+      "label": "温段8保温时间",
+      "initial": 300,
+      "unit": "s",
+      "low": 1,
+      "high": 9999
+    },
+    {
+      "id": 18,
+      "var": "tg9",
+      "label": "温段9目标温度",
+      "initial": 120,
+      "unit": "℃",
+      "low": 1,
+      "high": 999
+    },
+    {
+      "id": 19,
+      "var": "hd9",
+      "label": "温段9保温时间",
+      "initial": 300,
+      "unit": "s",
+      "low": 1,
+      "high": 9999
+    },
+    {
+      "id": 20,
+      "var": "tg10",
+      "label": "温段10目标温度",
+      "initial": 120,
+      "unit": "℃",
+      "low": 1,
+      "high": 999
+    },
+    {
+      "id": 21,
+      "var": "hd10",
+      "label": "温段10保温时间",
+      "initial": 300,
+      "unit": "s",
+      "low": 1,
+      "high": 9999
+    },
+    {
+      "id": 22,
+      "var": "tg11",
+      "label": "温段11目标温度",
+      "initial": 120,
+      "unit": "℃",
+      "low": 1,
+      "high": 999
+    },
+    {
+      "id": 23,
+      "var": "hd11",
+      "label": "温段11保温时间",
+      "initial": 300,
+      "unit": "s",
+      "low": 1,
+      "high": 9999
+    },
+    {
+      "id": 24,
+      "var": "tg12",
+      "label": "温段12目标温度",
+      "initial": 120,
+      "unit": "℃",
+      "low": 1,
+      "high": 999
+    },
+    {
+      "id": 25,
+      "var": "hd12",
+      "label": "温段12保温时间",
+      "initial": 300,
+      "unit": "s",
+      "low": 1,
+      "high": 9999
+    },
+    {
+      "id": 26,
+      "var": "tfrom",
+      "label": "时间起点",
+      "initial": 0,
+      "unit": "s",
+      "low": 0,
+      "high": 86399,
+      "view_only": true
+    },
+    {
+      "id": 27,
+      "var": "tto",
+      "label": "时间终点",
+      "initial": 600,
+      "unit": "s",
+      "low": 1,
+      "high": 86400,
+      "view_only": true
+    },
+    {
+      "id": 28,
+      "var": "pfrom",
+      "label": "时间起点",
+      "initial": 0,
+      "unit": "s",
+      "low": 0,
+      "high": 86399,
+      "view_only": true
+    },
+    {
+      "id": 29,
+      "var": "pto",
+      "label": "时间终点",
+      "initial": 600,
+      "unit": "s",
+      "low": 1,
+      "high": 86400,
+      "view_only": true
+    },
+    {
+      "id": 30,
+      "var": "ffrom",
+      "label": "时间起点",
+      "initial": 0,
+      "unit": "s",
+      "low": 0,
+      "high": 86399,
+      "view_only": true
+    },
+    {
+      "id": 31,
+      "var": "fto",
+      "label": "时间终点",
+      "initial": 60,
+      "unit": "s",
+      "low": 1,
+      "high": 86400,
+      "view_only": true
+    },
+    {
+      "id": 32,
+      "var": "afrom",
+      "label": "时间起点",
+      "initial": 0,
+      "unit": "s",
+      "low": 0,
+      "high": 86399,
+      "view_only": true
+    },
+    {
+      "id": 33,
+      "var": "ato",
+      "label": "时间终点",
+      "initial": 60,
+      "unit": "s",
+      "low": 1,
+      "high": 86400,
+      "view_only": true
+    },
+    {
+      "id": 34,
+      "var": "flo",
+      "label": "搜频下限",
+      "initial": 15,
+      "unit": "kHz",
+      "low": 1,
+      "high": 99
+    },
+    {
+      "id": 35,
+      "var": "fhi",
+      "label": "搜频上限",
+      "initial": 25,
+      "unit": "kHz",
+      "low": 1,
+      "high": 99
+    },
+    {
+      "id": 36,
+      "var": "ov",
+      "label": "母线过压",
+      "initial": 0,
+      "unit": "V",
+      "low": 1,
+      "high": 9999
+    },
+    {
+      "id": 37,
+      "var": "uv",
+      "label": "母线欠压",
+      "initial": 0,
+      "unit": "V",
+      "low": 1,
+      "high": 9999
+    },
+    {
+      "id": 38,
+      "var": "oc",
+      "label": "谐振过流",
+      "initial": 0,
+      "unit": "A",
+      "low": 1,
+      "high": 9999
+    },
+    {
+      "id": 39,
+      "var": "ot1",
+      "label": "功率管过温",
+      "initial": 0,
+      "unit": "℃",
+      "low": 1,
+      "high": 999
+    },
+    {
+      "id": 40,
+      "var": "ot2",
+      "label": "整流桥过温",
+      "initial": 0,
+      "unit": "℃",
+      "low": 1,
+      "high": 999
+    },
+    {
+      "id": 41,
+      "var": "ot3",
+      "label": "工件超温",
+      "initial": 0,
+      "unit": "℃",
+      "low": 1,
+      "high": 999
+    }
+  ]
+}

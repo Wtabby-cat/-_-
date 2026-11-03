@@ -1,0 +1,14 @@
+# Build output and IDE per-user state (existing tracked files are left intact).
+/MDK-ARM/IH_incomp/
+/MDK-ARM/build/
+/MDK-ARM/DebugConfig/
+*.uvguix.*
+*.uvoptx
+*.o
+*.d
+*.crf
+*.__i
+*._ia
+__pycache__/
+/tmp/
+/Build/

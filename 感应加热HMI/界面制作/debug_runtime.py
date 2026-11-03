@@ -1,25 +1,40 @@
 """Native command-driven display code. No fabricated samples or elapsed clock."""
 ALARM_ROWS=6
+CHANNEL_VALIDITY=True
 def install(pages,g,windows,rgb,draw,blue,green,teal):
     for k in ['stageSec','hold','tgAct','done']:g.pop(k,None)
-    g.update(cmd=0,dirty=0,valid=0,temp10=0,target10=0,mean10=0,high10=0,low10=0,bus10=0,amp10=0,freq100=0,powerW=0,phase10=0,angle10=0,locked=0,phaseState=0,
+    g.update(cmd=0,dirty=0,valid=0,temp10=0,target10=0,mean10=0,high10=0,low10=0,bus10=0,amp10=0,freq100=0,power100=0,phase10=0,angle10=0,locked=0,phaseState=0,
              sampleSec=0,push=0,clearPlot=0,nBuf=0,lastSec=0,dataErr=0,fmtval=0,fmtfrac=0,span=1,ta=0,tb=0,ya=0,yb=0,delta=0,
              alarmIn=0,alarmOn=0,alarmSec=0,alarmPush=0,alarmCode=0)
+    g.update(msgCode=0,msgA=0,msgB=0,msgPush=0,internalFault=0)
+    g.update(temp110=0,temp210=0,temp1mv=0,temp2mv=0,follow=1,adcClipped=0)
+    g.update(fwVersion=0,tripCount=0,tripGate=0,tripMs=0,tripRaw1=0,tripRaw2=0)
     for i in range(ALARM_ROWS):
         for prefix in ['ac','at','as']:g[f'{prefix}{i}']=0
-    channels={'tt':'sampleSec','ct':'target10','av':'mean10','hi':'high10','pw':'powerW','fq':'freq100','ph':'phase10'}
-    for i in range(32):
-        for prefix in channels:g[f'{prefix}{i}']=0
+    if CHANNEL_VALIDITY:
+        g.update(dataFlags=0,fieldOK=0,va=0,vb=0)
+    from curve_runtime import install as install_curves
+    expands=install_curves(pages,g,windows,rgb,draw,blue,green,teal)
     def obj(p,name):return next(o for o in p.items if o['name']==name)
-    def dec(src,dst,places=1,suffix=''):
+    def dec(src,dst,places=1,suffix='',fit=False):
         scale=10**places
-        code=[f'fmtval={src}','if(fmtval<0)','{','fmtval=0-fmtval','}',f'tmp=fmtval/{scale}',f'covx tmp,{dst}.txt,0,0']
+        # Build sign, integer part and fraction in a hidden string. Never
+        # prepend to a string while also using that string as the destination;
+        # the visible control receives only the completed value, once.
+        code=[f'fmtval={src}','tNum.txt=""','if(fmtval<0)','{','tNum.txt="-"','fmtval=0-fmtval','}',
+              f'tmp=fmtval/{scale}','covx tmp,tFmt.txt,0,0','tNum.txt=tNum.txt+tFmt.txt']
         if places:
-            code += [f'fmtfrac=fmtval%{scale}','covx fmtfrac,tFmt.txt,0,0']
-            if places==2:code += ['if(fmtfrac<10)','{','tFmt.txt="0"+tFmt.txt','}']
-            code += [f'{dst}.txt={dst}.txt+"."+tFmt.txt']
-        code += [f'if({src}<0)','{',f'{dst}.txt="-"+{dst}.txt','}']
-        if suffix:code += [f'{dst}.txt={dst}.txt+"{suffix}"']
+            code += ['tNum.txt=tNum.txt+"."',f'fmtfrac=fmtval%{scale}']
+            for limit in reversed([10**d for d in range(1,places)]):
+                code += [f'if(fmtfrac<{limit})','{','tNum.txt=tNum.txt+"0"','}']
+            code += ['covx fmtfrac,tFmt.txt,0,0','tNum.txt=tNum.txt+tFmt.txt']
+        if suffix:code += [f'tNum.txt=tNum.txt+"{suffix}"']
+        if fit:
+            # With the bundled fonts, up to six signed/decimal ASCII chars
+            # fit at 44 px. Seven or more need the existing 32 px font.
+            code += ['strlen tNum.txt,tmp','if(tmp>6)','{',f'if({dst}.font!=4)','{',f'{dst}.font=4','}',
+                     '}else','{',f'if({dst}.font!=1)','{',f'{dst}.font=1','}','}']
+        code += [f'{dst}.txt=tNum.txt']
         return code
     def integer(src,dst,suffix=''):
         code=[f'covx {src},{dst}.txt,0,0']
@@ -44,16 +59,11 @@ def install(pages,g,windows,rgb,draw,blue,green,teal):
     # Stage configuration changes do not forge measured stage feedback.
     for name in ['bAdd','bRemove']:
         o=obj(pages[1],name);o['code']=o['code'].replace('stage=0\r\ndone=0\r\n','')
-    # Process an explicitly supplied snapshot, keeping the newest 32 samples.
-    ingest=['if(clearPlot==1)','{','nBuf=0','lastSec=0','clearPlot=0','dirty=1','}',
-            'if(push==1)','{','push=0','dataErr=0','if(sampleSec<0||sampleSec>86400)','{','dataErr=1','}else','{',
-            'if(nBuf>0&&sampleSec<=lastSec)','{','dataErr=1','}else','{','if(nBuf==32)','{']
-    for i in range(31):
-        for prefix in channels:ingest += [f'{prefix}{i}={prefix}{i+1}']
-    ingest += ['nBuf=31','}']
-    for i in range(32):
-        ingest += [f'if(nBuf=={i})','{']+[f'{prefix}{i}={src}' for prefix,src in channels.items()]+['}']
-    ingest += ['nBuf=nBuf+1','lastSec=sampleSec','valid=1','dirty=1','}','}','}']
+    ingest=['if(runId!=seenRun)','{','seenRun=runId','clearPlot=1','}',
+            'if(clearPlot==1)','{','clearPlot=0','frozen=0','follow=1','dirty=1']
+    for pair in windows.values():
+        ingest += [f'{pair[0]["var"]}=0',f'{pair[1]["var"]}={pair[1]["initial"]}']
+    ingest += ['if(curvePage!=255)','{','click bView,0','}','}']
     # Alarm updates are explicit. Restoring a fault preserves its history entry.
     ingest += ['if(alarmPush==1)','{','alarmPush=0','if(alarmIn>=1&&alarmIn<=8)','{','if(alarmOn==1)','{','if(alarmCode!=alarmIn)','{']
     for i in range(ALARM_ROWS-1,0,-1):
@@ -68,27 +78,42 @@ def install(pages,g,windows,rgb,draw,blue,green,teal):
         return code
     for p in pages:
         p.text('tFmt','',0,0,16,16,font=3)
-        p.load.insert(0,'vis tFmt,0')
+        p.text('tNum','',0,0,16,16,font=3)
+        p.load[:0]=['vis tFmt,0','vis tNum,0']
         refresh=[]
         if p.pid!=7:
             refresh += ['tState.txt="待机"','if(run==1)','{','tState.txt="运行中"','}']
         fields={
-            0:[('temp10','tActual',1),('target10','tTarget',1),('powerW','tPower',0),('bus10','tBus',1),('freq100','tFreq',2),('amp10','tCurrent',1)],
+            0:[('temp10','tActual',1),('target10','tTarget',1),('power100','tPower',2),('bus10','tBus',1),('freq100','tFreq',2),('amp10','tCurrent',1)],
             2:[('target10','tTarget',1),('mean10','tMean',1),('high10','tHigh',1),('low10','tLow',1)],
-            3:[('powerW','tPower',0),('angle10','tAngle',1)],4:[('freq100','tFreq',2)],6:[('phase10','tAngle',1)]}.get(p.pid,[])
+            3:[('power100','tPower',2),('angle10','tAngle',1)],4:[('freq100','tFreq',2)],6:[('phase10','tAngle',1)]}.get(p.pid,[])
         if fields:
-            refresh += ['if(valid==1)','{']
-            for src,dst,places in fields:refresh+=dec(src,dst,places)
-            refresh+=['}else','{']+[f'{dst}.txt="--"' for _,dst,_ in fields]+['}']
+            if CHANNEL_VALIDITY:
+                masks={'temp10':1,'target10':2,'power100':4,'mean10':128,'high10':128,'low10':128,'bus10':8,'amp10':16,'freq100':32,
+                       'phase10':64,'angle10':256,'temp110':512,'temp210':2048,'temp1mv':1024,'temp2mv':1024}
+                for src,dst,places in fields:
+                    fit=p.pid==0 and dst=='tPower'
+                    refresh += [f'fieldOK=dataFlags&{masks[src]}','if(fieldOK>0)','{']+dec(src,dst,places,fit=fit)+['}else','{']
+                    if fit:refresh += [f'{dst}.font=1']
+                    refresh += [f'{dst}.txt="--"','}']
+            else:
+                refresh += ['if(valid==1)','{']
+                for src,dst,places in fields:refresh+=dec(src,dst,places)
+                refresh+=['}else','{']+[f'{dst}.txt="--"' for _,dst,_ in fields]+['}']
         if p.pid==0:
             refresh+=integer('stage','tStage')+['tStage.txt=tStage.txt+" / "','covx nseg,tFmt.txt,0,0','tStage.txt=tStage.txt+tFmt.txt']
             refresh+=integer('totalSec','tElapsed',' s')+integer('remain','tRemain',' s')
             refresh+=['tPhase.txt="待机"']
-            for value,label in [(1,'升温'),(2,'保温'),(3,'已完成')]:refresh +=[f'if(phaseState=={value})','{',f'tPhase.txt="{label}"','}']
+            for value,label in [(1,'升温'),(2,'保温'),(3,'已完成'),(4,'定频输出')]:refresh +=[f'if(phaseState=={value})','{',f'tPhase.txt="{label}"','}']
             refresh += ['tsw bStart,1',f'bStart.bco={rgb(blue)}','if(run==1)','{','tsw bStart,0','bStart.bco=54970','}']
         if p.pid in (0,4,6):
             dest='tLock' if p.pid==0 else 'tLocked'
             refresh += [f'{dest}.txt="未锁定"','if(locked==1)','{',f'{dest}.txt="已锁定"','}']
+        if p.pid==6:
+            refresh += ['tInfo.txt="启动后显示相位"','if(run==1)','{',
+                        'tInfo.txt="等待有效相位"','fieldOK=dataFlags&64','if(fieldOK>0)','{',
+                        'tInfo.txt="电压超前电流为正"','tmp=0-300','if(phase10<tmp||phase10>300)','{',
+                        'tInfo.txt="超出±30°曲线范围"','}','}','}']
         if p.pid==5:
             refresh+=alarmtext('alarmCode','tAlarm','无')
             refresh+=['tAlarm.pco='+str(rgb(green)),'if(alarmCode>0)','{','tAlarm.pco=63488','}']
@@ -97,29 +122,33 @@ def install(pages,g,windows,rgb,draw,blue,green,teal):
                 refresh+=integer(f'at{i}',f'a{i}0',' s')+alarmtext(f'ac{i}',f'a{i}1')
                 for status,label in [(1,'未确认'),(2,'已确认'),(3,'已恢复')]:refresh += [f'if(as{i}=={status})','{',f'a{i}2.txt="{label}"','}']
                 refresh+=['}']
-        chart=[]
-        if p.pid in windows:
-            m=p.plots[0];x,y,w,h=[m[k] for k in ['x','y','w','h']]
-            lo,hi=[item['var'] for item in windows[p.pid]]
-            chart=[f'if({lo}>=0&&{hi}<=86400&&{hi}>{lo})','{',f'span={hi}-{lo}',f'covx {lo},{m["xt"][0]}.txt,0,0',f'covx {hi},{m["xt"][2]}.txt,0,0',f'tmp={hi}+{lo}','tmp=tmp/2',f'covx tmp,{m["xt"][1]}.txt,0,0',f'tmp={hi}+{lo}','tmp=tmp%2','if(tmp==1)','{',f'{m["xt"][1]}.txt={m["xt"][1]}.txt+".5"','}',f'fill {x},{y},{w+1},{h+1},65535']
-            chart += [draw(op) for op in p.draw[m['drawstart']:m['gridend']]]
-            traces={2:[('ct',0,1500,blue),('av',0,1500,green),('hi',0,1500,'#ff7c43')],3:[('pw',0,1500,teal)],4:[('fq',1500,2500,green)],6:[('ph',-300,300,teal)]}[p.pid]
-            for prefix,ylo,yhi,color in traces:
-                for i in range(1,32):
-                    # Clip both endpoints in time, then map into the visible axes.
-                    chart += [f'if(nBuf>{i}&&tt{i}>={lo}&&tt{i-1}<={hi})','{',f'ta=tt{i-1}',f'tb=tt{i}',f'ya={prefix}{i-1}',f'yb={prefix}{i}',
-                              f'if(ta<{lo})','{','delta=yb-ya',f'tmp={lo}-ta','delta=delta*tmp','tmp=tb-ta','delta=delta/tmp','ya=ya+delta',f'ta={lo}','}',
-                              f'if(tb>{hi})','{','delta=yb-ya',f'tmp={hi}-ta','delta=delta*tmp','tmp=tb-ta','delta=delta/tmp','yb=ya+delta',f'tb={hi}','}']
-                    for val in ['ya','yb']:chart +=[f'if({val}<{ylo})','{',f'{val}={ylo}','}',f'if({val}>{yhi})','{',f'{val}={yhi}','}']
-                    chart += [f'px=ta-{lo}',f'px=px*{w}/span+{x}',f'nx=tb-{lo}',f'nx=nx*{w}/span+{x}',f'py=ya-{ylo}' if ylo>=0 else f'py=ya+{-ylo}',f'py=py*{h}/{yhi-ylo}',f'py={y+h}-py',f'ny=yb-{ylo}' if ylo>=0 else f'ny=yb+{-ylo}',f'ny=ny*{h}/{yhi-ylo}',f'ny={y+h}-ny',f'line px,py,nx,ny,{rgb(color)}','}']
-            chart += ['}else','{','tFoot.txt="时间范围无效：起点必须小于终点"','}']
-        p.load+=refresh+chart
+            refresh += ['if(internalFault>0)','{','tAlarm.txt="采样或通信异常"','tAlarm.pco=63488','}']
+        if p.pid in (0,5):
+            # Append after all original visible controls to retain their IDs.
+            p.text('tDiag','',408,416,380,20,font=3)
+            refresh += ['tDiag.txt="固件号："','covx fwVersion,tFmt.txt,0,0',
+                        'tDiag.txt=tDiag.txt+tFmt.txt','if(tripCount>0)','{',
+                        'tDiag.txt="驱动前 "','if(tripGate==1)','{','tDiag.txt="驱动后 "','}',
+                        'covx tripMs,tFmt.txt,0,0','tDiag.txt=tDiag.txt+tFmt.txt',
+                        'tDiag.txt=tDiag.txt+"ms 原码"','covx tripRaw1,tFmt.txt,0,0',
+                        'tDiag.txt=tDiag.txt+tFmt.txt','tDiag.txt=tDiag.txt+"/"',
+                        'covx tripRaw2,tFmt.txt,0,0','tDiag.txt=tDiag.txt+tFmt.txt','}']
+        # Field refresh never clears a plot. Only a new view epoch resets it.
+        chart=expands.get(p.pid,[])
+        from feedback_runtime import render
+        messages=render() if p.pid!=7 else []
+        p.load+=refresh+chart+messages
         # No clock advancement: the timer only consumes explicitly submitted input.
-        p.timer='\r\n'.join(ingest+['if(dirty==1)','{']+refresh+(['if(frozen==0)','{']+chart+['}'] if chart else [])+['dirty=0','}'])
+        p.timer='\r\n'.join(ingest+['if(dirty==1)','{']+refresh+(['if(frozen==0)','{']+chart+['}'] if chart else [])+['dirty=0','}']+messages)
         p.button('bInput','',0,0,16,16,font=3,code=p.timer)
         p.load.insert(0,'vis bInput,0')
     # Validate paired time inputs before assigning either endpoint.
     ok=obj(pages[7],'bOK')
+    # Manual time windows disable following only on an accepted edit.
+    for pair in windows.values():
+        for pr in pair:
+            token=f'{pr["var"]}=editval'
+            ok['code']=ok['code'].replace(token,token+'\r\nfollow=0')
     for pair in windows.values():
         lo,hi=pair
         for cond in [f'field=={lo["id"]}&&editval>={hi["var"]}',f'field=={hi["id"]}&&editval<={lo["var"]}']:

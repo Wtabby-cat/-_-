@@ -10,9 +10,7 @@ import re
 def install_events(pages, params):
     def item(pid,name):return next(o for o in pages[pid].items if o['name']==name)
     item(1,'tFoot').update(y=424,h=16,w=770)
-    # No page reload: redraw cached samples, then leave a visible confirmation.
-    for pid in (2,3,4,6):
-        item(pid,'bLive')['code']='frozen=0\r\ndirty=1\r\nclick bInput,0\r\ntFoot.txt="已恢复实时"'
+    # Curve controls request the MCU archive; preserve their epoch and range.
     item(5,'bSave')['code']=item(5,'bSave')['code'].replace('\r\ntFoot.txt="参数已暂存"','')
     item(0,'bStart')['code']='if(run==0)\r\n{\r\ncmd=1\r\n}else\r\n{\r\ntFoot.txt="正在运行"\r\n}'
     for pid,name in [(1,'bApply'),(3,'bApply'),(4,'bLock')]:
@@ -23,7 +21,15 @@ def install_events(pages, params):
     for name,tip in [('bAdd','已插入温段'),('bRemove','已删除温段')]:
         o=item(1,name);o['code']=o['code'].replace('click bTable,0',f'click bTable,0\r\ntFoot.txt="{tip}"')
     for index in range(3):
-        item(1,'bOpt'+str(index))['code']+='\r\ntFoot.txt="算法已选择；点击应用参数生效"'
+        item(1,'bOpt'+str(index))['code']+='\r\ntFoot.txt="算法已暂选；闭环尚未启用"'
+    # These mutations do not go through the keypad. Notify the MCU too, so
+    # a pending multi-get profile cannot mix fields from different edits.
+    # Field 0 is a profile-structure/mode edit, never a numeric parameter.
+    for name in ['bAdd','bRemove','bOpt0','bOpt1','bOpt2']:
+        o=item(1,name)
+        variable='mode' if name.startswith('bOpt') else 'nseg'
+        notice=f'printh A5 5A 02 01 00\r\nprints {variable},4\r\nprinth FF FF FF'
+        o['code']=o['code'].replace('click bTable,0','click bTable,0\r\n'+notice)
     ok=item(7,'bOK')
     ok['code']=ok['code'].replace('page backpg','\r\n'.join([
         'printh A5 5A 02','prints backpg,1','prints field,1','prints editval,4',
@@ -35,7 +41,7 @@ def install_events(pages, params):
     result=[]
     for p in pages:
         for cid,o in enumerate(p.items,1):
-            if o['kind']!='button' or o['name'] in ('bInput','bTable'):continue
+            if o['kind']!='button' or o['name'] in ('bInput','bTable','bView','bCurve'):continue
             def emit(match):
                 cmd=int(match[1])
                 return f'cmd={cmd}\r\nprinth A5 5A 01 {p.pid:02X} {cmd:02X} FF FF FF\r\ntFoot.txt="{hints[cmd]}"'

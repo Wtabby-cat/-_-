@@ -11,9 +11,10 @@ import struct, math, json, hashlib, html
 from PIL import Image, ImageDraw, ImageFont
 from debug_runtime import ALARM_ROWS
 
-ROOT=Path(__file__).resolve().parent
-SOURCE=ROOT.parent/'加热1.HMI'
-OUTPUT=ROOT.parent/'加热1_调试版_V8.HMI'
+SCRIPT_ROOT=Path(__file__).resolve().parent
+ROOT=SCRIPT_ROOT/'V9'
+SOURCE=SCRIPT_ROOT.parent/'加热1.HMI'
+OUTPUT=SCRIPT_ROOT.parent/'加热1_调试版_V9.HMI'
 MAX_STAGES=12
 U32=lambda b,o=0:struct.unpack_from('<I',b,o)[0]
 P32=lambda v:struct.pack('<I',v)
@@ -147,7 +148,7 @@ def param(var,label,initial,unit,low,high):
 PLIM=param('plim','功率上限',1500,'W',1,9999)
 STAGES=[]
 for i in range(MAX_STAGES):
-    t=[60,90,120][i] if i<3 else 120;h=[180,300,600][i] if i<3 else 300
+    t=[60,90,120][i] if i<3 else 120;h=[600,1800,3600][i] if i<3 else 300
     STAGES.append([param(f'tg{i+1}',f'温段{i+1}目标温度',t,'℃',1,999),param(f'hd{i+1}',f'温段{i+1}保温时间',h,'s',1,9999)])
 WINDOWS={}
 for pid,prefix,value in [(2,'t',600),(3,'p',600),(4,'f',60),(6,'a',60)]:
@@ -228,7 +229,11 @@ def plot(page,x,y,w,h,yrange,yticks,xticks,series,title,unit):
 p=Page(0,'运行总览','运行总览',0);p.frame()
 for idx,(label,value,unit,name) in enumerate([('实际温度','--','℃','tActual'),('目标温度','--','℃','tTarget'),('电功率','--','W','tPower'),('母线电压','--','V','tBus'),('工作频率','--','kHz','tFreq'),('谐振电流','--','A','tCurrent')]):
     x=28+(idx%3)*264;y=62+(idx//3)*106
-    p.text('l'+name,label,x,y,240,28);p.text(name,value,x,y+31,170,54,font=1,color=TEAL);p.text('u'+name,unit,x+174,y+48,70,28)
+    p.text('l'+name,label,x,y,240,28)
+    # Keep every unit in its original column. Long signed power values use a
+    # fitted font at runtime, rather than moving W away from the A below it.
+    p.text(name,value,x,y+31,170,54,font=1,color=TEAL)
+    p.text('u'+name,unit,x+174,y+48,70,28)
 for y in [152,258,314,368]:p.line(16,y,784,y)
 for x in [268,532]:p.line(x,62,x,140);p.line(x,170,x,246);p.line(x,270,x,302)
 for x,label,val,name in [(28,'当前温段','0 / 3','tStage'),(292,'当前阶段','待机','tPhase'),(550,'锁相状态','未锁定','tLock')]:
@@ -251,7 +256,7 @@ for i,row in enumerate(STAGES):
     p.load += [f'vis fr{i},0',f'vis bRow{i},0']
     for pr in row:p.load += [f'vis f{pr["var"]},0',f'vis b{pr["var"]},0']
     p.load += [f'bRow{i}.bco={rgb565(WHITE)}',f'bRow{i}.pco={rgb565(INK)}']
-for i,label in enumerate(['LADRC','PID','模糊LADRC']):
+for i,label in enumerate(['LADRC','PID','模糊自抗扰']):
     p.load +=[f'if(mode=={i})\r\n{{\r\nbMode.txt="{label}"\r\n}}']
 for x,w,label in [(16,68,'温段'),(85,180,'目标温度 / ℃'),(266,190,'保温时间 / s')]:
     p.text('th'+str(x),label,x,102,w,32,font=2,bg=GRAY,align=1)
@@ -278,12 +283,12 @@ p.button('bRemove','删除选中',144,390,120,34,font=2,code='\r\n'.join(remove)
 p.button('bPrev','上一页',276,390,84,34,font=3,code='stagepage=0\r\nsel=1\r\npage 1')
 p.button('bNext','下一页',368,390,88,34,font=3,code='if(nseg>6)\r\n{\r\nstagepage=1\r\nsel=7\r\npage 1\r\n}')
 p.text('tPreview','程序预览',496,100,280,26,font=2)
-plot(p,526,160,246,126,(0,150),[(0,'0'),(75,'75'),(150,'150')],[(0,'0'),(.5,'540'),(1,'1080')],[([(0,60),(180/1080,60),(180/1080,90),(480/1080,90),(480/1080,120),(1,120)],BLUE)],'','时间 / s')
+plot(p,526,160,246,126,(0,150),[(0,'0'),(75,'75'),(150,'150')],[(0,'0'),(.5,'3000'),(1,'6000')],[([(0,60),(.1,60),(.1,90),(.4,90),(.4,120),(1,120)],BLUE)],'','时间 / s')
 p.text('tEnd','结束动作：停止加热',492,344,292,28,font=2)
 p.button('bSave','保存方案',492,378,138,36,font=2,bg=WHITE,border=1,code='saved=1\r\ntFoot.txt="方案已暂存；掉电不保存"')
 p.button('bApply','应用参数',644,378,140,36,font=2,color=WHITE,bg=BLUE,code='if(run==0)\r\n{\r\ntFoot.txt="参数已暂存；主控未连接"\r\n}')
 # Last in paint order so the dropdown covers the programme preview while open.
-for i,label in enumerate(['LADRC','PID','模糊LADRC']):
+for i,label in enumerate(['LADRC','PID','模糊自抗扰']):
     p.button('bOpt'+str(i),label,450,89+i*36,330,36,font=2,bg=GRAY,border=1,code=f'mode={i}\r\npage 1')
 
 
@@ -292,15 +297,15 @@ p=Page(2,'曲线调试温度','温度曲线',2);p.frame();p.tabs(0);p.curve_cont
 points=[i/60 for i in range(61)]
 series=[([(x,60+min(60,x*120)) for x in points],BLUE),([(x,56+64*(min(x/.55,1))) for x in points],GREEN),([(x,62+68*(1-math.exp(-3*x))) for x in points],'#ff7c43')]
 plot(p,60,140,480,176,(0,150),[(0,'0'),(50,'50'),(100,'100'),(150,'150')],[(0,'0'),(.5,'300'),(1,'600')],series,'温度 / ℃','时间 / s')
-for x,s,c in [(300,'目标',BLUE),(382,'平均',GREEN),(464,'最高','#ff7c43')]:p.line(x,108,x+20,108,c);p.text('leg'+s,s,x+24,96,60,24,font=2)
-for i,(label,val,name) in enumerate([('目标温度','--','tTarget'),('区域平均','--','tMean'),('区域最高','--','tHigh'),('区域最低','--','tLow')]):
-    y=102+i*65;p.text('l'+name,label,568,y+11,102,30,font=2);p.text(name,val,674,y+9,86,34,font=2,color=TEAL);p.text('u'+name,'℃',760,y+16,24,24,font=2);p.line(562,y+60,784,y+60)
+for x,s,c in [(300,'目标',BLUE),(384,'平均',GREEN),(468,'最高','#ff7c43')]:p.line(x,108,x+20,108,c);p.text('leg'+s,s,x+24,96,64,24,font=2)
+for i,(label,name,unit) in enumerate([('目标温度','tTarget','℃'),('区域平均','tMean','℃'),('区域最高','tHigh','℃'),('区域最低','tLow','℃')]):
+    y=102+i*65;p.text('l'+name,label,568,y+11,102,30,font=2);p.text(name,'--',674,y+9,86,34,font=2,color=TEAL);p.text('u'+name,unit,760,y+16,24,24,font=2);p.line(562,y+60,784,y+60)
 
 # 3: power
 p=Page(3,'曲线调试功率','功率曲线',2);p.frame();p.tabs(1);p.curve_controls()
-plot(p,60,140,460,176,(0,1500),[(0,'0'),(500,'500'),(1000,'1000'),(1500,'1500')],[(0,'0'),(.5,'300'),(1,'600')],[([(x,850+530*math.exp(-((x/.33)**2))) for x in points],TEAL)],'电功率/ W','时间 / s')
+plot(p,60,140,460,176,(0,1500),[(0,'0'),(500,'500'),(1000,'1000'),(1500,'1500')],[(0,'0'),(.5,'300'),(1,'600')],[],'电功率 / W','时间 / s')
 p.line(548,98,548,364)
-p.text('lPower','当前功率',570,110,100,28,font=2);p.text('tPower','--',646,146,105,48,font=4,color=TEAL);p.text('uPower','W',754,167,30,25,font=2)
+p.text('lPower','当前功率',570,110,100,28,font=2);p.text('tPower','--',570,146,178,48,font=4,color=TEAL,align=1);p.text('uPower','W',754,167,30,25,font=2)
 p.text('lMax','功率上限',570,232,100,30,font=2);p.field(PLIM,678,230,84);p.text('uMax','W',766,234,24,28,font=2)
 p.text('lAngle','调功移相角',570,280,116,28,font=2);p.text('tAngle','--',692,280,90,28,color=TEAL)
 p.button('bApply','应用设置',570,322,214,36,font=2,color=WHITE,bg=BLUE,code='if(run==0)\r\n{\r\ntFoot.txt="设置已暂存；主控未连接"\r\n}')
@@ -406,6 +411,7 @@ ok['code']=ok['code'].replace('if(editval>=editmin&&editval<=editmax)',f'if(fiel
 # Active serial notifications. Keep touch and accepted requests distinct.
 from active_events import install_events
 EVENT_MAP=install_events(PAGES,PARAMS)
+EVENT_MAP['version']=9
 
 def component(template,changes,codes):
     a=OrderedDict(template)
@@ -516,4 +522,11 @@ def run():
     (ROOT/'预览.html').write_text(gallery,'utf8')
     print('OUTPUT',OUTPUT,'bytes',OUTPUT.stat().st_size,flush=True)
 
-if __name__=='__main__':run()
+if __name__=='__main__':
+    import argparse
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--output',type=Path,default=OUTPUT,
+                        help='Alternative HMI output when the editor holds the usual file open')
+    OUTPUT=parser.parse_args().output.resolve()
+    OUTPUT.parent.mkdir(parents=True,exist_ok=True)
+    run()

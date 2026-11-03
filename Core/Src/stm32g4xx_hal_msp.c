@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 /* USER CODE BEGIN Includes */
+#include "ih_config.h"
 
 /* USER CODE END Includes */
 extern DMA_HandleTypeDef hdma_adc1;
@@ -262,7 +263,9 @@ void HAL_COMP_MspInit(COMP_HandleTypeDef* hcomp)
     */
     GPIO_InitStruct.Pin = GPIO_PIN_7;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+    /* G4 analog mode still permits the weak pull-down. PA7 is a shared
+     * COMP2 / ADC2 analog input and must not load the external bus sense. */
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     /* USER CODE BEGIN COMP2_MspInit 1 */
@@ -581,6 +584,12 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
     /* USER CODE BEGIN USART1_MspInit 1 */
+    /* UART idle is high; keep PC5 defined while the HMI TX is powering up. */
+    GPIO_InitStruct.Pin = GPIO_PIN_5;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+    HAL_NVIC_SetPriority(USART1_IRQn, 1U, 0U);
+    HAL_NVIC_EnableIRQ(USART1_IRQn);
 
     /* USER CODE END USART1_MspInit 1 */
   }
@@ -610,7 +619,11 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     */
     GPIO_InitStruct.Pin = GPIO_PIN_15;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+#if IH_WORKPIECE_UART_ENABLED
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+#else
     GPIO_InitStruct.Pull = GPIO_NOPULL;
+#endif
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -623,7 +636,10 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     /* USER CODE BEGIN USART2_MspInit 1 */
-
+#if IH_WORKPIECE_UART_ENABLED
+    HAL_NVIC_SetPriority(USART2_IRQn, 2U, 0U);
+    HAL_NVIC_EnableIRQ(USART2_IRQn);
+#endif
     /* USER CODE END USART2_MspInit 1 */
   }
 
@@ -652,6 +668,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
     HAL_GPIO_DeInit(GPIOC, GPIO_PIN_4|GPIO_PIN_5);
 
     /* USER CODE BEGIN USART1_MspDeInit 1 */
+    HAL_NVIC_DisableIRQ(USART1_IRQn);
 
     /* USER CODE END USART1_MspDeInit 1 */
   }
@@ -672,7 +689,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_3);
 
     /* USER CODE BEGIN USART2_MspDeInit 1 */
-
+    HAL_NVIC_DisableIRQ(USART2_IRQn);
     /* USER CODE END USART2_MspDeInit 1 */
   }
 
