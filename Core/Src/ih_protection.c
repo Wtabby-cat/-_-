@@ -1,10 +1,14 @@
 #include "ih_protection.h"
+#include "ih_config.h"
 
 int Protection_ParamsValid(const ProtectionParams *p)
 {
-  return p->uv > 0 && p->ov > p->uv && p->ov <= 9999 &&
-         p->oc > 0 && p->oc <= 9999 && p->ot1 > 0 && p->ot1 <= 999 &&
-         p->ot2 > 0 && p->ot2 <= 999 && p->ot3 > 0 && p->ot3 <= 999;
+  return p->uv > 0 && p->uv <= IH_LIMIT_UV_MAX_V &&
+         p->ov > p->uv && p->ov <= IH_LIMIT_OV_MAX_V &&
+         p->oc > 0 && p->oc <= IH_LIMIT_OC_PEAK_MAX_A &&
+         p->ot1 > 0 && p->ot1 <= IH_LIMIT_OT_MAX_C &&
+         p->ot2 > 0 && p->ot2 <= IH_LIMIT_OT_MAX_C &&
+         p->ot3 > 0 && p->ot3 <= IH_LIMIT_OT_MAX_C;
 }
 
 uint32_t Protection_Evaluate(const ProtectionParams *p, const ProtectionInputs *in)

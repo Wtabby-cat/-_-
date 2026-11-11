@@ -18,7 +18,7 @@ static ProtectionParams protection = {IH_DEFAULT_OV_V, IH_DEFAULT_UV_V, IH_DEFAU
 static IhState state;
 static uint32_t fault_mask, start_tick, elapsed_ms, measure_tick, led_tick;
 static uint32_t clear_since;
-static uint32_t relay_tick, relay_power_tick;
+static uint32_t relay_tick;
 static uint8_t clear_tracking;
 static uint8_t uv_tracking;
 static uint32_t uv_since;
@@ -34,6 +34,10 @@ volatile uint32_t dbg_pwm_start_count;
 volatile float dbg_start_bus_v;
 volatile uint32_t dbg_trip_bus_rank1_raw, dbg_trip_bus_rank2_raw;
 volatile uint32_t dbg_trip_state, dbg_trip_phase10, dbg_trip_sample_age_ms;
+volatile uint32_t dbg_trip_inputs, dbg_trip_adc_age_ms;
+volatile int32_t dbg_ov_limit_v;
+volatile uint32_t dbg_trip_ov_source;
+volatile float dbg_trip_ov_limit_v, dbg_trip_bus_peak_v;
 volatile uint32_t dbg_trip_bus_min_raw, dbg_trip_bus_max_raw;
 static void DisableGate(void)
 {
@@ -83,8 +87,21 @@ static void Trip(uint32_t faults)
     ++dbg_trip_count; dbg_trip_pwm_en = dbg_pwm_en;
     dbg_trip_state = (uint32_t)state; dbg_trip_phase10 = dbg_pwm_phase10;
     dbg_trip_sample_age_ms = HAL_GetTick() - m.bus_sample_tick;
+    dbg_trip_adc_age_ms = HAL_GetTick() - m.power_sample_tick;
+    dbg_trip_inputs = (m.adc_valid ? 1U : 0U) | (m.bus_valid ? 2U : 0U) |
+                      (m.power_valid ? 4U : 0U) | (m.adc_clipped ? 8U : 0U);
     dbg_trip_mask = faults;
     dbg_trip_bus_v = m.bus_v; dbg_trip_uv_v = (float)protection.uv;
+    dbg_trip_ov_limit_v = (float)protection.ov; dbg_trip_bus_peak_v = m.bus_peak_v;
+    dbg_trip_ov_source = 0U;
+    if (faults & IH_FAULT_OV) {
+      if (m.bus_valid && protection.ov > 0) {
+        if (m.bus_v >= (float)protection.ov) dbg_trip_ov_source |= IH_OV_SOFTWARE_MEAN;
+        if (m.bus_peak_v >= (float)protection.ov) dbg_trip_ov_source |= IH_OV_SOFTWARE_PEAK;
+      }
+      if (dbg_ovp) dbg_trip_ov_source |= IH_OV_COMP2_LEVEL;
+      if (dbg_ovp_fault) dbg_trip_ov_source |= IH_OV_HRTIM_FLT1;
+    }
     dbg_trip_bus_raw = (uint32_t)(m.bus_adc_v * 4095.0f / IH_ADC_VREF_V + 0.5f);
     dbg_trip_bus_rank1_raw = m.bus_rank1_raw; dbg_trip_bus_rank2_raw = m.bus_rank2_raw;
     dbg_trip_bus_min_raw = m.bus_min_raw; dbg_trip_bus_max_raw = m.bus_max_raw;
@@ -102,6 +119,7 @@ static uint32_t PresentFaults(uint8_t check_running)
   ProtectionInputs in;
   uint32_t flags = hhrtim1.Instance->sCommonRegs.ISR;
   Measurement_Get(&m);
+  dbg_ov_limit_v = protection.ov;
   dbg_ovp = HAL_COMP_GetOutputLevel(&hcomp2);
   dbg_ocp = HAL_COMP_GetOutputLevel(&hcomp6);
   dbg_ovp_fault = (flags & HRTIM_ISR_FLT1) != 0U;
@@ -203,6 +221,7 @@ int App_SaveProtection(const ProtectionParams *params)
   StopOutputs();
   if (!Settings_Save(params)) return 0;
   protection = *params;
+  dbg_ov_limit_v = protection.ov;
   clear_tracking = 0U;
   return 1;
 }
@@ -216,7 +235,6 @@ void App_Init(void)
   if (!Pwm_Init()) Error_Handler();
   Tracking_Init();
   Power_Init();
-  relay_power_tick = HAL_GetTick();
   HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, IH_DAC_CODE(IH_HW_OVP_V));
   HAL_DAC_SetValue(&hdac4, DAC_CHANNEL_2, DAC_ALIGN_12B_R, IH_DAC_CODE(IH_HW_OCP_V));
   HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, IH_DAC_CODE(IH_ZC_THRESHOLD_V));
@@ -235,6 +253,7 @@ void App_Init(void)
   HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_3, HRTIM_FAULTMODECTL_ENABLED);
   dbg_app_init_stage = 3U;
   Settings_Load(&protection);
+  dbg_ov_limit_v = protection.ov;
   dbg_app_init_stage = 4U;
   Measurement_Init();
   dbg_app_init_stage = 5U;
@@ -258,13 +277,18 @@ void App_Task(void)
   if (dbg_ovp_fault) faults |= IH_FAULT_OV;
   if (dbg_ocp_fault) faults |= IH_FAULT_OC;
   Trip(QualifyRunningUV(faults));
-  /* Restore the original power-up NTC bypass: it does not wait for START,
-   * valid protection settings, HMI synchronization or a nonzero bus reading.
-   * Heating faults latch the PWM OFF; they do not control this relay. */
-  if (!dbg_relay &&
-      (uint32_t)(now - relay_power_tick) >= IH_RELAY_DELAY_MS) {
-    HAL_GPIO_WritePin(RELAY_CTRL_GPIO_Port, RELAY_CTRL_Pin, GPIO_PIN_SET);
-    dbg_relay = 1U; relay_tick = now;
+  /* One-shot NTC bypass on the fresh DC MEAN, independent of START/HMI or
+   * saved thresholds. Do not use the sampled peak or a stale cached value.
+   * Once closed, STOP/heating alarms/bus dips keep it closed as before. */
+  if (!dbg_relay) {
+    Measurement m;
+    Measurement_Get(&m);
+    if (m.bus_valid && isfinite(m.bus_v) &&
+        (uint32_t)(now - m.bus_sample_tick) < IH_BUS_STALE_MS &&
+        m.bus_v >= IH_RELAY_ON_V) {
+      HAL_GPIO_WritePin(RELAY_CTRL_GPIO_Port, RELAY_CTRL_Pin, GPIO_PIN_SET);
+      dbg_relay = 1U; relay_tick = now;
+    }
   }
   if (InputsReady() && Hmi_LinkHealthy()) {
     if (!clear_tracking) { clear_tracking = 1U; clear_since = now; }
@@ -292,6 +316,9 @@ void App_Task(void)
         else if (!Power_Start(HAL_GetTick(),IH_POWER_TARGET_W,(float)Program_Get()->power_limit_w))
           Trip(IH_FAULT_POWER);
         else {
+          /* Waiting for the bus/relay may take seconds. Search/ramp timing
+           * starts from actual gate enable, not the earlier START request. */
+          Tracking_Start(HAL_GetTick());
           HAL_GPIO_WritePin(PWM_EN_N_GPIO_Port, PWM_EN_N_Pin, GPIO_PIN_RESET);
           ++dbg_pwm_start_count;
           dbg_pwm_en = 1U; state = IH_RUNNING; pwm_priming = 0U;

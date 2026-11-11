@@ -116,6 +116,7 @@ int follow=1
 int adcClipped=0
 int fwVersion=0
 int tripCount=0
+int tripMask=0
 int tripGate=0
 int tripMs=0
 int tripRaw1=0

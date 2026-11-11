@@ -10,6 +10,11 @@
 #define IH_FAULT_BUS (1UL << 10)
 #define IH_FAULT_COM (1UL << 11)
 #define IH_FAULT_POWER (1UL << 12)
+/* Frozen OV evidence bits may coexist. Diagnostic only; no filtering change. */
+#define IH_OV_SOFTWARE_MEAN 1U
+#define IH_OV_SOFTWARE_PEAK 2U
+#define IH_OV_COMP2_LEVEL   4U
+#define IH_OV_HRTIM_FLT1    8U
 /* Frozen OC source bits can coexist. Hardware input is PB11, not PA0. */
 #define IH_OC_SOFTWARE_PEAK 1U
 #define IH_OC_COMP6_LEVEL   2U

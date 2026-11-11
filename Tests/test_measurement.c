@@ -68,7 +68,7 @@ int main(void)
   float expected=10000.0f*k*k/IH_CURRENT_SCALE/IH_RESONANT_SCALE;
   unsigned i;
   hadc1.Instance=&regs1; hadc2.Instance=&regs2;
-  for(i=0;i<IH_ADC_BUF_SIZE;++i) dma_buffer[i]=2023U|(2023U<<16);
+  for(i=0;i<IH_ADC_BUF_SIZE;++i) dma_buffer[i]=1983U|(1983U<<16);
   HAL_ADC_ConvHalfCpltCallback(&hadc1); HAL_ADC_ConvCpltCallback(&hadc1);
   Measurement_Task(); Measurement_Get(&m);
   assert(m.power_valid==IH_CURRENT_SENSOR_CONNECTED && m.current_valid==IH_CURRENT_SENSOR_CONNECTED);
@@ -76,17 +76,17 @@ int main(void)
   ++tick; Measurement_Task(); Measurement_Get(&m);
   assert(m.power_sequence==1 && m.power_sample_tick==tick-1U);
   assert(fabsf(m.active_power_w)<0.0001f);
-  assert(m.current_rms_a<0.01f && m.voltage_rms_v<0.02f); /* measured 1.63 V midpoint */
-  assert(m.current_peak_a<0.0001f && fabsf(dbg_i_mean_adc_v-1.63026f)<0.0001f);
+  assert(m.current_rms_a<0.01f && m.voltage_rms_v<0.02f); /* measured 1.632 V midpoint */
+  assert(m.current_peak_a<0.0001f && fabsf(dbg_i_mean_adc_v-1.6319194f)<0.0001f);
   /* A constant 1.62 V input is a DC offset, not resonant AC current. The
    * conservative fixed-reference peak check must still see the offset. */
-  for(i=0;i<IH_ADC_BUF_SIZE;++i) dma_buffer[i]=2010U|(2023U<<16);
+  for(i=0;i<IH_ADC_BUF_SIZE;++i) dma_buffer[i]=1969U|(1983U<<16);
   HAL_ADC_ConvHalfCpltCallback(&hadc1); HAL_ADC_ConvCpltCallback(&hadc1);
   Measurement_Task(); Measurement_Get(&m);
   assert(m.adc_valid && m.current_valid==IH_CURRENT_SENSOR_CONNECTED);
   assert(m.current_rms_a<0.0001f && fabsf(m.active_power_w)<0.0001f);
-  assert(m.current_peak_a>0.18f && m.current_peak_a<0.19f);
-  assert(fabsf(dbg_i_mean_adc_v-1.61978f)<0.0001f && dbg_i_ac_rms_adc_v<0.0001f);
+  assert(m.current_peak_a>0.62f && m.current_peak_a<0.63f);
+  assert(fabsf(dbg_i_mean_adc_v-1.620398f)<0.0001f && dbg_i_ac_rms_adc_v<0.0001f);
   m=acquire(0,1800,2200);
   assert(m.power_valid==IH_CURRENT_SENSOR_CONNECTED && fabsf(m.active_power_w-expected)<0.0001f);
   assert(fabsf(m.current_rms_a-sqrtf(5000.0f)*k/IH_CURRENT_SCALE)<0.0001f);
@@ -171,8 +171,30 @@ int main(void)
     assert(dbg_phase_quality_v>0.35f && dbg_phase_quality_v<0.70f);
     assert(fabsf(acosf(m.power_factor)*57.2957795f-m.phase_deg)>10.0f);
   }
+  /* Independent board vector: new CT/burden gives 0.0924 V at 5 A peak;
+   * new voltage chain gives 0.0658354 V at 20 V peak. Quantized 4-point
+   * in-phase waves must measure ~3.54 Arms, ~14.14 Vrms and ~50 W. */
+  {
+    static const int unit[]={0,1,0,-1};
+    for(i=0;i<IH_ADC_BUF_SIZE;++i)
+      dma_buffer[i]=(uint32_t)(1983+112*unit[i%4])|
+                    ((uint32_t)(1983+80*unit[i%4])<<16);
+    HAL_ADC_ConvHalfCpltCallback(&hadc1); HAL_ADC_ConvCpltCallback(&hadc1);
+    ++tick; Measurement_Task(); Measurement_Get(&m);
+    assert(m.power_valid==IH_CURRENT_SENSOR_CONNECTED);
+    assert(fabsf(m.current_rms_a-3.535534f)<0.03f);
+    assert(fabsf(m.current_peak_a-5.0f)<0.05f);
+    assert(fabsf(m.voltage_rms_v-14.142136f)<0.15f);
+    assert(fabsf(m.active_power_w-50.0f)<0.7f);
+  }
+  hadc2.ErrorCode=HAL_ADC_ERROR_OVR|HAL_ADC_ERROR_DMA;
   HAL_ADC_ErrorCallback(&hadc2); Measurement_Task(); Measurement_Get(&m);
-  assert(!m.power_valid);
+  assert(!m.adc_valid && !m.power_valid && dbg_adc_error_count==1);
+  assert(dbg_adc1_error_bits==0 && dbg_adc2_error_bits==(HAL_ADC_ERROR_OVR|HAL_ADC_ERROR_DMA));
+  hadc1.ErrorCode=HAL_ADC_ERROR_JQOVF; HAL_ADC_ErrorCallback(&hadc1);
+  hadc1.ErrorCode=0; HAL_ADC_ErrorCallback(&hadc1);
+  assert(dbg_adc_error_count==3 && dbg_adc1_error_bits==HAL_ADC_ERROR_JQOVF);
+  assert(dbg_adc2_error_bits==(HAL_ADC_ERROR_OVR|HAL_ADC_ERROR_DMA));
   Measurement_BusTask(); Measurement_Get(&m);
   assert(m.workpiece.valid && m.workpiece.celsius==55.5f && !m.components.adc_valid);
   /* Exercise the actual BusTask -> 32 scan mean -> Measurement_Get chain,
@@ -187,9 +209,29 @@ int main(void)
   }
   Measurement_Get(&m);
   assert(m.bus_valid && dbg_bus_samples==1 && dbg_bus_raw==925);
-  assert(fabsf(m.bus_v-7.17276f)<0.001f && m.workpiece.celsius==55.5f);
-  assert(fabsf(Measurement_BusVoltageFromRaw(2021)-16.0f)<0.01f);
-  assert(fabsf(Measurement_BusVoltageFromRaw(1400)-11.0f)<0.01f);
+  assert(fabsf(m.bus_v-92.50137f)<0.001f && m.workpiece.celsius==55.5f);
+  /* Independently quantized nominal 1:401-divider vectors. There must be
+   * no leftover fitted gain, low segment, zero suppression or -0.5 V trim. */
+  {
+    static const uint16_t raw[]={0,50,100,200,300,3800};
+    static const float volts[]={0,5,10,20,30,380};
+    float previous=0;
+    unsigned j;
+    for(j=0;j<sizeof(raw)/sizeof(raw[0]);++j)
+      assert(fabsf(Measurement_BusVoltageFromRaw(raw[j])-volts[j])<0.05f);
+    /* Entire 12-bit range stays linear and monotonic. */
+    for(j=0;j<=4095;++j) {
+      float v=Measurement_BusVoltageFromRaw((uint16_t)j);
+      assert(isfinite(v) && v>=previous && v-previous<0.101f);
+      assert(fabsf(v-(float)j*3.37f/4095.0f*401.0f/3.3f)<0.0001f);
+      previous=v;
+    }
+    assert(Measurement_BusVoltageFromRaw(1)>0.0f && Measurement_BusVoltageFromRaw(1)<0.101f);
+    assert(fabsf(Measurement_BusVoltageFromRaw(4)-0.4000059f)<0.0001f);
+  }
+  /* Above the measured range, test inverse algebra only, not board accuracy. */
+  assert(Measurement_BusVoltageFromRaw(3799)<380.0f);
+  assert(Measurement_BusVoltageFromRaw(3800)>380.0f);
   assert(Measurement_BusVoltageFromRaw(0)==0.0f);
   assert(fabsf(m.bus_peak_v-m.bus_v)<0.0001f);
   assert(m.bus_rank1_raw==920 && m.bus_rank2_raw==925);
@@ -197,14 +239,18 @@ int main(void)
   for(i=0;i<IH_BUS_BURST_SCANS;++i) {
     ++tick; regs1.ISR=regs2.ISR=ADC_FLAG_JEOS;
     regs2.JDR1=regs2.JDR2=4;
+    if(i+1U==IH_BUS_BURST_SCANS) regs2.JDR2=43; /* preserve peak independently of mean */
     Measurement_BusTask();
   }
   Measurement_Get(&m);
-  assert(m.bus_valid && dbg_bus_samples==2 && dbg_bus_raw==4);
-  assert(m.bus_v==0.0f); /* calibrated near-zero is clamped, not made positive */
-  puts("PASS: two-point 11/16 V calibration, shared mean/peak correction, zero clamp and UART isolation");
+  assert(m.bus_valid && dbg_bus_samples==2 && dbg_bus_raw==5);
+  assert(fabsf(m.bus_v-0.5000074f)<0.0001f);
+  assert(m.bus_peak_v>4.3f && m.bus_peak_v<4.4f && m.bus_max_raw==43);
+  puts("PASS: nominal 1:401 bus conversion, no empirical compensation, 0/5/10/20/30/380 V, full-range linearity and shared mean/peak/DAC consistency");
+  puts("PASS: 3.3-ohm CT burden and new resonant divider recover physical RMS, peak and 50 W vectors");
   puts("PASS: paired-sample signed W, VA, power factor, DC bias, clipping and stale/error gating");
   puts("PASS: measured-mean AC RMS rejects 1.62 V DC; fixed-reference peak protection and disconnected-CT validity remain independent");
   puts("PASS: signed fundamental phase, independent DC offsets, weak/clipped/stale/incoherent gating, injection-gap rejection and CT reversal");
+  puts("PASS: 1.632 V midpoint and sticky per-ADC HAL error evidence without automatic fault clearing");
   return 0;
 }

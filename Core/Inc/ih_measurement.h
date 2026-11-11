@@ -42,6 +42,8 @@ extern volatile float dbg_phase_deg, dbg_phase_quality_i, dbg_phase_quality_v;
 extern volatile float dbg_fundamental_power_w;
 extern volatile uint32_t dbg_phase_valid, dbg_phase_samples;
 extern volatile uint32_t dbg_bus_raw, dbg_bus_samples, dbg_bus_valid, dbg_adc_valid;
+/* Sticky HAL error evidence until MCU reset; callback count includes code 0. */
+extern volatile uint32_t dbg_adc_error_count, dbg_adc1_error_bits, dbg_adc2_error_bits;
 extern volatile uint32_t dbg_temp1_raw, dbg_temp2_raw, dbg_temp_valid;
 extern volatile uint32_t dbg_bus_rank1_raw, dbg_bus_rank2_raw;
 extern volatile uint32_t dbg_bus_min_raw, dbg_bus_max_raw;

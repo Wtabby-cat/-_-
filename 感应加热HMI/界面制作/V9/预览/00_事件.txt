@@ -321,10 +321,16 @@ covx fwVersion,tFmt.txt,0,0
 tDiag.txt=tDiag.txt+tFmt.txt
 if(tripCount>0)
 {
-tDiag.txt="驱动前 "
+tDiag.txt="故障码："
+covx tripMask,tFmt.txt,0,0
+tDiag.txt=tDiag.txt+tFmt.txt
+tDiag.txt=tDiag.txt+" 驱动前 "
 if(tripGate==1)
 {
-tDiag.txt="驱动后 "
+tDiag.txt="故障码："
+covx tripMask,tFmt.txt,0,0
+tDiag.txt=tDiag.txt+tFmt.txt
+tDiag.txt=tDiag.txt+" 驱动后 "
 }
 covx tripMs,tFmt.txt,0,0
 tDiag.txt=tDiag.txt+tFmt.txt
@@ -556,6 +562,18 @@ tFoot.txt="过流已锁存，请检查采样与保护"
 if(msgCode==46)
 {
 tFoot.txt="功率环异常，已停止加热"
+}
+if(msgCode==47)
+{
+tFoot.txt="谐振ADC采样异常，已停止加热"
+}
+if(msgCode==48)
+{
+tFoot.txt="母线采样异常，已停止加热"
+}
+if(msgCode==49)
+{
+tFoot.txt="屏幕通信异常，已停止加热"
 }
 }
 
@@ -806,10 +824,16 @@ covx fwVersion,tFmt.txt,0,0
 tDiag.txt=tDiag.txt+tFmt.txt
 if(tripCount>0)
 {
-tDiag.txt="驱动前 "
+tDiag.txt="故障码："
+covx tripMask,tFmt.txt,0,0
+tDiag.txt=tDiag.txt+tFmt.txt
+tDiag.txt=tDiag.txt+" 驱动前 "
 if(tripGate==1)
 {
-tDiag.txt="驱动后 "
+tDiag.txt="故障码："
+covx tripMask,tFmt.txt,0,0
+tDiag.txt=tDiag.txt+tFmt.txt
+tDiag.txt=tDiag.txt+" 驱动后 "
 }
 covx tripMs,tFmt.txt,0,0
 tDiag.txt=tDiag.txt+tFmt.txt
@@ -1039,6 +1063,18 @@ tFoot.txt="过流已锁存，请检查采样与保护"
 if(msgCode==46)
 {
 tFoot.txt="功率环异常，已停止加热"
+}
+if(msgCode==47)
+{
+tFoot.txt="谐振ADC采样异常，已停止加热"
+}
+if(msgCode==48)
+{
+tFoot.txt="母线采样异常，已停止加热"
+}
+if(msgCode==49)
+{
+tFoot.txt="屏幕通信异常，已停止加热"
 }
 }
 
@@ -1408,10 +1444,16 @@ covx fwVersion,tFmt.txt,0,0
 tDiag.txt=tDiag.txt+tFmt.txt
 if(tripCount>0)
 {
-tDiag.txt="驱动前 "
+tDiag.txt="故障码："
+covx tripMask,tFmt.txt,0,0
+tDiag.txt=tDiag.txt+tFmt.txt
+tDiag.txt=tDiag.txt+" 驱动前 "
 if(tripGate==1)
 {
-tDiag.txt="驱动后 "
+tDiag.txt="故障码："
+covx tripMask,tFmt.txt,0,0
+tDiag.txt=tDiag.txt+tFmt.txt
+tDiag.txt=tDiag.txt+" 驱动后 "
 }
 covx tripMs,tFmt.txt,0,0
 tDiag.txt=tDiag.txt+tFmt.txt
@@ -1643,5 +1685,17 @@ tFoot.txt="过流已锁存，请检查采样与保护"
 if(msgCode==46)
 {
 tFoot.txt="功率环异常，已停止加热"
+}
+if(msgCode==47)
+{
+tFoot.txt="谐振ADC采样异常，已停止加热"
+}
+if(msgCode==48)
+{
+tFoot.txt="母线采样异常，已停止加热"
+}
+if(msgCode==49)
+{
+tFoot.txt="屏幕通信异常，已停止加热"
 }
 }

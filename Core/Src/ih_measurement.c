@@ -39,6 +39,7 @@ volatile float dbg_phase_deg, dbg_phase_quality_i, dbg_phase_quality_v;
 volatile float dbg_fundamental_power_w;
 volatile uint32_t dbg_phase_valid, dbg_phase_samples;
 volatile uint32_t dbg_bus_raw, dbg_bus_samples, dbg_bus_valid, dbg_adc_valid;
+volatile uint32_t dbg_adc_error_count, dbg_adc1_error_bits, dbg_adc2_error_bits;
 volatile uint32_t dbg_temp1_raw, dbg_temp2_raw, dbg_temp_valid;
 volatile uint32_t dbg_bus_rank1_raw, dbg_bus_rank2_raw;
 volatile uint32_t dbg_bus_min_raw, dbg_bus_max_raw;
@@ -174,7 +175,12 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *adc)
 }
 void HAL_ADC_ErrorCallback(ADC_HandleTypeDef *adc)
 {
-  if (adc == &hadc1 || adc == &hadc2) adc_error = 1U;
+  if (adc == &hadc1 || adc == &hadc2) {
+    if (adc == &hadc1) dbg_adc1_error_bits |= adc->ErrorCode;
+    else dbg_adc2_error_bits |= adc->ErrorCode;
+    ++dbg_adc_error_count;
+    adc_error = 1U; /* Keep the existing latched invalid/stop behaviour. */
+  }
 }
 
 void Measurement_SetFrequency(uint32_t frequency100)
@@ -294,6 +300,5 @@ void Measurement_Get(Measurement *out) { *out = measured; }
 float Measurement_BusVoltageFromRaw(uint16_t raw)
 {
   float nominal = ((float)raw * IH_ADC_VREF_V / 4095.0f - IH_BUS_BIAS_V) / IH_BUS_SCALE;
-  float calibrated = nominal * IH_BUS_CAL_GAIN + IH_BUS_CAL_OFFSET_V;
-  return calibrated > 0.0f ? calibrated : 0.0f;
+  return nominal > 0.0f ? nominal : 0.0f;
 }

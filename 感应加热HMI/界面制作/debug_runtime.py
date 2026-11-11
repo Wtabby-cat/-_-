@@ -8,7 +8,7 @@ def install(pages,g,windows,rgb,draw,blue,green,teal):
              alarmIn=0,alarmOn=0,alarmSec=0,alarmPush=0,alarmCode=0)
     g.update(msgCode=0,msgA=0,msgB=0,msgPush=0,internalFault=0,trackState=0,powerSet100=5000)
     g.update(temp110=0,temp210=0,temp1mv=0,temp2mv=0,follow=1,adcClipped=0)
-    g.update(fwVersion=0,tripCount=0,tripGate=0,tripMs=0,tripRaw1=0,tripRaw2=0)
+    g.update(fwVersion=0,tripCount=0,tripMask=0,tripGate=0,tripMs=0,tripRaw1=0,tripRaw2=0)
     for i in range(ALARM_ROWS):
         for prefix in ['ac','at','as']:g[f'{prefix}{i}']=0
     if CHANNEL_VALIDITY:
@@ -128,6 +128,8 @@ def install(pages,g,windows,rgb,draw,blue,green,teal):
                 for status,label in [(1,'未确认'),(2,'已确认'),(3,'已恢复')]:refresh += [f'if(as{i}=={status})','{',f'a{i}2.txt="{label}"','}']
                 refresh+=['}']
             refresh += ['if(internalFault>0)','{','tAlarm.txt="采样或通信异常"','tAlarm.pco=63488','}']
+            for mask,label in [(512,'谐振ADC采样异常'),(1024,'母线采样异常'),(2048,'屏幕通信异常')]:
+                refresh += [f'fieldOK=internalFault&{mask}','if(fieldOK>0)','{',f'tAlarm.txt="{label}"','}']
             refresh += ['fieldOK=internalFault&4','if(fieldOK>0)','{','tAlarm.txt="搜频或锁相异常"','}']
             refresh += ['fieldOK=internalFault&4096','if(fieldOK>0)','{','tAlarm.txt="功率闭环异常"','}']
         if p.pid in (0,5):
@@ -135,7 +137,10 @@ def install(pages,g,windows,rgb,draw,blue,green,teal):
             p.text('tDiag','',408,416,380,20,font=3)
             refresh += ['tDiag.txt="固件号："','covx fwVersion,tFmt.txt,0,0',
                         'tDiag.txt=tDiag.txt+tFmt.txt','if(tripCount>0)','{',
-                        'tDiag.txt="驱动前 "','if(tripGate==1)','{','tDiag.txt="驱动后 "','}',
+                        'tDiag.txt="故障码："','covx tripMask,tFmt.txt,0,0','tDiag.txt=tDiag.txt+tFmt.txt',
+                        'tDiag.txt=tDiag.txt+" 驱动前 "','if(tripGate==1)','{',
+                        'tDiag.txt="故障码："','covx tripMask,tFmt.txt,0,0','tDiag.txt=tDiag.txt+tFmt.txt',
+                        'tDiag.txt=tDiag.txt+" 驱动后 "','}',
                         'covx tripMs,tFmt.txt,0,0','tDiag.txt=tDiag.txt+tFmt.txt',
                         'tDiag.txt=tDiag.txt+"ms 原码"','covx tripRaw1,tFmt.txt,0,0',
                         'tDiag.txt=tDiag.txt+tFmt.txt','tDiag.txt=tDiag.txt+"/"',

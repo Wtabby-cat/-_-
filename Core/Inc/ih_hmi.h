@@ -13,4 +13,10 @@ extern volatile uint32_t dbg_hmi_requests, dbg_hmi_query_timeouts;
 extern volatile uint32_t dbg_hmi_rx_bytes, dbg_hmi_rx_frames, dbg_hmi_tx_bytes;
 extern volatile uint32_t dbg_hmi_start_requests, dbg_hmi_page, dbg_hmi_link;
 extern volatile uint32_t dbg_hmi_resyncs, dbg_hmi_last_error, dbg_hmi_error_bits;
+/* Last communication-stop source; does not clear on receive recovery. */
+#define IH_HMI_FAULT_RX      1U
+#define IH_HMI_FAULT_TX      2U
+#define IH_HMI_FAULT_LINK    4U
+#define IH_HMI_FAULT_REBOOT  8U
+extern volatile uint32_t dbg_hmi_fault_source;
 #endif

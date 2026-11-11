@@ -318,6 +318,18 @@ if(msgCode==46)
 {
 tFoot.txt="功率环异常，已停止加热"
 }
+if(msgCode==47)
+{
+tFoot.txt="谐振ADC采样异常，已停止加热"
+}
+if(msgCode==48)
+{
+tFoot.txt="母线采样异常，已停止加热"
+}
+if(msgCode==49)
+{
+tFoot.txt="屏幕通信异常，已停止加热"
+}
 }
 
 ## 页面后初始化
@@ -1363,6 +1375,18 @@ if(msgCode==46)
 {
 tFoot.txt="功率环异常，已停止加热"
 }
+if(msgCode==47)
+{
+tFoot.txt="谐振ADC采样异常，已停止加热"
+}
+if(msgCode==48)
+{
+tFoot.txt="母线采样异常，已停止加热"
+}
+if(msgCode==49)
+{
+tFoot.txt="屏幕通信异常，已停止加热"
+}
 }
 
 ## bTable  触摸弹起
@@ -2013,6 +2037,18 @@ tFoot.txt="过流已锁存，请检查采样与保护"
 if(msgCode==46)
 {
 tFoot.txt="功率环异常，已停止加热"
+}
+if(msgCode==47)
+{
+tFoot.txt="谐振ADC采样异常，已停止加热"
+}
+if(msgCode==48)
+{
+tFoot.txt="母线采样异常，已停止加热"
+}
+if(msgCode==49)
+{
+tFoot.txt="屏幕通信异常，已停止加热"
 }
 }
 ref th16

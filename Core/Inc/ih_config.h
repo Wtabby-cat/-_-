@@ -2,9 +2,14 @@
 #define IH_CONFIG_H
 
 /* Board calibration. ADC voltage = physical quantity * SCALE + BIAS. */
-#define IH_ADC_VREF_V             3.300f
-#define IH_CURRENT_SCALE          (10.0f * 5.6f / 1000.0f)
-#define IH_CURRENT_BIAS_V         1.63f
+/* User measured MCU VDDA/VREF+ at 3.37 V. ADC AND DAC share this reference.
+ * This is separate from the analogue 3.3 V/V gains and the 3.3-ohm burden. */
+#define IH_ADC_VREF_V             3.370f
+/* User-measured common midpoint / zero-crossing reference. */
+#define IH_SAMPLE_MIDPOINT_V      1.632f
+/* CT 1:1000, new 3.3-ohm burden (formerly 10 ohms), unchanged 5.6 gain. */
+#define IH_CURRENT_SCALE          (3.3f * 5.6f / 1000.0f)
+#define IH_CURRENT_BIAS_V         IH_SAMPLE_MIDPOINT_V
 /* User confirmed the CT at JP7 and LC_C_A -> PA0 are connected. This is an
  * explicit board configuration, NOT automatic unplug detection. Set to 0
  * when intentionally testing without the CT. Gates DISPLAY validity only;
@@ -12,8 +17,10 @@
 #ifndef IH_CURRENT_SENSOR_CONNECTED
 #define IH_CURRENT_SENSOR_CONNECTED 1
 #endif
-#define IH_RESONANT_SCALE         (0.4f * 3.3f / 31.0f)
-#define IH_RESONANT_BIAS_V        1.63f
+/* Both voltage dividers: 3 Mohm upper, 7.5 kohm lower; keep amplifier gains. */
+#define IH_VOLTAGE_DIVIDER        (7.5f / 3007.5f)
+#define IH_RESONANT_SCALE         (IH_VOLTAGE_DIVIDER * 0.4f * 3.3f)
+#define IH_RESONANT_BIAS_V        IH_SAMPLE_MIDPOINT_V
 /* Field-verified for this CT: red -> JP7-1, black -> JP7-2.
  * Swapping the previous connection changed ~+163 deg / negative watts
  * to ~-17 deg / positive watts. Retain +1 and preserve signed power.
@@ -29,27 +36,24 @@
 /* Phase-shifted bridge voltage is pulsed: its fundamental need not contain
  * most of its total energy. Current is expected to be close to sinusoidal. */
 #define IH_PHASE_MIN_VOLTAGE_QUALITY 0.35f
-#define IH_ZC_THRESHOLD_V         1.63f
-#define IH_HW_OVP_V               3.20f
-#define IH_HW_OCP_V               3.03f
+#define IH_ZC_THRESHOLD_V         IH_SAMPLE_MIDPOINT_V
 #define IH_DAC_CODE(v)            ((uint32_t)((v) / IH_ADC_VREF_V * 4095.0f))
 
-/* PA7 feeds COMP2 and ADC2_IN4. Nominal board: Vadc = Vbus / 31 * 3.3.
- * Software calibration below does not change divider/device voltage ratings
- * or the existing 3.20 V comparator DAC threshold. */
-#define IH_BUS_SCALE              (3.3f / 31.0f)
+/* PA7 feeds COMP2 and ADC2_IN4: Vadc = Vbus * 7.5 / 3007.5 * 3.3. */
+#define IH_BUS_SCALE              (IH_VOLTAGE_DIVIDER * 3.3f)
 #define IH_BUS_BIAS_V             0.0f
-/* User's two points (old display -> measured bus): 10.6 -> 11, 15.3 -> 16.
- * Apply the same correction to mean and peak protection values; clamp at 0. */
-#define IH_BUS_CAL_GAIN           (5.0f / 4.7f)
-#define IH_BUS_CAL_OFFSET_V       (-0.276595745f)
-/* Retain the matching HMI keypad bounds. This 110217 comparison build uses
- * the original 110214 MCU parameter validator and a fixed 3.03 V COMP6 DAC;
- * saving OC changes the software peak threshold only. */
-#define IH_LIMIT_OV_MAX_V         31
-#define IH_LIMIT_UV_MAX_V         30
-#define IH_LIMIT_OC_PEAK_MAX_A    26
+/* User requested nominal conversion only: no empirical gain, offset,
+ * piecewise fit, zero suppression or trim. Display/mean/peak share it. */
+/* User-selected maxima, shared by MCU validation and the HMI keypad. */
+#define IH_LIMIT_OV_MAX_V         380
+#define IH_LIMIT_UV_MAX_V         379
+#define IH_LIMIT_OC_PEAK_MAX_A    70
 #define IH_LIMIT_OT_MAX_C         999
+/* Fixed hardware ceiling; saved parameters set lower software trips.
+ * Nominal 380 V ceiling is ~3.127182 V (DAC 3799 at VREF+=3.37 V).
+ * Physical protection accuracy still depends on the analogue chain. */
+#define IH_HW_OVP_V               ((float)IH_LIMIT_OV_MAX_V * IH_BUS_SCALE + IH_BUS_BIAS_V)
+#define IH_HW_OCP_V               (IH_CURRENT_BIAS_V + (float)IH_LIMIT_OC_PEAK_MAX_A * IH_CURRENT_SCALE)
 #define IH_BUS_SAMPLE_MS          10U
 #define IH_BUS_BURST_PERIOD_MS    20U
 #define IH_BUS_BURST_SCANS        32U
@@ -79,7 +83,8 @@
 #endif
 #define IH_WORKPIECE_UART_BAUD     115200U
 #define IH_WORKPIECE_STALE_MS      2000U
-#define IH_RELAY_DELAY_MS         500U
+/* One-shot NTC bypass: wait for fresh valid DC bus >= 10 V after MCU boot. */
+#define IH_RELAY_ON_V             10.0f
 #define IH_RELAY_SETTLE_MS        20U
 #define IH_PWM_PRIME_MS           2U
 #define IH_PWM_SOFTSTART_MS       500U
@@ -127,7 +132,7 @@
 #define IH_HMI_QUERY_TIMEOUT_MS   600U
 #define IH_HMI_RESYNC_MS          3000U
 /* Visible build identifier for field diagnostics. */
-#define IH_FW_DIAG_VERSION        110219U
+#define IH_FW_DIAG_VERSION        110228U
 
 /* No guessed physical protection thresholds: configure/save on page 5. */
 #define IH_DEFAULT_OV_V           0

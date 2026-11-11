@@ -53,8 +53,11 @@ volatile uint32_t dbg_hmi_requests, dbg_hmi_query_timeouts;
 volatile uint32_t dbg_hmi_rx_bytes, dbg_hmi_rx_frames, dbg_hmi_tx_bytes;
 volatile uint32_t dbg_hmi_start_requests, dbg_hmi_page = 0xFFU, dbg_hmi_link;
 volatile uint32_t dbg_hmi_resyncs, dbg_hmi_last_error, dbg_hmi_error_bits;
+volatile uint32_t dbg_hmi_fault_source;
 
 static int Active(void) { return App_State() == IH_RUNNING || App_State() == IH_PRECHARGE; }
+static void CommunicationTrip(uint32_t source)
+{ dbg_hmi_fault_source = source; App_CommunicationFault(); }
 static void Begin(void) { batch_len = 0U; batch_bad = 0U; }
 static void Command(const char *format, ...)
 {
@@ -222,7 +225,7 @@ static void Request(const HmiEvent *e)
 static void Event(const HmiEvent *e)
 {
   if (e->type == 0x88U) {
-    if (Active()) App_CommunicationFault();
+    if (Active()) CommunicationTrip(IH_HMI_FAULT_REBOOT);
     booted = 0U; boot_tick = HAL_GetTick(); page = 0xFFU;
     save_active = 0U; query_waiting = 0U; quarantine = 1U;
     HAL_UART_AbortTransmit(&huart1);
@@ -363,6 +366,7 @@ static void Telemetry(void)
     Command("fwVersion=%lu", (unsigned long)IH_FW_DIAG_VERSION);
     /* Frozen trip values, independent of the current (possibly recovered) bus. */
     Command("tripCount=%lu", (unsigned long)dbg_trip_count);
+    Command("tripMask=%lu", (unsigned long)dbg_trip_mask);
     Command("tripGate=%lu", (unsigned long)dbg_trip_pwm_en);
     Command("tripMs=%lu", (unsigned long)(dbg_trip_elapsed_ms > 99999U ? 99999U : dbg_trip_elapsed_ms));
     Command("tripRaw1=%lu", (unsigned long)dbg_trip_bus_rank1_raw);
@@ -442,8 +446,9 @@ static void Alarms(void)
   }
   if (delta & faults & IH_FAULT_UV)
     Message(HMI_MSG_UV_LATCHED, (int32_t)(dbg_trip_bus_v * 10.0f + 0.5f), (int32_t)dbg_trip_uv_v);
-  if (delta & faults & (IH_FAULT_ADC | IH_FAULT_BUS | IH_FAULT_COM))
-    Message(HMI_MSG_INTERNAL_FAULT, 0, 0);
+  if (delta & faults & IH_FAULT_ADC) Message(HMI_MSG_ADC_FAILED,0,0);
+  if (delta & faults & IH_FAULT_BUS) Message(HMI_MSG_BUS_FAILED,0,0);
+  if (delta & faults & IH_FAULT_COM) Message(HMI_MSG_COM_FAILED,0,0);
   if (delta & faults & IH_FAULT_POWER) Message(HMI_MSG_POWER_FAILED,(int32_t)Power_Error(),0);
   if (delta & faults & IH_FAULT_TRACK) {
     HmiMessage message=HMI_MSG_TRACK_SIGNAL;
@@ -481,7 +486,8 @@ void Hmi_Task(void)
   Measurement_Get(&history_measurement);
   History_Record(now, &history_measurement, Program_Get()->target_c[0], App_Frequency100());
   if (rx_bad || tx_bad) {
-    if (Active()) App_CommunicationFault();
+    if (Active()) CommunicationTrip((rx_bad ? IH_HMI_FAULT_RX : 0U) |
+                                    (tx_bad ? IH_HMI_FAULT_TX : 0U));
     save_active = 0U; query_waiting = 0U; quarantine = 1U;
     page = 0xFFU;
     rx_tail = rx_head; HmiParser_Reset(&parser); rx_bad = 0U;
@@ -507,7 +513,7 @@ void Hmi_Task(void)
     refresh_tick = now; telemetry_pending = 1U;
     Begin(); Command("sendme"); Commit();
   }
-  if (booted && Active() && !Hmi_LinkHealthy()) App_CommunicationFault();
+  if (booted && Active() && !Hmi_LinkHealthy()) CommunicationTrip(IH_HMI_FAULT_LINK);
   if (booted && !Active() && !Hmi_LinkHealthy() && !save_active && !query_waiting &&
       (uint32_t)(now - resync_tick) >= IH_HMI_RESYNC_MS) {
     /* Foreground, RX-only recovery; HAL clears PE/FE/NE/ORE and flushes RDR.

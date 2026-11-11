@@ -44,5 +44,8 @@
   {"name":"OC_PEAK","text":"本次峰值过流","format":"oc"},
   {"name":"OC_HARDWARE","text":"硬件过流已锁存，请核对PB11"},
   {"name":"OC_LATCHED","text":"过流已锁存，请检查采样与保护"},
-  {"name":"POWER_FAILED","text":"功率环异常，已停止加热"}
+  {"name":"POWER_FAILED","text":"功率环异常，已停止加热"},
+  {"name":"ADC_FAILED","text":"谐振ADC采样异常，已停止加热"},
+  {"name":"BUS_FAILED","text":"母线采样异常，已停止加热"},
+  {"name":"COM_FAILED","text":"屏幕通信异常，已停止加热"}
 ]

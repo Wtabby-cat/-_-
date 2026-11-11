@@ -41,5 +41,13 @@ extern volatile uint32_t dbg_pwm_start_count;
 extern volatile float dbg_start_bus_v;
 extern volatile uint32_t dbg_trip_bus_rank1_raw, dbg_trip_bus_rank2_raw;
 extern volatile uint32_t dbg_trip_state, dbg_trip_phase10, dbg_trip_sample_age_ms;
+/* First-trip input flags: bit0 ADC valid, bit1 bus valid, bit2 power valid,
+ * bit3 clipped. ADC age is age of the last completed regular power window. */
+extern volatile uint32_t dbg_trip_inputs, dbg_trip_adc_age_ms;
+/* Global, volatile Watch copies; avoid file-static structure expressions.
+ * Current limit follows successful load/save. Trip values freeze first cause. */
+extern volatile int32_t dbg_ov_limit_v;
+extern volatile uint32_t dbg_trip_ov_source;
+extern volatile float dbg_trip_ov_limit_v, dbg_trip_bus_peak_v;
 extern volatile uint32_t dbg_trip_bus_min_raw, dbg_trip_bus_max_raw;
 #endif

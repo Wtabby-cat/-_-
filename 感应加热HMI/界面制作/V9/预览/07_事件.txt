@@ -282,17 +282,17 @@ tRange.txt="输入范围：12 至 40"
 if(field==36)
 {
 tParam.txt="母线过压 / V"
-tRange.txt="输入范围：2 至 31"
+tRange.txt="输入范围：2 至 380"
 }
 if(field==37)
 {
 tParam.txt="母线欠压 / V"
-tRange.txt="输入范围：1 至 30"
+tRange.txt="输入范围：1 至 379"
 }
 if(field==38)
 {
 tParam.txt="谐振峰值过流 / A"
-tRange.txt="输入范围：1 至 26"
+tRange.txt="输入范围：1 至 70"
 }
 if(field==39)
 {

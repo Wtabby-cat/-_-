@@ -31,15 +31,16 @@ DAC_HandleTypeDef hdac1,hdac4;
 static uint32_t tick;
 static int comparator_ov,comparator_oc,link_ok=1,timer_starts,output_starts,save_ok=1;
 static int load_ok;
-static uint32_t dac_oc_code,dac_zc_code;
-/* Exact 110214-based comparison: saved OC affects software protection only. */
+static uint32_t dac_oc_code,dac_ov_code,dac_zc_code;
+static unsigned relay_closes;
+/* Saved OC affects software protection; hardware stays at the 70 A ceiling. */
 #define EXPECT_OCP_CODE(peak) IH_DAC_CODE(IH_HW_OCP_V)
 static int freeze_bus_tick;
 static int phase_enabled=1;
 static int force_power;
 static float forced_power;
 static Measurement sample;
-volatile float dbg_i_mean_adc_v=1.63f;
+volatile float dbg_i_mean_adc_v=IH_CURRENT_BIAS_V;
 volatile uint32_t dbg_phase_reject,dbg_phase_samples;
 volatile float dbg_phase_quality_i,dbg_phase_quality_v;
 volatile float dbg_phase_rms_i_adc_v,dbg_phase_rms_v_adc_v;
@@ -85,6 +86,7 @@ HAL_StatusTypeDef HAL_DAC_SetValue(DAC_HandleTypeDef *d,uint32_t c,uint32_t a,ui
     assert(!dbg_pwm_en); dac_oc_code=v;
   }
   if (d==&hdac1 && c==DAC_CHANNEL_1) dac_zc_code=v;
+  if (d==&hdac1 && c==DAC_CHANNEL_2) dac_ov_code=v;
   return HAL_OK;
 }
 void HAL_HRTIM_FaultModeCtl(HRTIM_HandleTypeDef *h,uint32_t f,uint32_t e)
@@ -101,6 +103,7 @@ HAL_StatusTypeDef HAL_HRTIM_WaveformCountStop(HRTIM_HandleTypeDef *h,uint32_t ma
 { (void)h;(void)mask;return HAL_OK; }
 void HAL_GPIO_WritePin(GPIO_TypeDef *p,uint16_t pin,GPIO_PinState v)
 {
+  if(pin==RELAY_CTRL_Pin && v==GPIO_PIN_SET) ++relay_closes;
   if(pin==PWM_EN_N_Pin && v==GPIO_PIN_RESET) {
     assert(pwm_priming && tick-pwm_prime_tick>=IH_PWM_PRIME_MS);
     assert(timer_starts>0 && dbg_pwm_phase10==20U);
@@ -121,7 +124,6 @@ static void reset(void)
 int main(int argc, char **argv)
 {
   ProtectionParams changed={27,17,9,80,85,140};
-  uint32_t power_tick;
   hhrtim1.Instance=&fake_hrtim;
   fake_rcc.APB2ENR=RCC_APB2ENR_HRTIM1EN;
   fake_hrtim.sTimerxRegs[HRTIM_TIMERINDEX_TIMER_A].PERxR=33830;
@@ -131,35 +133,116 @@ int main(int argc, char **argv)
   fake_hrtim.sTimerxRegs[HRTIM_TIMERINDEX_TIMER_B].CMP2xR=22553;
   sample.bus_valid=sample.adc_valid=sample.power_valid=1; sample.bus_v=0; sample.current_peak_a=1; link_ok=0;
   if (argc>1 && strcmp(argv[1],"boot_saved")==0) load_ok=1;
-  power_tick=tick; App_Init(); hardware_barrier();
+  if(argc>1 && strcmp(argv[1],"relay_wrap")==0) tick=0xFFFFFFF0U;
+  App_Init(); hardware_barrier();
   assert(dac_zc_code==IH_DAC_CODE(IH_ZC_THRESHOLD_V));
+  assert(dac_ov_code==3799 && dac_oc_code==3554);
   if (load_ok) {
     assert(dac_oc_code==EXPECT_OCP_CODE(10.0f));
     assert(!dbg_pwm_en && App_Protection()->oc==10);
-    puts("PASS: comparison uses fixed COMP6 3.03 V after loading saved OC; zero crossing stays at 1.63 V");
+    assert(dbg_ov_limit_v==28);
+    puts("PASS: 380 V / 70 A hardware DAC ceilings survive saved settings; common zero reference is 1.632 V");
     return 0;
   }
   assert(dac_oc_code==IH_DAC_CODE(IH_HW_OCP_V));
   assert(!History_Recording() && !History_HasData());
-  if (argc>1 && strcmp(argv[1],"boot_fault")==0) {
-    /* A heating fault before the delay expires must not cancel the bypass. */
-    comparator_ov=1;
-    step(IH_RELAY_DELAY_MS-(tick-power_tick)-1U);
-    assert(App_State()==IH_FAULT && (App_Faults()&IH_FAULT_OV));
-    assert(!dbg_relay && !dbg_pwm_en && timer_starts==0);
-    step(1);
-    assert(dbg_relay && !dbg_pwm_en && App_State()==IH_FAULT);
-    App_Stop(); step(500);
-    assert(dbg_relay && !dbg_pwm_en && (App_Faults()&IH_FAULT_OV));
-    puts("PASS: a pre-existing alarm does not cancel the 500 ms NTC bypass");
+  if(argc>1 && strcmp(argv[1],"ov_sources")==0) {
+    ProtectionParams limit={25,1,70,85,90,150};
+    assert(dbg_ov_limit_v==0);
+    link_ok=1; sample.bus_v=24; sample.bus_peak_v=24;
+    assert(App_SaveProtection(&limit) && dbg_ov_limit_v==25);
+    limit.ov=30; save_ok=0;
+    assert(!App_SaveProtection(&limit) && dbg_ov_limit_v==25);
+    save_ok=1;
+    assert(App_SaveProtection(&limit) && dbg_ov_limit_v==30);
+    sample.bus_v=25; sample.bus_peak_v=29.9f; step(10);
+    assert(App_Faults()==0 && dbg_ov_limit_v==30);
+    start_and_wait();
+    sample.bus_peak_v=30.1f; sample.bus_max_raw=308; step(1);
+    assert(App_Faults()==IH_FAULT_OV && dbg_trip_mask==IH_FAULT_OV);
+    assert(dbg_trip_ov_source==IH_OV_SOFTWARE_PEAK && dbg_trip_pwm_en==1);
+    assert(dbg_trip_bus_v==25 && dbg_trip_bus_peak_v==30.1f && dbg_trip_ov_limit_v==30);
+    assert(dbg_trip_bus_max_raw==308 && dbg_relay && !dbg_pwm_en);
+    sample.bus_peak_v=24.9f; sample.bus_v=24.9f; reset();
+    limit.ov=25; assert(App_SaveProtection(&limit) && dbg_ov_limit_v==25);
+    sample.bus_v=25; sample.bus_peak_v=25; step(1);
+    assert(dbg_trip_ov_source==(IH_OV_SOFTWARE_MEAN|IH_OV_SOFTWARE_PEAK));
+    assert(dbg_trip_ov_limit_v==25);
+    sample.bus_v=24; sample.bus_peak_v=24; reset();
+    comparator_ov=1; step(1);
+    assert(dbg_trip_ov_source==IH_OV_COMP2_LEVEL && dbg_trip_bus_peak_v==24);
+    comparator_ov=0; reset();
+    fake_hrtim.sCommonRegs.ISR=HRTIM_ISR_FLT1; step(1);
+    assert(dbg_trip_ov_source==IH_OV_HRTIM_FLT1 && dbg_trip_bus_v==24);
+    limit.ov=30; assert(App_SaveProtection(&limit) && dbg_ov_limit_v==30);
+    sample.bus_v=23; sample.bus_peak_v=23; step(30);
+    assert(dbg_trip_ov_source==IH_OV_HRTIM_FLT1 && dbg_trip_ov_limit_v==25);
+    assert(dbg_trip_bus_v==24 && dbg_trip_bus_peak_v==24);
+    puts("PASS: global OV limit follows load/save only on success; 25/30 V thresholds, peak-only/mean/COMP2/FLT1 source bits and frozen first evidence");
     return 0;
   }
-  step(IH_RELAY_DELAY_MS-(tick-power_tick)-1U);
+  if(argc>1 && strcmp(argv[1],"relay_wrap")==0) {
+    freeze_bus_tick=1; sample.bus_v=10; sample.bus_sample_tick=0xFFFFFFF0U;
+    tick=20; step(1);
+    assert(dbg_relay && relay_closes==1 && !dbg_pwm_en && timer_starts==0);
+    sample.bus_v=0; App_Stop(); step(300);
+    assert(dbg_relay && relay_closes==1 && !dbg_pwm_en);
+    App_EmergencyOff(); assert(!dbg_relay && !dbg_pwm_en);
+    puts("PASS: 10 V relay freshness across tick wrap, one-shot hold and fatal off");
+    return 0;
+  }
+  if(argc>1 && strcmp(argv[1],"relay_start")==0) {
+    ProtectionParams low={28,1,10,85,90,150}; unsigned wait;
+    link_ok=1; sample.bus_v=7;
+    assert(App_SaveProtection(&low)); step(10);
+    assert(App_Start()); step(3000);
+    assert(App_State()==IH_PRECHARGE && !dbg_relay && !dbg_pwm_en && timer_starts==0);
+    sample.bus_v=10; sample.bus_sample_tick=tick; step(1);
+    assert(dbg_relay && relay_closes==1 && !dbg_pwm_en && timer_starts==0);
+    step(IH_RELAY_SETTLE_MS-1U); assert(timer_starts==0 && !dbg_pwm_en);
+    step(1); assert(timer_starts==1 && pwm_priming && !dbg_pwm_en);
+    step(IH_PWM_PRIME_MS-1U); assert(!dbg_pwm_en);
+    step(1);
+    assert(App_State()==IH_RUNNING && dbg_pwm_en && Tracking_Error()==TRACK_OK);
+    for(wait=0;wait<8000 && !Tracking_Locked() && App_State()==IH_RUNNING;++wait) step(1);
+    assert(App_State()==IH_RUNNING && Tracking_Locked());
+    sample.bus_v=7; step(50); App_Stop(); step(100);
+    assert(dbg_relay && relay_closes==1 && !dbg_pwm_en && App_State()==IH_IDLE);
+    puts("PASS: START waits >3 s below 10 V without PWM, relay settles 20 ms, gate primes and search timing starts at enable");
+    return 0;
+  }
+  if (argc>1 && strcmp(argv[1],"boot_fault")==0) {
+    /* Heating alarms preserve independent voltage-triggered NTC bypass. */
+    comparator_ov=1;
+    step(1500);
+    assert(App_State()==IH_FAULT && (App_Faults()&IH_FAULT_OV));
+    assert(!dbg_relay && !dbg_pwm_en && timer_starts==0);
+    sample.bus_v=10; sample.bus_valid=0; step(1); assert(!dbg_relay);
+    sample.bus_valid=1; sample.bus_sample_tick=tick; step(1);
+    assert(dbg_relay && !dbg_pwm_en && App_State()==IH_FAULT);
+    App_Stop(); step(500);
+    assert(dbg_relay && relay_closes==1 && !dbg_pwm_en && (App_Faults()&IH_FAULT_OV));
+    puts("PASS: 10 V NTC bypass remains independent of heating alarms, but requires a valid fresh bus");
+    return 0;
+  }
+  step(1500); /* elapsed boot time alone must NEVER close the bypass */
   assert(!dbg_relay && !dbg_pwm_en && App_State()==IH_IDLE);
-  step(1);
-  /* The bypass must close at power-up even with a zero bus, missing HMI and
-   * unsaved thresholds; PWM must remain disabled. */
+  sample.bus_v=12; sample.bus_valid=0; step(1); assert(!dbg_relay);
+  sample.bus_valid=1; sample.bus_v=NAN; step(1); assert(!dbg_relay);
+  sample.bus_v=INFINITY; step(1); assert(!dbg_relay);
+  sample.bus_v=12; freeze_bus_tick=1;
+  sample.bus_sample_tick=tick-IH_BUS_STALE_MS; step(1); assert(!dbg_relay);
+  sample.bus_sample_tick=tick+1000U; step(1); assert(!dbg_relay);
+  sample.bus_v=9.99f; sample.bus_peak_v=12; sample.bus_sample_tick=tick;
+  step(1); assert(!dbg_relay); /* mean, not the isolated sampled peak */
+  sample.bus_v=10; sample.bus_peak_v=0; sample.bus_sample_tick=tick;
+  step(1); freeze_bus_tick=0;
+  /* Valid mean >=10 V closes even without START/HMI/saved settings. */
   assert(dbg_relay && !dbg_pwm_en && App_State()==IH_IDLE && timer_starts==0);
+  assert(relay_closes==1);
+  sample.bus_v=9.9f; step(5); sample.bus_v=10.1f; step(5);
+  sample.bus_v=0; step(500);
+  assert(dbg_relay && relay_closes==1 && !dbg_pwm_en);
   assert(!App_Start() && (dbg_start_block&IH_START_PARAMS));
   step(IH_RELAY_SETTLE_MS);
   sample.bus_v=24; link_ok=1;
@@ -212,10 +295,11 @@ int main(int argc, char **argv)
   step(IH_UV_CONFIRM_MS+21U);
   assert((App_Faults()&IH_FAULT_UV) && dbg_relay && !dbg_pwm_en);
   assert(dbg_trip_mask==IH_FAULT_UV && dbg_trip_bus_v==17.0f && dbg_trip_uv_v==18.0f);
-  assert(dbg_trip_bus_raw>2200U && dbg_trip_bus_raw<2300U);
+  assert(dbg_trip_bus_raw==170U); /* 17 V, 1:401 divider, measured VREF+=3.37 V */
   assert(dbg_start_bus_v==24.0f && dbg_trip_pwm_en==1U);
   assert(dbg_trip_state==IH_RUNNING && dbg_trip_phase10>=IH_POWER_MIN_PHASE10 && dbg_trip_phase10<=IH_POWER_MAX_PHASE10);
   assert(dbg_trip_sample_age_ms<20U);
+  assert(dbg_trip_inputs==7U && dbg_trip_adc_age_ms<20U);
   {
     uint32_t starts=dbg_start_count, pwm_starts=dbg_pwm_start_count, trips=dbg_trip_count;
     sample.bus_v=24;
@@ -226,6 +310,7 @@ int main(int argc, char **argv)
     assert((App_Faults()&IH_FAULT_OV) && (App_Faults()&IH_FAULT_UV));
     assert(dbg_trip_count==trips && dbg_trip_mask==IH_FAULT_UV);
     assert(dbg_trip_bus_v==17.0f && dbg_trip_state==IH_RUNNING && dbg_trip_pwm_en==1U);
+    assert(dbg_trip_inputs==7U); /* later causes cannot overwrite first input evidence */
     comparator_ov=0;
     sample.bus_v=17;
   }
@@ -233,9 +318,11 @@ int main(int argc, char **argv)
   sample.bus_v=24; reset();
   start_and_wait(); sample.adc_valid=0; step(1);
   assert((App_Faults()&IH_FAULT_ADC) && dbg_relay && !dbg_pwm_en);
+  assert(!(dbg_trip_inputs&1U));
   assert(!App_ResetFault()); sample.adc_valid=1; reset();
   start_and_wait(); sample.bus_valid=0; step(1);
   assert((App_Faults()&IH_FAULT_BUS) && dbg_relay && !dbg_pwm_en);
+  assert(!(dbg_trip_inputs&2U));
   sample.bus_valid=1; reset();
   start_and_wait(); sample.current_rms_a=5.0f; sample.current_peak_a=7.1f; step(50);
   assert(App_State()==IH_RUNNING && App_Faults()==0U);
@@ -279,8 +366,10 @@ int main(int argc, char **argv)
     limit.oc=IH_LIMIT_OC_PEAK_MAX_A;
     assert(App_SaveProtection(&limit));
     ++limit.oc;
-    assert(App_SaveProtection(&limit) && App_Protection()->oc==limit.oc);
-    assert(dac_oc_code==EXPECT_OCP_CODE(26.0f));
+    assert(!App_SaveProtection(&limit) && App_Protection()->oc==IH_LIMIT_OC_PEAK_MAX_A);
+    limit.oc=IH_LIMIT_OC_PEAK_MAX_A; limit.ov=381;
+    assert(!App_SaveProtection(&limit));
+    assert(dac_oc_code==3554 && dac_ov_code==3799);
     assert(dac_zc_code==IH_DAC_CODE(IH_ZC_THRESHOLD_V));
   }
   /* Reproduce the user's exact 7 V bus / 1 V UV setting. Stable 7 V must
@@ -316,6 +405,10 @@ int main(int argc, char **argv)
   assert((App_Faults()&IH_FAULT_POWER) && !dbg_pwm_en && dbg_relay && Power_Error()==POWER_EXCESS);
   assert(dbg_power_trip_w==80);
   force_power=0; reset();
+  start_and_wait(); sample.adc_clipped=1; step(10);
+  assert((App_Faults()&IH_FAULT_POWER) && Power_Error()==POWER_FEEDBACK && (dbg_trip_inputs&8U));
+  assert(!dbg_pwm_en && dbg_relay);
+  sample.adc_clipped=0; step(20); reset();
   puts("PASS: exact 7 V/1 V UV startup, 0.6 V trip before/after gate and frozen raw capture");
   puts("PASS: standby/start/relay timing, hardware/software faults, stable reset and save interlocks");
   return 0;

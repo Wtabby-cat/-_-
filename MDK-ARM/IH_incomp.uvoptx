@@ -151,22 +151,22 @@
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>dbg_relay</ItemText>
+          <ItemText>dbg_bus_v</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>dbg_pwm_en</ItemText>
+          <ItemText>dbg_v_rms_v</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>dbg_ovp</ItemText>
+          <ItemText>dbg_i_rms_a</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>dbg_ocp</ItemText>
+          <ItemText>dbg_pwm_phase10</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
@@ -238,37 +238,47 @@
           <WinNumber>1</WinNumber>
           <ItemText>dbg_adc_clipped</ItemText>
         </Ww>
+        <Ww>
+          <count>18</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>dbg_trip_bus_max_raw</ItemText>
+        </Ww>
+        <Ww>
+          <count>19</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>\\IH_incomp\ih_app.c\protection.ov</ItemText>
+        </Ww>
       </WatchWindow1>
       <WatchWindow2>
         <Ww>
           <count>0</count>
           <WinNumber>2</WinNumber>
-          <ItemText>dbg_i_adc_v</ItemText>
+          <ItemText>dbg_power_w</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>2</WinNumber>
-          <ItemText>dbg_i_a</ItemText>
+          <ItemText>dbg_apparent_va</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>2</WinNumber>
-          <ItemText>dbg_v_adc_v</ItemText>
+          <ItemText>dbg_power_factor</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>2</WinNumber>
-          <ItemText>dbg_v_res_v</ItemText>
+          <ItemText>dbg_trip_ov_source</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>2</WinNumber>
-          <ItemText>dbg_zc_i</ItemText>
+          <ItemText>dbg_i_mean_adc_v</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>2</WinNumber>
-          <ItemText>dbg_zc_v</ItemText>
+          <ItemText>dbg_i_ac_rms_adc_v</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
@@ -317,7 +327,7 @@
       <DebugFlag>
         <trace>0</trace>
         <periodic>1</periodic>
-        <aLwin>1</aLwin>
+        <aLwin>0</aLwin>
         <aCover>0</aCover>
         <aSer1>0</aSer1>
         <aSer2>0</aSer2>

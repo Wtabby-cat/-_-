@@ -1515,7 +1515,7 @@
       "initial": 0,
       "unit": "V",
       "low": 2,
-      "high": 31
+      "high": 380
     },
     {
       "id": 37,
@@ -1524,7 +1524,7 @@
       "initial": 0,
       "unit": "V",
       "low": 1,
-      "high": 30
+      "high": 379
     },
     {
       "id": 38,
@@ -1533,7 +1533,7 @@
       "initial": 0,
       "unit": "A",
       "low": 1,
-      "high": 26
+      "high": 70
     },
     {
       "id": 39,

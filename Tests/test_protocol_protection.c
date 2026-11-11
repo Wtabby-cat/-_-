@@ -2,6 +2,7 @@
 #include "ih_protection.h"
 #include "ih_config.h"
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
 
 static void protocol(void)
@@ -65,15 +66,30 @@ static void protection(void)
   p.oc=10; p.ot1=1000; assert(!Protection_ParamsValid(&p));
   p.ot1=85; p.ov=IH_LIMIT_OV_MAX_V; p.uv=IH_LIMIT_UV_MAX_V; p.oc=IH_LIMIT_OC_PEAK_MAX_A;
   assert(Protection_ParamsValid(&p));
-  /* The diagnostic comparison intentionally restores the 110214 validator. */
-  ++p.ov; ++p.oc; assert(Protection_ParamsValid(&p));
+  ++p.ov; assert(!Protection_ParamsValid(&p)); --p.ov;
+  ++p.oc; assert(!Protection_ParamsValid(&p)); --p.oc;
+  ++p.uv; assert(!Protection_ParamsValid(&p)); --p.uv;
+  in.running=1; in.hw_ov=in.hw_oc=0; in.adc_valid=in.bus_valid=1;
+  in.bus_v=379.5f; in.current_peak_a=69.9f;
+  assert(Protection_Evaluate(&p,&in)==0);
+  in.bus_v=380; assert(Protection_Evaluate(&p,&in)==IH_FAULT_OV);
+  in.bus_v=379.5f; in.current_peak_a=70;
+  assert(Protection_Evaluate(&p,&in)==IH_FAULT_OC);
   /* Sanity-check the nominal electrical bounds against the configured chain.
    * These bounds do not certify the power devices or PB11's analogue gain. */
   assert(IH_CURRENT_BIAS_V-IH_CURRENT_SCALE*IH_LIMIT_OC_PEAK_MAX_A>0.1f);
   assert(IH_CURRENT_BIAS_V+IH_CURRENT_SCALE*IH_LIMIT_OC_PEAK_MAX_A<3.1f);
-  assert(((float)IH_LIMIT_OV_MAX_V-IH_BUS_CAL_OFFSET_V)/IH_BUS_CAL_GAIN*IH_BUS_SCALE<IH_HW_OVP_V);
+  assert(fabsf(IH_HW_OVP_V-3.1271820f)<0.00001f);
+  assert(fabsf(IH_HW_OCP_V-2.9256f)<0.00001f);
+  assert(IH_HW_OVP_V<IH_ADC_VREF_V && IH_HW_OCP_V<IH_ADC_VREF_V);
+  assert(IH_DAC_CODE(IH_ZC_THRESHOLD_V)==1983);
+  assert(IH_DAC_CODE(IH_HW_OVP_V)==3799 && IH_DAC_CODE(IH_HW_OCP_V)==3554);
+  {
+    float nominal=(float)IH_DAC_CODE(IH_HW_OVP_V)*IH_ADC_VREF_V/4095.0f/IH_BUS_SCALE;
+    assert(nominal>379.8f && nominal<=380.0f);
+  }
   /* Hardware trips remain effective even with no saved software settings. */
-  { ProtectionParams empty={0}; assert(!Protection_ParamsValid(&empty));
+  { ProtectionParams empty={0}; in.hw_ov=in.hw_oc=1; assert(!Protection_ParamsValid(&empty));
     assert(Protection_Evaluate(&empty,&in)==(IH_FAULT_OV|IH_FAULT_OC)); }
 }
 int main(void)

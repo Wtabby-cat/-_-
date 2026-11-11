@@ -102,9 +102,9 @@ for pid in range(7):
             expected = f'{MESSAGES[code-1]["text"]}：{bus10//10}.{bus10%10}V，门限{threshold}V，请复位'
             assert rt.get('tFoot.txt') == expected
 rt.enter(5)
-rt.g.update(internalFault=1024, dirty=1)
-rt.tick()
-assert rt.get('tAlarm.txt') == '采样或通信异常'
+for mask,label in ((512,'谐振ADC采样异常'),(1024,'母线采样异常'),(2048,'屏幕通信异常')):
+    rt.g.update(internalFault=mask,dirty=1); rt.tick()
+    assert rt.get('tAlarm.txt')==label
 rt.g.update(internalFault=0, dirty=1)
 rt.tick()
 assert rt.get('tAlarm.txt') == '无'
@@ -116,9 +116,9 @@ for pid in (0,5):
     rt.enter(pid)
     assert rt.get('tDiag.txt') == '固件号：110201'
     for gate, elapsed, raw1, raw2 in ((0,1,82,79),(1,60,82,79),(1,99999,4095,4095)):
-        rt.g.update(tripCount=1,tripGate=gate,tripMs=elapsed,tripRaw1=raw1,tripRaw2=raw2,dirty=1)
+        rt.g.update(tripCount=1,tripMask=1024,tripGate=gate,tripMs=elapsed,tripRaw1=raw1,tripRaw2=raw2,dirty=1)
         rt.tick()
-        line=f'驱动{"后" if gate else "前"} {elapsed}ms 原码{raw1}/{raw2}'
+        line=f'故障码：1024 驱动{"后" if gate else "前"} {elapsed}ms 原码{raw1}/{raw2}'
         assert rt.get('tDiag.txt') == line
         assert sum(glyphs[c.encode('gbk').ljust(2,b'\0')] for c in line)<=rt.objs['tDiag']['attr']['w']-4
         rt.g.update(bus10=70,dirty=1)

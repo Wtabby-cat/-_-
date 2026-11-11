@@ -457,6 +457,21 @@ if(internalFault>0)
 tAlarm.txt="采样或通信异常"
 tAlarm.pco=63488
 }
+fieldOK=internalFault&512
+if(fieldOK>0)
+{
+tAlarm.txt="谐振ADC采样异常"
+}
+fieldOK=internalFault&1024
+if(fieldOK>0)
+{
+tAlarm.txt="母线采样异常"
+}
+fieldOK=internalFault&2048
+if(fieldOK>0)
+{
+tAlarm.txt="屏幕通信异常"
+}
 fieldOK=internalFault&4
 if(fieldOK>0)
 {
@@ -472,10 +487,16 @@ covx fwVersion,tFmt.txt,0,0
 tDiag.txt=tDiag.txt+tFmt.txt
 if(tripCount>0)
 {
-tDiag.txt="驱动前 "
+tDiag.txt="故障码："
+covx tripMask,tFmt.txt,0,0
+tDiag.txt=tDiag.txt+tFmt.txt
+tDiag.txt=tDiag.txt+" 驱动前 "
 if(tripGate==1)
 {
-tDiag.txt="驱动后 "
+tDiag.txt="故障码："
+covx tripMask,tFmt.txt,0,0
+tDiag.txt=tDiag.txt+tFmt.txt
+tDiag.txt=tDiag.txt+" 驱动后 "
 }
 covx tripMs,tFmt.txt,0,0
 tDiag.txt=tDiag.txt+tFmt.txt
@@ -707,6 +728,18 @@ tFoot.txt="过流已锁存，请检查采样与保护"
 if(msgCode==46)
 {
 tFoot.txt="功率环异常，已停止加热"
+}
+if(msgCode==47)
+{
+tFoot.txt="谐振ADC采样异常，已停止加热"
+}
+if(msgCode==48)
+{
+tFoot.txt="母线采样异常，已停止加热"
+}
+if(msgCode==49)
+{
+tFoot.txt="屏幕通信异常，已停止加热"
 }
 }
 
@@ -1118,6 +1151,21 @@ if(internalFault>0)
 tAlarm.txt="采样或通信异常"
 tAlarm.pco=63488
 }
+fieldOK=internalFault&512
+if(fieldOK>0)
+{
+tAlarm.txt="谐振ADC采样异常"
+}
+fieldOK=internalFault&1024
+if(fieldOK>0)
+{
+tAlarm.txt="母线采样异常"
+}
+fieldOK=internalFault&2048
+if(fieldOK>0)
+{
+tAlarm.txt="屏幕通信异常"
+}
 fieldOK=internalFault&4
 if(fieldOK>0)
 {
@@ -1133,10 +1181,16 @@ covx fwVersion,tFmt.txt,0,0
 tDiag.txt=tDiag.txt+tFmt.txt
 if(tripCount>0)
 {
-tDiag.txt="驱动前 "
+tDiag.txt="故障码："
+covx tripMask,tFmt.txt,0,0
+tDiag.txt=tDiag.txt+tFmt.txt
+tDiag.txt=tDiag.txt+" 驱动前 "
 if(tripGate==1)
 {
-tDiag.txt="驱动后 "
+tDiag.txt="故障码："
+covx tripMask,tFmt.txt,0,0
+tDiag.txt=tDiag.txt+tFmt.txt
+tDiag.txt=tDiag.txt+" 驱动后 "
 }
 covx tripMs,tFmt.txt,0,0
 tDiag.txt=tDiag.txt+tFmt.txt
@@ -1367,6 +1421,18 @@ if(msgCode==46)
 {
 tFoot.txt="功率环异常，已停止加热"
 }
+if(msgCode==47)
+{
+tFoot.txt="谐振ADC采样异常，已停止加热"
+}
+if(msgCode==48)
+{
+tFoot.txt="母线采样异常，已停止加热"
+}
+if(msgCode==49)
+{
+tFoot.txt="屏幕通信异常，已停止加热"
+}
 }
 
 ## bStop 停止加热 触摸弹起
@@ -1405,7 +1471,7 @@ field=36
 backpg=5
 editval=ov
 editmin=2
-editmax=31
+editmax=380
 page 7
 }
 
@@ -1418,7 +1484,7 @@ field=37
 backpg=5
 editval=uv
 editmin=1
-editmax=30
+editmax=379
 page 7
 }
 
@@ -1431,7 +1497,7 @@ field=38
 backpg=5
 editval=oc
 editmin=1
-editmax=26
+editmax=70
 page 7
 }
 
@@ -1996,6 +2062,21 @@ if(internalFault>0)
 tAlarm.txt="采样或通信异常"
 tAlarm.pco=63488
 }
+fieldOK=internalFault&512
+if(fieldOK>0)
+{
+tAlarm.txt="谐振ADC采样异常"
+}
+fieldOK=internalFault&1024
+if(fieldOK>0)
+{
+tAlarm.txt="母线采样异常"
+}
+fieldOK=internalFault&2048
+if(fieldOK>0)
+{
+tAlarm.txt="屏幕通信异常"
+}
 fieldOK=internalFault&4
 if(fieldOK>0)
 {
@@ -2011,10 +2092,16 @@ covx fwVersion,tFmt.txt,0,0
 tDiag.txt=tDiag.txt+tFmt.txt
 if(tripCount>0)
 {
-tDiag.txt="驱动前 "
+tDiag.txt="故障码："
+covx tripMask,tFmt.txt,0,0
+tDiag.txt=tDiag.txt+tFmt.txt
+tDiag.txt=tDiag.txt+" 驱动前 "
 if(tripGate==1)
 {
-tDiag.txt="驱动后 "
+tDiag.txt="故障码："
+covx tripMask,tFmt.txt,0,0
+tDiag.txt=tDiag.txt+tFmt.txt
+tDiag.txt=tDiag.txt+" 驱动后 "
 }
 covx tripMs,tFmt.txt,0,0
 tDiag.txt=tDiag.txt+tFmt.txt
@@ -2246,5 +2333,17 @@ tFoot.txt="过流已锁存，请检查采样与保护"
 if(msgCode==46)
 {
 tFoot.txt="功率环异常，已停止加热"
+}
+if(msgCode==47)
+{
+tFoot.txt="谐振ADC采样异常，已停止加热"
+}
+if(msgCode==48)
+{
+tFoot.txt="母线采样异常，已停止加热"
+}
+if(msgCode==49)
+{
+tFoot.txt="屏幕通信异常，已停止加热"
 }
 }

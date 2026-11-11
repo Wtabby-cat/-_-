@@ -28,12 +28,13 @@ static int last_message, message_a, message_b;
 static unsigned label_writes, rx_aborts;
 static int rx_poisoned;
 volatile uint32_t dbg_start_block;
+volatile uint32_t dbg_trip_mask;
 volatile float dbg_trip_bus_v, dbg_trip_uv_v;
 volatile uint32_t dbg_trip_count, dbg_trip_pwm_en, dbg_trip_elapsed_ms;
 volatile uint32_t dbg_trip_bus_rank1_raw, dbg_trip_bus_rank2_raw;
 volatile uint32_t dbg_trip_oc_source;
 volatile float dbg_trip_i_peak_a,dbg_trip_oc_limit_a;
-static unsigned screen_fw, screen_trip_count, screen_trip_gate, screen_trip_ms;
+static unsigned screen_fw, screen_trip_count, screen_trip_gate, screen_trip_ms, screen_trip_mask;
 static unsigned screen_raw1, screen_raw2;
 static int start_ok=1;
 volatile uint32_t dbg_pwm_phase10=600;
@@ -105,6 +106,7 @@ static void screen_command(const char *cmd)
   if(!strncmp(cmd,"msgB=",5)) message_b=atoi(cmd+5);
   if(!strncmp(cmd,"fwVersion=",10)) screen_fw=(unsigned)atoi(cmd+10);
   if(!strncmp(cmd,"tripCount=",10)) screen_trip_count=(unsigned)atoi(cmd+10);
+  if(!strncmp(cmd,"tripMask=",9)) screen_trip_mask=(unsigned)atoi(cmd+9);
   if(!strncmp(cmd,"tripGate=",9)) screen_trip_gate=(unsigned)atoi(cmd+9);
   if(!strncmp(cmd,"tripMs=",7)) screen_trip_ms=(unsigned)atoi(cmd+7);
   if(!strncmp(cmd,"tripRaw1=",9)) screen_raw1=(unsigned)atoi(cmd+9);
@@ -322,6 +324,7 @@ int main(int argc,char **argv)
   phase_connected=0; step(2000); assert(!(screen_flags&64));
   phase_connected=1; screen_page=0; step(2000);
   reply_pages=0; step(4500); assert(state==IH_FAULT && (faults&IH_FAULT_COM));
+  assert(dbg_hmi_fault_source==IH_HMI_FAULT_LINK);
   /* A disconnected return wire must still leave a useful one-way TX message. */
   { uint8_t reboot[]={0x88,255,255,255}; receive(reboot,sizeof(reboot)); }
   step(3000);
@@ -337,10 +340,12 @@ int main(int argc,char **argv)
   assert(History_Generation()==before && History_Get(0)!=NULL);
   faults=IH_FAULT_UV; state=IH_FAULT; dbg_trip_bus_v=17.0f; dbg_trip_uv_v=18.0f;
   dbg_trip_count=1; dbg_trip_pwm_en=1; dbg_trip_elapsed_ms=60;
+  dbg_trip_mask=IH_FAULT_UV;
   dbg_trip_bus_rank1_raw=81; dbg_trip_bus_rank2_raw=79;
   step(1500);
   assert(last_message==HMI_MSG_UV_LATCHED && message_a==170 && message_b==18);
   assert(screen_trip_count==1 && screen_trip_gate==1 && screen_trip_ms==60);
+  assert(screen_trip_mask==IH_FAULT_UV);
   assert(screen_raw1==81 && screen_raw2==79);
   dbg_start_block=IH_START_LATCHED|IH_START_STATE;
   request(0,1); step(1500);
@@ -357,6 +362,11 @@ int main(int argc,char **argv)
   assert(dbg_hmi_last_error==(HAL_UART_ERROR_FE|HAL_UART_ERROR_ORE));
   assert((dbg_hmi_error_bits&HAL_UART_ERROR_FE)!=0 && (dbg_hmi_error_bits&HAL_UART_ERROR_ORE)!=0);
   assert(label_writes==0 && state==IH_IDLE);
+  state=IH_RUNNING; huart1.ErrorCode=HAL_UART_ERROR_NE;
+  HAL_UART_ErrorCallback(&huart1); step(2000);
+  assert(state==IH_FAULT && (faults&IH_FAULT_COM) && dbg_hmi_fault_source==IH_HMI_FAULT_RX);
+  assert(last_message==HMI_MSG_COM_FAILED && (dbg_hmi_error_bits&HAL_UART_ERROR_NE));
+  request(5,6); step(1500); assert(state==IH_IDLE);
   dbg_trip_oc_source=IH_OC_SOFTWARE_PEAK; dbg_trip_i_peak_a=10.1f; dbg_trip_oc_limit_a=10;
   faults=IH_FAULT_OC; state=IH_FAULT; step(1500);
   request(5,6); step(1500);
@@ -368,6 +378,16 @@ int main(int argc,char **argv)
   faults=IH_FAULT_POWER; state=IH_FAULT; step(1500);
   assert(last_message==HMI_MSG_POWER_FAILED && message_a==POWER_FEEDBACK);
   request(5,6); step(1500);
+  {
+    static const uint32_t bits[]={IH_FAULT_ADC,IH_FAULT_BUS,IH_FAULT_COM};
+    static const HmiMessage messages[]={HMI_MSG_ADC_FAILED,HMI_MSG_BUS_FAILED,HMI_MSG_COM_FAILED};
+    unsigned i;
+    for(i=0;i<sizeof(bits)/sizeof(bits[0]);++i) {
+      faults=bits[i]; state=IH_FAULT; step(1500);
+      assert(last_message==(int)messages[i]);
+      request(5,6); step(1500);
+    }
+  }
   puts("PASS: HMI queue, single execution, readback/save, timeout recovery, alarms and link-loss stop");
   return 0;
 }

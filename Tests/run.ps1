@@ -32,6 +32,12 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'NTC bypass boot-fault test failed' }
     & ./tmp/test_app.exe boot_saved
     if ($LASTEXITCODE -ne 0) { throw 'Saved hardware OCP threshold boot test failed' }
+    & ./tmp/test_app.exe relay_start
+    if ($LASTEXITCODE -ne 0) { throw '10 V relay wait/settle/PWM startup test failed' }
+    & ./tmp/test_app.exe relay_wrap
+    if ($LASTEXITCODE -ne 0) { throw '10 V relay tick-wrap/latch test failed' }
+    & ./tmp/test_app.exe ov_sources
+    if ($LASTEXITCODE -ne 0) { throw 'OV limit mirror/source/frozen evidence test failed' }
     & gcc @flags @includeArgs Tests/test_pwm.c -o tmp/test_pwm.exe
     if ($LASTEXITCODE -ne 0) { throw 'PWM test compilation failed' }
     & ./tmp/test_pwm.exe
